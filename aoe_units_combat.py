@@ -1,11 +1,10 @@
 def get_aoe_units_combat_js():
     return """
     // =========================================================================
-    // AGE OF EMPIRES 3D UNITS, COMBAT, HARVESTING & SELECTION ENGINE
+    // AGE OF EMPIRES 3D UNITS, ANIMATED TOOLS, CARGO & SELECTION
     // =========================================================================
 
-    // Selection Ring Indicator Decal
-    const ringGeom = new THREE.RingGeometry(1.2, 1.4, 24);
+    const ringGeom = new THREE.RingGeometry(1.2, 1.45, 24);
     ringGeom.rotateX(-Math.PI / 2);
     const friendlyRingMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide });
     const enemyRingMat = new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide });
@@ -17,366 +16,426 @@ def get_aoe_units_combat_js():
       return ring;
     }
 
-    // 1. VILLAGER MESH (Male & Female with Tool & Cargo Switching)
+    function addUnitHitbox(group, radius = 1.3, height = 2.8) {
+      const hitboxGeom = new THREE.CylinderGeometry(radius, radius, height, 8);
+      const hitboxMat = new THREE.MeshBasicMaterial({ visible: false });
+      const hitbox = new THREE.Mesh(hitboxGeom, hitboxMat);
+      hitbox.position.y = height * 0.5;
+      group.add(hitbox);
+      return hitbox;
+    }
+
+    // 1. VILLAGER (Animated Walking Legs, Dynamic Tool & Cargo)
     function createVillagerMesh(isEnemy) {
       const group = new THREE.Group();
       const teamColor = isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY;
       const tunicMat = new THREE.MeshLambertMaterial({ color: teamColor });
-      const skinMat = new THREE.MeshLambertMaterial({ color: 0xe0ac69 });
-      const pantsMat = new THREE.MeshLambertMaterial({ color: 0x4a3728 });
+      const skinMat = new THREE.MeshLambertMaterial({ color: 0xdfab76 });
+      const pantsMat = new THREE.MeshLambertMaterial({ color: 0x3d2b1f });
 
-      // Legs
-      const legGeom = new THREE.BoxGeometry(0.35, 1.1, 0.35);
+      // Legs (For Walking Animation)
+      const legGeom = new THREE.BoxGeometry(0.3, 1.0, 0.3);
       const legL = new THREE.Mesh(legGeom, pantsMat);
-      legL.position.set(-0.25, 0.55, 0);
+      legL.position.set(-0.22, 0.5, 0);
       group.add(legL);
       const legR = new THREE.Mesh(legGeom, pantsMat);
-      legR.position.set(0.25, 0.55, 0);
+      legR.position.set(0.22, 0.5, 0);
       group.add(legR);
 
       // Torso / Tunic
-      const torsoGeom = new THREE.BoxGeometry(0.85, 1.1, 0.55);
-      const torso = new THREE.Mesh(torsoGeom, tunicMat);
-      torso.position.y = 1.45;
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.0, 0.5), tunicMat);
+      torso.position.y = 1.4;
       torso.castShadow = true;
       group.add(torso);
 
       // Head
-      const headGeom = new THREE.SphereGeometry(0.32, 8, 8);
-      const head = new THREE.Mesh(headGeom, skinMat);
-      head.position.y = 2.2;
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), skinMat);
+      head.position.y = 2.1;
       group.add(head);
 
-      // Hat / Straw Cap
-      const hatGeom = new THREE.ConeGeometry(0.5, 0.35, 8);
-      const hat = new THREE.Mesh(hatGeom, thatchMat);
-      hat.position.y = 2.45;
+      // Straw Cap
+      const hat = new THREE.Mesh(new THREE.ConeGeometry(0.48, 0.32, 8), thatchMat);
+      hat.position.y = 2.35;
       group.add(hat);
 
-      // Dynamic Tool Mount (Right Hand)
-      const toolMount = new THREE.Group();
-      toolMount.position.set(0.55, 1.4, 0.2);
+      // Right Arm & Dynamic Tool Mount
+      const armR = new THREE.Group();
+      armR.position.set(0.5, 1.6, 0);
+      const armMesh = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.7, 0.2), tunicMat);
+      armMesh.position.y = -0.3;
+      armR.add(armMesh);
 
-      // Tool 1: Wood Axe
+      // Tool 1: Iron Woodcutter Axe
       const axeGroup = new THREE.Group();
-      const axeHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.2, 6), timberMat);
-      axeHandle.position.y = 0.2;
+      axeGroup.position.set(0, -0.6, 0.2);
+      const axeHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.1, 6), timberMat);
       axeGroup.add(axeHandle);
-      const axeHead = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.25, 0.08), ironMat);
-      axeHead.position.set(0.12, 0.6, 0);
-      axeGroup.add(axeHead);
-      toolMount.add(axeGroup);
+      const axeBlade = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.22, 0.06), ironMat);
+      axeBlade.position.set(0.12, 0.45, 0);
+      axeGroup.add(axeBlade);
+      armR.add(axeGroup);
 
-      // Tool 2: Pickaxe
+      // Tool 2: Miner Pickaxe
       const pickGroup = new THREE.Group();
-      const pickHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.3, 6), timberMat);
-      pickHandle.position.y = 0.2;
+      pickGroup.position.set(0, -0.6, 0.2);
+      const pickHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.2, 6), timberMat);
       pickGroup.add(pickHandle);
-      const pickHead = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.12, 0.08), ironMat);
-      pickHead.position.set(0, 0.65, 0);
+      const pickHead = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, 0.06), ironMat);
+      pickHead.position.set(0, 0.5, 0);
       pickGroup.add(pickHead);
       pickGroup.visible = false;
-      toolMount.add(pickGroup);
+      armR.add(pickGroup);
 
-      // Tool 3: Hammer
+      // Tool 3: Carpenter Hammer
       const hammerGroup = new THREE.Group();
-      const hammerHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.9, 6), timberMat);
+      hammerGroup.position.set(0, -0.6, 0.2);
+      const hammerHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.8, 6), timberMat);
       hammerGroup.add(hammerHandle);
-      const hammerHead = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.2, 0.2), ironMat);
-      hammerHead.position.set(0, 0.45, 0);
+      const hammerHead = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.16, 0.16), ironMat);
+      hammerHead.position.set(0, 0.35, 0);
       hammerGroup.add(hammerHead);
       hammerGroup.visible = false;
-      toolMount.add(hammerGroup);
+      armR.add(hammerGroup);
 
-      group.add(toolMount);
+      // Tool 4: Hunter Spear / Bow
+      const spearGroup = new THREE.Group();
+      spearGroup.position.set(0, -0.6, 0.2);
+      const spearShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.6, 6), timberMat);
+      spearGroup.add(spearShaft);
+      const spearTip = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.35, 6), ironMat);
+      spearTip.position.y = 0.8;
+      spearGroup.add(spearTip);
+      spearGroup.visible = false;
+      armR.add(spearGroup);
+
+      group.add(armR);
 
       // Carried Resource Cargo (Back / Hip)
       const cargoGroup = new THREE.Group();
-      cargoGroup.position.set(0, 1.4, -0.4);
+      cargoGroup.position.set(0, 1.3, -0.35);
 
-      // Log Cargo
-      const logCargo = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 1.4, 6), timberMat);
+      const logCargo = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.3, 6), timberMat);
       logCargo.rotation.z = Math.PI / 2;
       cargoGroup.add(logCargo);
 
-      // Ore Basket Cargo
-      const oreCargo = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.5), goldMat);
+      const oreCargo = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.45), goldMat);
       oreCargo.visible = false;
       cargoGroup.add(oreCargo);
+
+      const meatCargo = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.45), new THREE.MeshLambertMaterial({ color: 0x991b1b }));
+      meatCargo.visible = false;
+      cargoGroup.add(meatCargo);
 
       cargoGroup.visible = false;
       group.add(cargoGroup);
 
-      // Selection Ring
+      // Selection Ring Decal & Hitbox
       const ring = createSelectionRing(isEnemy);
       group.add(ring);
+      addUnitHitbox(group, 1.3, 2.8);
 
       group.userData = {
-        legL, legR, toolMount, axeGroup, pickGroup, hammerGroup,
-        cargoGroup, logCargo, oreCargo, ring
+        legL, legR, armR, axeGroup, pickGroup, hammerGroup, spearGroup,
+        cargoGroup, logCargo, oreCargo, meatCargo, ring
       };
 
       return group;
     }
 
-    // 2. SCOUT CAVALRY MESH
+    // 2. SCOUT CAVALRY
     function createScoutMesh(isEnemy) {
       const group = new THREE.Group();
-      const teamColor = isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY;
-      const teamMat = new THREE.MeshLambertMaterial({ color: teamColor });
-      const horseMat = new THREE.MeshLambertMaterial({ color: 0x6e3d16 });
+      const horseMat = new THREE.MeshLambertMaterial({ color: 0x5c3a21 });
+      const riderMat = new THREE.MeshLambertMaterial({ color: isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY });
 
-      // Horse Body
-      const bodyGeom = new THREE.BoxGeometry(1.2, 1.1, 2.2);
-      const body = new THREE.Mesh(bodyGeom, horseMat);
-      body.position.y = 1.4;
-      body.castShadow = true;
-      group.add(body);
+      // Horse Torso
+      const horseBody = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.1, 2.4), horseMat);
+      horseBody.position.y = 1.4;
+      horseBody.castShadow = true;
+      group.add(horseBody);
 
       // Horse Neck & Head
-      const neckGeom = new THREE.BoxGeometry(0.6, 1.1, 0.9);
-      const neck = new THREE.Mesh(neckGeom, horseMat);
-      neck.position.set(0, 2.1, 0.9);
+      const neck = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.2, 0.8), horseMat);
+      neck.position.set(0, 2.2, 1.1);
       neck.rotation.x = -Math.PI / 6;
       group.add(neck);
 
-      // Horse 4 Legs
-      const legGeom = new THREE.BoxGeometry(0.25, 1.2, 0.25);
-      const legPositions = [[-0.45, 0.6, -0.8], [0.45, 0.6, -0.8], [-0.45, 0.6, 0.8], [0.45, 0.6, 0.8]];
-      legPositions.forEach(p => {
-        const leg = new THREE.Mesh(legGeom, horseMat);
-        leg.position.set(p[0], p[1], p[2]);
-        group.add(leg);
-      });
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.8), horseMat);
+      head.position.set(0, 2.7, 1.5);
+      group.add(head);
 
-      // Rider in Saddle
-      const riderGeom = new THREE.BoxGeometry(0.8, 1.1, 0.6);
-      const rider = new THREE.Mesh(riderGeom, teamMat);
-      rider.position.set(0, 2.3, 0);
+      // 4 Horse Legs
+      for (let x of [-0.45, 0.45]) {
+        for (let z of [-0.8, 0.8]) {
+          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.2, 0.25), horseMat);
+          leg.position.set(x, 0.6, z);
+          leg.castShadow = true;
+          group.add(leg);
+        }
+      }
+
+      // Mounted Scout Rider
+      const rider = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.45), riderMat);
+      rider.position.set(0, 2.3, 0.1);
+      rider.castShadow = true;
       group.add(rider);
 
-      // Rider Spear
-      const spearGeom = new THREE.CylinderGeometry(0.04, 0.04, 2.8, 6);
-      const spear = new THREE.Mesh(spearGeom, timberMat);
-      spear.rotation.x = Math.PI / 4;
-      spear.position.set(0.5, 2.4, 0.5);
-      group.add(spear);
+      const riderHead = new THREE.Mesh(new THREE.SphereGeometry(0.28, 6, 6), new THREE.MeshLambertMaterial({ color: 0xdfab76 }));
+      riderHead.position.set(0, 2.9, 0.1);
+      group.add(riderHead);
+
+      const scoutSword = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.2, 0.04), ironMat);
+      scoutSword.position.set(0.55, 2.4, 0.4);
+      scoutSword.rotation.x = Math.PI / 4;
+      group.add(scoutSword);
 
       const ring = createSelectionRing(isEnemy);
       group.add(ring);
+      addUnitHitbox(group, 1.6, 3.2);
       group.userData = { ring };
+
       return group;
     }
 
-    // 3. SWORDSMAN MESH (Militia, Man-at-Arms, Longswordsman)
+    // 3. SWORDSMAN (Militia & Man-at-Arms)
     function createSwordsmanMesh(isEnemy, tier = 1) {
       const group = new THREE.Group();
-      const teamColor = isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY;
-      const teamMat = new THREE.MeshLambertMaterial({ color: teamColor });
+      const teamMat = new THREE.MeshLambertMaterial({ color: isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY });
 
-      // Armored Body
-      const bodyGeom = new THREE.BoxGeometry(0.9, 1.2, 0.6);
-      const body = new THREE.Mesh(bodyGeom, ironMat);
-      body.position.y = 1.45;
-      body.castShadow = true;
-      group.add(body);
+      const legGeom = new THREE.BoxGeometry(0.3, 1.0, 0.3);
+      const legL = new THREE.Mesh(legGeom, timberMat);
+      legL.position.set(-0.22, 0.5, 0);
+      group.add(legL);
+      const legR = new THREE.Mesh(legGeom, timberMat);
+      legR.position.set(0.22, 0.5, 0);
+      group.add(legR);
 
-      // Steel Kettle Helmet
-      const helmGeom = new THREE.SphereGeometry(0.38, 8, 8);
-      const helm = new THREE.Mesh(helmGeom, ironMat);
-      helm.position.y = 2.25;
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.1, 0.55), tier > 1 ? ironMat : teamMat);
+      torso.position.y = 1.45;
+      torso.castShadow = true;
+      group.add(torso);
+
+      const helm = new THREE.Mesh(new THREE.SphereGeometry(0.32, 8, 8), ironMat);
+      helm.position.y = 2.15;
       group.add(helm);
 
-      // Broadsword (Right Hand)
-      const swordBlade = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.4, 0.06), ironMat);
-      swordBlade.position.set(0.65, 1.7, 0.3);
-      group.add(swordBlade);
+      // Sword
+      const sword = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.3, 0.05), ironMat);
+      sword.position.set(0.6, 1.4, 0.3);
+      sword.rotation.x = Math.PI / 5;
+      group.add(sword);
 
-      // Team Shield (Left Hand)
-      const shieldGeom = new THREE.BoxGeometry(0.1, 1.1, 0.7);
-      const shield = new THREE.Mesh(shieldGeom, teamMat);
-      shield.position.set(-0.6, 1.45, 0.2);
+      // Shield
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.85, 0.08), teamMat);
+      shield.position.set(-0.55, 1.4, 0.2);
       group.add(shield);
 
       const ring = createSelectionRing(isEnemy);
       group.add(ring);
-      group.userData = { ring, swordBlade };
+      addUnitHitbox(group, 1.3, 2.8);
+      group.userData = { legL, legR, ring };
       return group;
     }
 
-    // 4. SPEARMAN MESH (Anti-Cavalry Pike)
+    // 4. SPEARMAN
     function createSpearmanMesh(isEnemy) {
       const group = new THREE.Group();
-      const teamColor = isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY;
-      const teamMat = new THREE.MeshLambertMaterial({ color: teamColor });
+      const teamMat = new THREE.MeshLambertMaterial({ color: isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY });
 
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.1, 0.55), teamMat);
-      body.position.y = 1.45;
-      group.add(body);
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.0, 0.3), timberMat);
+      legL.position.set(-0.22, 0.5, 0);
+      group.add(legL);
+      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.0, 0.3), timberMat);
+      legR.position.set(0.22, 0.5, 0);
+      group.add(legR);
 
-      // 3.5m Long Pike
-      const pike = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 3.8, 6), timberMat);
-      pike.rotation.x = Math.PI / 6;
-      pike.position.set(0.4, 1.8, 0.8);
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.0, 0.5), teamMat);
+      torso.position.y = 1.4;
+      torso.castShadow = true;
+      group.add(torso);
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), ironMat);
+      head.position.y = 2.1;
+      group.add(head);
+
+      // Long Pike / Spear (2.8m)
+      const pike = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.8, 6), timberMat);
+      pike.position.set(0.5, 1.8, 0.3);
+      pike.rotation.x = Math.PI / 8;
       group.add(pike);
 
-      const pikeTip = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.5, 6), ironMat);
-      pikeTip.rotation.x = Math.PI / 6;
-      pikeTip.position.set(0.4, 3.5, 1.8);
+      const pikeTip = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.4, 6), ironMat);
+      pikeTip.position.set(0.5, 3.2, 0.9);
+      pikeTip.rotation.x = Math.PI / 8;
       group.add(pikeTip);
 
       const ring = createSelectionRing(isEnemy);
       group.add(ring);
-      group.userData = { ring };
+      addUnitHitbox(group, 1.3, 2.8);
+      group.userData = { legL, legR, ring };
       return group;
     }
 
-    // 5. ARCHER MESH (Recurve Bow & Arrow)
+    // 5. ARCHER
     function createArcherMesh(isEnemy) {
       const group = new THREE.Group();
-      const teamColor = isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY;
-      const teamMat = new THREE.MeshLambertMaterial({ color: teamColor });
+      const teamMat = new THREE.MeshLambertMaterial({ color: isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY });
 
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.1, 0.5), teamMat);
-      body.position.y = 1.4;
-      group.add(body);
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.28, 1.0, 0.28), timberMat);
+      legL.position.set(-0.22, 0.5, 0);
+      group.add(legL);
+      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.28, 1.0, 0.28), timberMat);
+      legR.position.set(0.22, 0.5, 0);
+      group.add(legR);
 
-      // Feathered Archer Cap
-      const cap = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.4, 6), timberMat);
-      cap.position.y = 2.3;
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.0, 0.5), teamMat);
+      torso.position.y = 1.4;
+      torso.castShadow = true;
+      group.add(torso);
+
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.35, 6), new THREE.MeshLambertMaterial({ color: 0x1e3a1e }));
+      cap.position.y = 2.25;
       group.add(cap);
 
-      // Recurve Bow (Left Hand)
-      const bowGeom = new THREE.TorusGeometry(0.5, 0.04, 6, 12, Math.PI);
-      const bow = new THREE.Mesh(bowGeom, timberMat);
-      bow.position.set(-0.55, 1.4, 0.3);
+      // Longbow
+      const bow = new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.035, 6, 12, Math.PI), timberMat);
+      bow.position.set(0.5, 1.5, 0.3);
       bow.rotation.y = Math.PI / 2;
       group.add(bow);
 
-      // Back Quiver
-      const quiver = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.9, 6), timberMat);
+      // Quiver
+      const quiver = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.9, 6), timberMat);
+      quiver.position.set(-0.35, 1.5, -0.3);
       quiver.rotation.z = Math.PI / 6;
-      quiver.position.set(0.2, 1.5, -0.35);
       group.add(quiver);
 
       const ring = createSelectionRing(isEnemy);
       group.add(ring);
-      group.userData = { ring };
+      addUnitHitbox(group, 1.3, 2.8);
+      group.userData = { legL, legR, ring };
       return group;
     }
 
-    // 6. KNIGHT / PALADIN MESH (Armored Warhorse & Tilting Lance)
+    // 6. KNIGHT
     function createKnightMesh(isEnemy) {
       const group = new THREE.Group();
-      const teamColor = isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY;
-      const teamMat = new THREE.MeshLambertMaterial({ color: teamColor });
+      const horseMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+      const bardingMat = new THREE.MeshLambertMaterial({ color: isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY });
 
-      // Warhorse with Team Caparison Barding
-      const bodyGeom = new THREE.BoxGeometry(1.4, 1.3, 2.6);
-      const body = new THREE.Mesh(bodyGeom, teamMat);
-      body.position.y = 1.6;
-      body.castShadow = true;
-      group.add(body);
+      const horseBody = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.2, 2.5), bardingMat);
+      horseBody.position.y = 1.45;
+      horseBody.castShadow = true;
+      group.add(horseBody);
 
-      // Armored Great Helm Knight
-      const rider = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.3, 0.7), ironMat);
-      rider.position.set(0, 2.6, 0);
-      group.add(rider);
+      const neck = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.3, 0.85), horseMat);
+      neck.position.set(0, 2.3, 1.15);
+      neck.rotation.x = -Math.PI / 6;
+      group.add(neck);
 
-      // Tilting Heavy Lance
-      const lance = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.15, 3.5, 8), timberMat);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.85), ironMat);
+      head.position.set(0, 2.8, 1.55);
+      group.add(head);
+
+      for (let x of [-0.48, 0.48]) {
+        for (let z of [-0.85, 0.85]) {
+          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.28, 1.2, 0.28), ironMat);
+          leg.position.set(x, 0.6, z);
+          group.add(leg);
+        }
+      }
+
+      // Armored Knight in Plate Mail
+      const knight = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.0, 0.55), ironMat);
+      knight.position.set(0, 2.45, 0.1);
+      group.add(knight);
+
+      const greatHelm = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.65, 0.55), ironMat);
+      greatHelm.position.set(0, 3.1, 0.1);
+      group.add(greatHelm);
+
+      // Heavy Lance
+      const lance = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.12, 3.6, 6), ironMat);
+      lance.position.set(0.65, 2.6, 1.2);
       lance.rotation.x = Math.PI / 3;
-      lance.position.set(0.7, 2.4, 1.0);
       group.add(lance);
-
-      // Knight Heater Shield
-      const shield = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.3, 0.8), teamMat);
-      shield.position.set(-0.7, 2.3, 0.2);
-      group.add(shield);
 
       const ring = createSelectionRing(isEnemy);
       group.add(ring);
+      addUnitHitbox(group, 1.8, 3.4);
       group.userData = { ring };
       return group;
     }
 
-    // 7. MONK MESH (Brown Habit, Holy Relic Aura)
+    // 7. MONK
     function createMonkMesh(isEnemy) {
       const group = new THREE.Group();
-      const monkRobeMat = new THREE.MeshLambertMaterial({ color: 0x5a3d28 });
+      const robeMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
 
-      // Robe Cylinder
-      const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 1.8, 8), monkRobeMat);
-      robe.position.y = 0.9;
+      const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.55, 1.6, 8), robeMat);
+      robe.position.y = 0.85;
+      robe.castShadow = true;
       group.add(robe);
 
-      // Cowl Hood
-      const hood = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 8), monkRobeMat);
-      hood.position.y = 2.0;
+      const hood = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), robeMat);
+      hood.position.y = 1.9;
       group.add(hood);
 
-      // Wooden Staff
-      const staff = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.4, 6), timberMat);
-      staff.position.set(0.5, 1.2, 0.2);
+      const staff = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 2.2, 6), timberMat);
+      staff.position.set(0.45, 1.1, 0.2);
       group.add(staff);
 
-      // Golden Holy Aura Ring
-      const aura = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.0, 16), goldMat);
-      aura.rotation.x = -Math.PI / 2;
-      aura.position.y = 0.1;
-      group.add(aura);
+      const cross = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.06), goldMat);
+      cross.position.set(0.45, 2.1, 0.2);
+      group.add(cross);
 
       const ring = createSelectionRing(isEnemy);
       group.add(ring);
-      group.userData = { ring, aura };
+      addUnitHitbox(group, 1.3, 2.8);
+      group.userData = { ring };
       return group;
     }
 
-    // 8. TREBUCHET MESH (Rolling Siege Engine with Throwing Arm)
+    // 8. TREBUCHET
     function createTrebuchetMesh(isEnemy) {
       const group = new THREE.Group();
-
-      // Rolling Timber Chassis with 4 Wheels
-      const chassis = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.6, 6), timberMat);
-      chassis.position.y = 0.8;
+      const chassis = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.5, 5.5), timberMat);
+      chassis.position.y = 0.75;
       chassis.castShadow = true;
       group.add(chassis);
 
       // 4 Wheels
-      for (let x of [-2.4, 2.4]) {
-        for (let z of [-2.2, 2.2]) {
-          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.4, 10), timberMat);
+      for (let x of [-2.2, 2.2]) {
+        for (let z of [-2.0, 2.0]) {
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.35, 10), timberMat);
           wheel.rotation.z = Math.PI / 2;
-          wheel.position.set(x, 0.7, z);
+          wheel.position.set(x, 0.65, z);
           group.add(wheel);
         }
       }
 
-      // Triangular A-Frame
-      const frameL = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 5, 6), timberMat);
-      frameL.position.set(-1.8, 3.2, 0);
+      // A-Frame
+      const frameL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 4.6, 6), timberMat);
+      frameL.position.set(-1.6, 2.9, 0);
       group.add(frameL);
-      const frameR = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 5, 6), timberMat);
-      frameR.position.set(1.8, 3.2, 0);
+      const frameR = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 4.6, 6), timberMat);
+      frameR.position.set(1.6, 2.9, 0);
       group.add(frameR);
 
-      // Swinging Throwing Arm
+      // Throwing Arm & Counterweight
       const armGroup = new THREE.Group();
-      armGroup.position.set(0, 5.5, 0);
-
-      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 9), timberMat);
-      arm.position.set(0, 0, 1.5);
+      armGroup.position.set(0, 5.0, 0);
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 8.5), timberMat);
+      arm.position.set(0, 0, 1.4);
       armGroup.add(arm);
 
-      // Heavy Counterweight Box
-      const counterWeight = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.8, 1.8), stoneMat);
-      counterWeight.position.set(0, -1.2, -2.5);
+      const counterWeight = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6), stoneMat);
+      counterWeight.position.set(0, -1.0, -2.4);
       armGroup.add(counterWeight);
-
       group.add(armGroup);
 
       const ring = createSelectionRing(isEnemy);
       group.add(ring);
+      addUnitHitbox(group, 3.0, 6.0);
       group.userData = { ring, armGroup };
       return group;
     }
@@ -384,77 +443,136 @@ def get_aoe_units_combat_js():
     // 9. WILD ANIMALS & SHEEP
     function createSheepMesh() {
       const group = new THREE.Group();
-      const woolMat = new THREE.MeshLambertMaterial({ color: 0xefede6 });
-      const skinMat = new THREE.MeshLambertMaterial({ color: 0x1f1f1f });
+      const wool = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 8), new THREE.MeshLambertMaterial({ color: 0xedebe4 }));
+      wool.scale.set(1, 0.85, 1.25);
+      wool.position.y = 0.75;
+      wool.castShadow = true;
+      group.add(wool);
 
-      // Fluffy Wool Body
-      const body = new THREE.Mesh(new THREE.SphereGeometry(0.75, 8, 8), woolMat);
-      body.scale.set(1, 0.85, 1.3);
-      body.position.y = 0.8;
-      body.castShadow = true;
-      group.add(body);
-
-      // Black Face
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), skinMat);
-      head.position.set(0, 0.95, 0.9);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 6, 6), new THREE.MeshLambertMaterial({ color: 0x1a1a1a }));
+      head.position.set(0, 0.9, 0.8);
       group.add(head);
 
-      // 4 Black Legs
-      for (let x of [-0.35, 0.35]) {
-        for (let z of [-0.4, 0.4]) {
-          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6, 6), skinMat);
-          leg.position.set(x, 0.3, z);
+      for (let x of [-0.3, 0.3]) {
+        for (let z of [-0.35, 0.35]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.55, 6), new THREE.MeshLambertMaterial({ color: 0x1a1a1a }));
+          leg.position.set(x, 0.28, z);
           group.add(leg);
         }
       }
+      const ring = createSelectionRing(false);
+      group.add(ring);
+      addUnitHitbox(group, 1.2, 1.8);
+      group.userData = { ring };
       return group;
     }
 
     function createBoarMesh() {
       const group = new THREE.Group();
-      const boarMat = new THREE.MeshLambertMaterial({ color: 0x4a2a12 });
-      const tuskMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+      const boarMat = new THREE.MeshLambertMaterial({ color: 0x3d2314 });
 
-      // Stocky Bristly Body
-      const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.0, 1.8), boarMat);
-      body.position.y = 0.8;
+      const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.95, 1.8), boarMat);
+      body.position.y = 0.75;
       body.castShadow = true;
       group.add(body);
 
-      // Head & Snout
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.8), boarMat);
-      head.position.set(0, 0.8, 1.1);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.85), boarMat);
+      head.position.set(0, 0.75, 1.1);
       group.add(head);
 
-      // 2 Curved White Tusks
-      const tuskL = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.4, 6), tuskMat);
-      tuskL.position.set(-0.35, 0.85, 1.4);
-      tuskL.rotation.x = -Math.PI / 4;
-      group.add(tuskL);
-      const tuskR = tuskL.clone();
-      tuskR.position.x = 0.35;
-      group.add(tuskR);
+      const snout = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 0.4), new THREE.MeshLambertMaterial({ color: 0x241208 }));
+      snout.position.set(0, 0.65, 1.6);
+      group.add(snout);
 
+      // Curved Tusks
+      for (let x of [-0.28, 0.28]) {
+        const tusk = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.4, 6), new THREE.MeshLambertMaterial({ color: 0xfafafa }));
+        tusk.position.set(x, 0.75, 1.5);
+        tusk.rotation.x = -Math.PI / 4;
+        group.add(tusk);
+      }
+
+      // 4 Legs
+      for (let x of [-0.4, 0.4]) {
+        for (let z of [-0.6, 0.6]) {
+          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.7, 0.22), boarMat);
+          leg.position.set(x, 0.35, z);
+          group.add(leg);
+        }
+      }
+
+      const ring = createSelectionRing(false);
+      group.add(ring);
+      addUnitHitbox(group, 1.4, 2.0);
+      group.userData = { ring };
       return group;
     }
 
-    // 10. HOLY RELIC (Golden Chest on Ancient Stone Plinth)
+    function createDeerMesh() {
+      const group = new THREE.Group();
+      const tanMat = new THREE.MeshLambertMaterial({ color: 0x9c6644 });
+      const hornMat = new THREE.MeshLambertMaterial({ color: 0xd4a373 });
+      const darkMat = new THREE.MeshLambertMaterial({ color: 0x3d2b1f });
+
+      // Body
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.85, 1.6), tanMat);
+      body.position.y = 1.2;
+      body.castShadow = true;
+      group.add(body);
+
+      // Neck & Head
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.9, 6), tanMat);
+      neck.position.set(0, 1.8, 0.7);
+      neck.rotation.x = -Math.PI / 6;
+      group.add(neck);
+
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.6), tanMat);
+      head.position.set(0, 2.2, 0.95);
+      group.add(head);
+
+      // Antlers
+      for (let x of [-0.2, 0.2]) {
+        const antler = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.7, 5), hornMat);
+        antler.position.set(x, 2.6, 0.9);
+        antler.rotation.z = x > 0 ? 0.3 : -0.3;
+        group.add(antler);
+      }
+
+      // 4 Slender Legs
+      for (let x of [-0.3, 0.3]) {
+        for (let z of [-0.5, 0.5]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.2, 6), darkMat);
+          leg.position.set(x, 0.6, z);
+          group.add(leg);
+        }
+      }
+
+      const ring = createSelectionRing(false);
+      group.add(ring);
+      addUnitHitbox(group, 1.3, 2.5);
+      group.userData = { ring };
+      return group;
+    }
+
     function createRelicMesh() {
       const group = new THREE.Group();
-      const plinth = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 0.6, 8), stoneMat);
-      plinth.position.y = 0.3;
+      const plinth = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.3, 0.5, 8), stoneMat);
+      plinth.position.y = 0.25;
       group.add(plinth);
 
-      const chest = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.7, 0.7), goldMat);
-      chest.position.y = 0.9;
+      const chest = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.65, 0.65), goldMat);
+      chest.position.y = 0.8;
       chest.castShadow = true;
       group.add(chest);
 
-      // Golden Holy Ray Light
-      const ray = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.8, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffe066, transparent: true, opacity: 0.35 }));
-      ray.position.y = 4.5;
+      const ray = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.7, 7, 8), new THREE.MeshBasicMaterial({ color: 0xffe066, transparent: true, opacity: 0.35 }));
+      ray.position.y = 4.0;
       group.add(ray);
 
+      const ring = createSelectionRing(false);
+      group.add(ring);
+      addUnitHitbox(group, 1.4, 2.5);
+      group.userData = { ring };
       return group;
     }
     """

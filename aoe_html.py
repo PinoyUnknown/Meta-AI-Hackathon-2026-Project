@@ -18,7 +18,21 @@ def get_aoe_html():
     <div id="tip-sub" class="tip-sub">Details</div>
   </div>
 
-  <!-- TOP STATUS & RESOURCE BAR (Classic AoE II Header) -->
+  <!-- FLOATING ROYAL TASKS & BOUNTIES TRACKER -->
+  <div id="mission-hud">
+    <div class="mission-hud-header">
+      <span class="mission-hud-title">[SOVEREIGN CAMPAIGN]</span>
+      <span id="mission-step-count" style="font-size: 10px; color: #ffd700;">1 / 5</span>
+    </div>
+    <div id="mission-current-title" class="mission-current-title">1. Lay the Foundation</div>
+    <div id="mission-current-desc" class="mission-current-desc">Construct a Lumber Camp and a Town House to secure vital supplies for your realm.</div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span id="mission-reward-tag" class="mission-reward-tag">[REWARD: +100 XP / 50 WOOD]</span>
+      <button class="top-btn" style="padding: 2px 6px; font-size: 9px;" onclick="window.toggleObjectivesModal()">[ALL]</button>
+    </div>
+  </div>
+
+  <!-- TOP STATUS & RESOURCE BAR (Classic AoE Wood/Gold Header) -->
   <div id="aoe-top-bar">
     <div class="top-left-sect">
       <div class="civ-shield">
@@ -33,43 +47,51 @@ def get_aoe_html():
       <button id="btn-advance-age" class="age-advance-btn" onclick="window.advanceCurrentAge()" style="display: none;">
         <span>[ADVANCE]</span> <span id="advance-age-label">Feudal Age (500 Food)</span>
       </button>
+
+      <div class="level-pill">
+        <span id="aoe-level-title">LVL 1: HAMLET</span>
+        <span style="color: #ca8a04;">|</span>
+        <span id="aoe-score">150 PTS</span>
+      </div>
     </div>
 
     <!-- 4 Classic AoE Resources & Pop Cap -->
     <div class="resource-row">
-      <div class="res-pill res-wood">
+      <div class="res-pill res-wood" title="Wood: Lumber for buildings & bows">
         <span class="tag">[WOOD]</span>
         <span id="aoe-wood">200</span>
       </div>
-      <div class="res-pill res-food">
+      <div class="res-pill res-food" title="Food: Foraging, farming & hunting">
         <span class="tag">[FOOD]</span>
         <span id="aoe-food">200</span>
       </div>
-      <div class="res-pill res-gold">
+      <div class="res-pill res-gold" title="Gold: High-tier troops & techs">
         <span class="tag">[GOLD]</span>
         <span id="aoe-gold">100</span>
       </div>
-      <div class="res-pill res-stone">
+      <div class="res-pill res-stone" title="Stone: Fortresses, walls & castles">
         <span class="tag">[STONE]</span>
         <span id="aoe-stone">200</span>
       </div>
-      <div class="res-pill res-pop">
+      <div class="res-pill res-pop" title="Population vs House Capacity">
         <span class="tag">[POP]</span>
-        <span id="aoe-pop">4</span>/<span id="aoe-maxpop">10</span>
+        <span><span id="aoe-pop">4</span>/<span id="aoe-maxpop">10</span></span>
       </div>
     </div>
 
     <!-- Quick Action Buttons -->
     <div class="top-right-sect">
-      <button class="top-btn idle-btn" onclick="window.cycleIdleVillager()" title="Select Next Idle Villager (Hotkeys: Z or .)">
+      <button class="top-btn idle-btn" onclick="window.cycleIdleVillager()" title="Select Next Idle Villager (Hotkey: Z or .)">
         <span>[!] IDLE:</span> <span id="idle-count">0</span>
       </button>
-      <button id="btn-town-bell" class="top-btn bell-btn" onclick="window.toggleTownBell()" title="Garrison Villagers to Town Center (Hotkey: B)">
+      <button id="btn-town-bell" class="top-btn bell-btn" onclick="window.toggleTownBell()" title="Garrison Villagers into Town Center (Hotkey: B)">
         <span>[TOWN BELL]</span>
       </button>
-      <button class="top-btn" onclick="window.saveAoEGame()" title="Quick-Save (F5)">[SAVE]</button>
-      <button class="top-btn" onclick="window.loadAoEGame()" title="Quick-Load (F9)">[LOAD]</button>
-      <button class="top-btn" onclick="window.toggleObjectivesModal()">[OBJECTIVES]</button>
+      <button class="top-btn craft-btn" onclick="window.toggleCraftingModal()" title="Artisan Atelier & Blacksmith Forge">[CRAFTING]</button>
+      <button id="btn-weather" class="top-btn weather-btn" onclick="window.cycleWeather()" title="Toggle Weather & Time of Day">[WEATHER: SUNNY]</button>
+      <button class="top-btn" onclick="window.saveAoEGame()" title="Quick-Save Empire Status (F5)">[SAVE]</button>
+      <button class="top-btn" onclick="window.loadAoEGame()" title="Quick-Load Saved Empire (F9)">[LOAD]</button>
+      <button class="top-btn" onclick="window.toggleObjectivesModal()">[TASKS]</button>
       <button class="top-btn" onclick="window.toggleMenuModal()">[MENU]</button>
     </div>
   </div>
@@ -80,11 +102,11 @@ def get_aoe_html():
     <div class="console-left">
       <div class="entity-header">
         <div class="portrait-frame">
-          <canvas id="portrait-canvas" width="64" height="64"></canvas>
+          <canvas id="portrait-canvas" width="68" height="68"></canvas>
         </div>
         <div class="entity-titles">
           <div id="entity-name" class="entity-name">Town Center</div>
-          <div id="entity-type" class="entity-type">Civic Center</div>
+          <div id="entity-type" class="entity-type">Civic Headquarters</div>
           <div class="hp-bar-outer">
             <div id="hp-bar-inner" class="hp-bar-inner" style="width: 100%;"></div>
           </div>
@@ -129,6 +151,22 @@ def get_aoe_html():
     </div>
   </div>
 
+  <!-- CRAFTING ATELIER & FORGE MODAL -->
+  <div id="crafting-modal" class="aoe-modal">
+    <div class="aoe-modal-box">
+      <div class="aoe-modal-header">
+        <span class="aoe-modal-title">[ARTISAN CRAFTING ATELIER & FORGE]</span>
+        <button class="aoe-close-btn" onclick="window.toggleCraftingModal()">[X]</button>
+      </div>
+      <p style="font-size: 11px; color: #d1c0a5; margin-bottom: 8px;">
+        Harness raw timber, stone, and precious metals to forge specialized tools, sacred masterworks, and military armaments.
+      </p>
+      <div class="craft-recipes-grid" id="craft-recipes-container">
+        <!-- Dynamically rendered crafting cards -->
+      </div>
+    </div>
+  </div>
+
   <!-- OBJECTIVES & CAMPAIGN MODAL -->
   <div id="objectives-modal" class="aoe-modal">
     <div class="aoe-modal-box">
@@ -137,17 +175,22 @@ def get_aoe_html():
         <button class="aoe-close-btn" onclick="window.toggleObjectivesModal()">[X]</button>
       </div>
       <div style="font-size: 13px; line-height: 1.6; color: #e8ddc7; max-height: 60vh; overflow-y: auto;">
+        <h4 style="color: #ffd700; margin-bottom: 4px;">ROYAL TASKS & BOUNTIES:</h4>
+        <div id="modal-missions-list" style="margin-bottom: 12px;"></div>
+
         <h4 style="color: #ffd700; margin-bottom: 4px;">VICTORY CONDITIONS:</h4>
-        <p><strong>1. Conquest Victory:</strong> Build an army of Swordsmen, Archers, and Knights to destroy the Rival Red Civilization's Town Center and Castle across the river.</p>
+        <p><strong>1. Conquest Victory:</strong> Build an army of Swordsmen, Archers, and Knights to destroy the Rival Red Civilization's Town Center across the river.</p>
         <p><strong>2. Wonder Victory:</strong> Reach the Imperial Age, build a Wonder of the World, and defend it for 200 seconds against enemy onslaughts!</p>
+
         <h4 style="color: #ffd700; margin-top: 14px; margin-bottom: 4px;">THE FOUR AGES PROGRESSION:</h4>
-        <p>&bull; <strong>Dark Age:</strong> Gather Food and Wood. Build Houses to support 20 population. Train Villagers and Militia.</p>
-        <p>&bull; <strong>Feudal Age (500 Food):</strong> Unlocks Barracks, Archery Range, Stable, Blacksmith, Watchtower, and Stone Walls. Train Archers and Scouts.</p>
-        <p>&bull; <strong>Castle Age (800 Food, 200 Gold):</strong> Unlocks Castles, Monasteries, Knights, Crossbowmen, and Monks. Monks can pick up Relics for gold and convert enemies ("WOLOLO")!</p>
+        <p>&bull; <strong>Dark Age:</strong> Gather Food and Wood. Hunt Wild Boar in the jungle. Build Houses for population.</p>
+        <p>&bull; <strong>Feudal Age (500 Food):</strong> Unlocks Barracks, Archery Range, Stable, Blacksmith, Watchtower, and Stone Walls.</p>
+        <p>&bull; <strong>Castle Age (800 Food, 200 Gold):</strong> Unlocks Castles, Monasteries, Knights, Crossbowmen, and Monks ("WOLOLO")!</p>
         <p>&bull; <strong>Imperial Age (1000 Food, 800 Gold):</strong> Unlocks Paladins, Champions, Trebuchets, and the Wonder of the World.</p>
+
         <h4 style="color: #ffd700; margin-top: 14px; margin-bottom: 4px;">RTS CONTROLS & HOTKEYS:</h4>
         <p>&bull; <strong>Box Selection:</strong> Left-click and drag a green box to select multiple units.</p>
-        <p>&bull; <strong>Smart Right-Click:</strong> Right-click terrain to move, right-click resources to gather, right-click enemies to attack, right-click buildings to repair or garrison.</p>
+        <p>&bull; <strong>Smart Right-Click:</strong> Right-click terrain to move, right-click resources to gather, right-click wild animals to hunt, right-click enemies to attack, right-click damaged buildings to repair.</p>
         <p>&bull; <strong>Z or .</strong>: Cycle through idle villagers. <strong>B</strong>: Ring Town Bell.</p>
         <p>&bull; <strong>WASD / Arrow Keys</strong>: Pan camera. <strong>Mouse Wheel</strong>: Zoom.</p>
         <p>&bull; <strong>F5 / F9</strong>: Quick-Save / Quick-Load.</p>
@@ -164,7 +207,7 @@ def get_aoe_html():
       </div>
       <div style="font-size: 13px; line-height: 1.6; color: #e8ddc7;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
-          <span>Sound Effects & Voices:</span>
+          <span>Sound Effects & Voice Barks:</span>
           <input type="range" id="sound-vol" min="0" max="1" step="0.1" value="0.8" onchange="window.setMasterVolume(this.value)">
         </div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">

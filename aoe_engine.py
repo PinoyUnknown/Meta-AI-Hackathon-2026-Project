@@ -2,7 +2,7 @@
 def get_aoe_engine_js():
     return """
     // =========================================================================
-    // AGE OF EMPIRES RTS GAMEPLAY ENGINE & SIMULATION
+    // AGE OF EMPIRES RTS GAMEPLAY ENGINE, MISSIONS & CRAFTING
     // =========================================================================
 
     // Global Game State
@@ -12,6 +12,13 @@ def get_aoe_engine_js():
       resources: { wood: 200, food: 200, gold: 100, stone: 200 },
       pop: 4,
       maxPop: 10,
+      score: 150,
+      level: 1,
+      levelTitle: 'Hamlet',
+      weather: 'Sunny Noon',
+      miningBonus: 1.0,
+      archerBonus: false,
+      passiveGold: 0,
       selectedEntities: [],
       selectedEntity: null,
       idleVillagers: [],
@@ -25,6 +32,14 @@ def get_aoe_engine_js():
       controlGroups: {},
       projectiles: [],
       particles: [],
+      craftedItems: {},
+      missions: [
+        { id: 'm1', title: '1. Lay the Foundation', desc: 'Construct a Lumber Camp and a Town House to secure supplies for your realm.', goalType: 'build_house_lumber', target: 2, current: 0, rewardXp: 100, rewardWood: 50, completed: false },
+        { id: 'm2', title: '2. Hunt Wild Beasts', desc: 'Command your villagers into the jungle to hunt a Wild Boar or Deer for survival food.', goalType: 'hunt_wild', target: 1, current: 0, rewardXp: 150, rewardFood: 100, completed: false },
+        { id: 'm3', title: '3. Stockpile the Granary', desc: 'Amass 500 Food and advance your civilization to the Feudal Age.', goalType: 'advance_feudal', target: 1, current: 0, rewardXp: 250, rewardGold: 50, completed: false },
+        { id: 'm4', title: '4. Muster the Vanguard', desc: 'Erect a Barracks and muster 3 Spearmen or Archers for defense.', goalType: 'train_military', target: 3, current: 0, rewardXp: 350, rewardFood: 100, completed: false },
+        { id: 'm5', title: '5. Raze the Rival Fortress', desc: 'March across the stone bridge and destroy the Rival Red Town Center!', goalType: 'destroy_enemy_tc', target: 1, current: 0, rewardXp: 1000, rewardGold: 500, completed: false }
+      ],
       gameWon: false,
       gameLost: false
     };
@@ -34,7 +49,7 @@ def get_aoe_engine_js():
     const enemyUnits = [];
     const friendlyBuildings = [];
     const enemyBuildings = [];
-    const naturalResources = []; // Trees, Gold mines, Stone mines, Berry bushes, Sheep, Boars
+    const naturalResources = []; // Trees, Gold mines, Stone mines, Berry bushes, Sheep, Wild Boars, Wild Deer
     const holyRelics = [];
     const allSelectable = [];
 
@@ -71,6 +86,14 @@ def get_aoe_engine_js():
       wall: { name: 'Stone Wall', hp: 1800, cost: { stone: 5 }, size: 6, age: 'Feudal Age' }
     };
 
+    // Crafting Recipes Palette
+    const CRAFTING_RECIPES = [
+      { id: 'pickaxe', name: 'Masterwork Pickaxe', cost: { wood: 10, gold: 20 }, desc: '+25% Mining Gathering Rate', icon: '[TOOL]' },
+      { id: 'bow', name: 'Recurve Yew Bow', cost: { wood: 15, gold: 25 }, desc: '+3 Archer Range & +2 Attack', icon: '[WEAPON]' },
+      { id: 'stained_glass', name: 'Stained Glass Rosette', cost: { stone: 10, gold: 30 }, desc: '+150 Prestige & +10 Pop Cap', icon: '[FAITH]' },
+      { id: 'sovereign_relic', name: 'Gilded Sovereign Relic', cost: { stone: 20, gold: 50 }, desc: '+200 XP & +1 Gold/sec Income', icon: '[CROWN]' }
+    ];
+
     // UI Toast Notification
     window.showAoENotice = function(msg, duration = 3000) {
       const banner = document.getElementById('aoe-notice');
@@ -83,6 +106,85 @@ def get_aoe_engine_js():
       }, duration);
     };
 
+    // Point & Level Progression System
+    window.addPoints = function(pts, reason) {
+      aoeState.score += pts;
+      checkLevelProgression();
+      updateResourceUI();
+      if (reason) showAoENotice(`[+${pts} PTS] ${reason}`);
+    };
+
+    function checkLevelProgression() {
+      const tiers = [
+        { lvl: 1, min: 0, title: 'Hamlet' },
+        { lvl: 2, min: 250, title: 'Village' },
+        { lvl: 3, min: 600, title: 'Barony' },
+        { lvl: 4, min: 1200, title: 'Duchy' },
+        { lvl: 5, min: 2500, title: 'Sovereign Empire' }
+      ];
+      let currentTier = tiers[0];
+      for (let t of tiers) {
+        if (aoeState.score >= t.min) currentTier = t;
+      }
+      if (currentTier.lvl > aoeState.level) {
+        aoeState.level = currentTier.lvl;
+        aoeState.levelTitle = currentTier.title;
+        playAdvanceAgeFanfare();
+        showAoENotice(`[LEVEL UP!] Sovereign title promoted to Level ${aoeState.level}: ${aoeState.levelTitle}!`);
+      }
+    }
+
+    // Check Mission Progress
+    window.triggerMissionProgress = function(goalType, delta = 1) {
+      let updated = false;
+      aoeState.missions.forEach(m => {
+        if (!m.completed && m.goalType === goalType) {
+          m.current += delta;
+          if (m.current >= m.target) {
+            m.completed = true;
+            updated = true;
+            playAdvanceAgeFanfare();
+            showAoENotice(`[TASK COMPLETED!] ${m.title}`);
+            addPoints(m.rewardXp, `Completed ${m.title}`);
+            if (m.rewardWood) aoeState.resources.wood += m.rewardWood;
+            if (m.rewardFood) aoeState.resources.food += m.rewardFood;
+            if (m.rewardGold) aoeState.resources.gold += m.rewardGold;
+          }
+        }
+      });
+      updateMissionHUD();
+      updateResourceUI();
+    };
+
+    function updateMissionHUD() {
+      const hudStep = document.getElementById('mission-step-count');
+      const hudTitle = document.getElementById('mission-current-title');
+      const hudDesc = document.getElementById('mission-current-desc');
+      const hudReward = document.getElementById('mission-reward-tag');
+
+      const activeMission = aoeState.missions.find(m => !m.completed);
+      const completedCount = aoeState.missions.filter(m => m.completed).length;
+
+      if (hudStep) hudStep.textContent = `${completedCount + 1} / ${aoeState.missions.length}`;
+
+      if (activeMission) {
+        if (hudTitle) hudTitle.textContent = activeMission.title;
+        if (hudDesc) hudDesc.textContent = `${activeMission.desc} (${activeMission.current}/${activeMission.target})`;
+        if (hudReward) {
+          let rewText = `[REWARD: +${activeMission.rewardXp} XP`;
+          if (activeMission.rewardWood) rewText += ` / ${activeMission.rewardWood} WOOD`;
+          if (activeMission.rewardFood) rewText += ` / ${activeMission.rewardFood} FOOD`;
+          if (activeMission.rewardGold) rewText += ` / ${activeMission.rewardGold} GOLD`;
+          rewText += ']';
+          hudReward.textContent = rewText;
+        }
+      } else {
+        if (hudTitle) hudTitle.textContent = '[ALL TASKS COMPLETED]';
+        if (hudDesc) hudDesc.textContent = 'Your sovereign realm has attained historic supremacy!';
+        if (hudReward) hudReward.textContent = '[VICTORY IMMINENT]';
+      }
+    }
+
     // Update Top Resource Counters & Population
     window.updateResourceUI = function() {
       document.getElementById('aoe-wood').textContent = Math.floor(aoeState.resources.wood);
@@ -92,6 +194,11 @@ def get_aoe_engine_js():
       document.getElementById('aoe-pop').textContent = aoeState.pop;
       document.getElementById('aoe-maxpop').textContent = aoeState.maxPop;
       document.getElementById('current-age-name').textContent = aoeState.age.toUpperCase();
+
+      const lvlTitleEl = document.getElementById('aoe-level-title');
+      const scoreEl = document.getElementById('aoe-score');
+      if (lvlTitleEl) lvlTitleEl.textContent = `LVL ${aoeState.level}: ${aoeState.levelTitle.toUpperCase()}`;
+      if (scoreEl) scoreEl.textContent = `${aoeState.score} PTS`;
 
       // Check if eligible to advance age
       const advBtn = document.getElementById('btn-advance-age');
@@ -134,6 +241,8 @@ def get_aoe_engine_js():
         aoeState.age = 'Feudal Age';
         playAdvanceAgeFanfare();
         showAoENotice('[RESEARCH COMPLETE: FEUDAL AGE REACHED!] New military structures and technologies unlocked!');
+        addPoints(250, 'Reached the Feudal Age');
+        triggerMissionProgress('advance_feudal', 1);
         refreshBuildingVisuals();
       } else if (aoeState.age === 'Feudal Age') {
         if (aoeState.resources.food < 800 || aoeState.resources.gold < 200) {
@@ -145,6 +254,7 @@ def get_aoe_engine_js():
         aoeState.age = 'Castle Age';
         playAdvanceAgeFanfare();
         showAoENotice('[RESEARCH COMPLETE: CASTLE AGE REACHED!] Fortified stone castles, knights, and holy relics unlocked!');
+        addPoints(500, 'Reached the Castle Age');
         refreshBuildingVisuals();
       } else if (aoeState.age === 'Castle Age') {
         if (aoeState.resources.food < 1000 || aoeState.resources.gold < 800) {
@@ -156,6 +266,7 @@ def get_aoe_engine_js():
         aoeState.age = 'Imperial Age';
         playAdvanceAgeFanfare();
         showAoENotice('[RESEARCH COMPLETE: IMPERIAL AGE REACHED!] Paladins, trebuchets, and the Wonder of the World unlocked!');
+        addPoints(1000, 'Reached the Imperial Age');
         refreshBuildingVisuals();
       }
       updateResourceUI();
@@ -202,8 +313,182 @@ def get_aoe_engine_js():
       lastIdleIndex = (lastIdleIndex + 1) % idles.length;
       const target = idles[lastIdleIndex];
       selectSingleEntity(target);
-      // Pan camera to unit
-      cameraTargetPos.set(target.mesh.position.x, target.mesh.position.y, target.mesh.position.z);
-      playVoiceBark('select');
+      cameraTargetPos.set(target.mesh.position.x, 0, target.mesh.position.z);
+    };
+
+    // Crafting Atelier UI & Logic
+    window.toggleCraftingModal = function() {
+      const modal = document.getElementById('crafting-modal');
+      const isVisible = modal.style.display === 'flex';
+      modal.style.display = isVisible ? 'none' : 'flex';
+      if (!isVisible) renderCraftingCards();
+    };
+
+    function renderCraftingCards() {
+      const container = document.getElementById('craft-recipes-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      CRAFTING_RECIPES.forEach(recipe => {
+        const isCrafted = aoeState.craftedItems[recipe.id];
+        let canAfford = true;
+        let costStrs = [];
+        if (recipe.cost.wood) {
+          costStrs.push(`${recipe.cost.wood} Wood`);
+          if (aoeState.resources.wood < recipe.cost.wood) canAfford = false;
+        }
+        if (recipe.cost.food) {
+          costStrs.push(`${recipe.cost.food} Food`);
+          if (aoeState.resources.food < recipe.cost.food) canAfford = false;
+        }
+        if (recipe.cost.gold) {
+          costStrs.push(`${recipe.cost.gold} Gold`);
+          if (aoeState.resources.gold < recipe.cost.gold) canAfford = false;
+        }
+        if (recipe.cost.stone) {
+          costStrs.push(`${recipe.cost.stone} Stone`);
+          if (aoeState.resources.stone < recipe.cost.stone) canAfford = false;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'craft-card';
+        card.innerHTML = `
+          <div>
+            <div class="craft-card-title">${recipe.icon} ${recipe.name}</div>
+            <div class="craft-card-desc">${recipe.desc}</div>
+          </div>
+          <div class="craft-card-footer">
+            <span class="craft-cost">Cost: ${costStrs.join(', ')}</span>
+            <button class="top-btn" ${isCrafted ? 'disabled' : (canAfford ? '' : 'disabled')} onclick="window.executeCraftItem('${recipe.id}')">
+              ${isCrafted ? '[CRAFTED]' : '[CRAFT ITEM]'}
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    window.executeCraftItem = function(recipeId) {
+      initAudio();
+      const recipe = CRAFTING_RECIPES.find(r => r.id === recipeId);
+      if (!recipe || aoeState.craftedItems[recipeId]) return;
+
+      if (recipe.cost.wood && aoeState.resources.wood < recipe.cost.wood) return;
+      if (recipe.cost.food && aoeState.resources.food < recipe.cost.food) return;
+      if (recipe.cost.gold && aoeState.resources.gold < recipe.cost.gold) return;
+      if (recipe.cost.stone && aoeState.resources.stone < recipe.cost.stone) return;
+
+      if (recipe.cost.wood) aoeState.resources.wood -= recipe.cost.wood;
+      if (recipe.cost.food) aoeState.resources.food -= recipe.cost.food;
+      if (recipe.cost.gold) aoeState.resources.gold -= recipe.cost.gold;
+      if (recipe.cost.stone) aoeState.resources.stone -= recipe.cost.stone;
+
+      aoeState.craftedItems[recipeId] = true;
+
+      // Apply bonuses
+      if (recipeId === 'pickaxe') {
+        aoeState.miningBonus = 1.25;
+        showAoENotice('[CRAFTED] Masterwork Pickaxe! +25% Mining Rate.');
+      } else if (recipeId === 'bow') {
+        aoeState.archerBonus = true;
+        showAoENotice('[CRAFTED] Recurve Yew Bow! Archers gain +3 range.');
+      } else if (recipeId === 'stained_glass') {
+        aoeState.maxPop += 10;
+        addPoints(150, 'Crafted Stained Glass Rosette');
+        showAoENotice('[CRAFTED] Stained Glass Rosette! +150 Prestige & +10 Pop Cap.');
+      } else if (recipeId === 'sovereign_relic') {
+        aoeState.passiveGold += 1;
+        addPoints(200, 'Crafted Sovereign Relic');
+        showAoENotice('[CRAFTED] Gilded Sovereign Relic! +1 Gold/sec passive income.');
+      }
+
+      playVoiceBark('build');
+      updateResourceUI();
+      renderCraftingCards();
+    };
+
+    // Modal Toggles
+    window.toggleObjectivesModal = function() {
+      const modal = document.getElementById('objectives-modal');
+      const isVisible = modal.style.display === 'flex';
+      modal.style.display = isVisible ? 'none' : 'flex';
+
+      if (!isVisible) {
+        const listEl = document.getElementById('modal-missions-list');
+        if (listEl) {
+          listEl.innerHTML = aoeState.missions.map(m => `
+            <div style="background: #190f07; border: 1px solid #5a3e20; border-radius: 4px; padding: 8px 12px; margin-bottom: 6px;">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="font-weight: 800; color: ${m.completed ? '#4ade80' : '#ffd700'};">${m.completed ? '[COMPLETED] ' : ''}${m.title}</span>
+                <span style="color: #4ade80; font-size: 11px;">+${m.rewardXp} XP</span>
+              </div>
+              <div style="font-size: 11px; color: #c4b5a0; margin-top: 2px;">${m.desc} (${m.current}/${m.target})</div>
+            </div>
+          `).join('');
+        }
+      }
+    };
+
+    window.toggleMenuModal = function() {
+      const modal = document.getElementById('menu-modal');
+      modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    // Save & Load Functions
+    window.saveAoEGame = function() {
+      const saveObj = {
+        age: aoeState.age,
+        score: aoeState.score,
+        level: aoeState.level,
+        levelTitle: aoeState.levelTitle,
+        resources: aoeState.resources,
+        pop: aoeState.pop,
+        maxPop: aoeState.maxPop,
+        craftedItems: aoeState.craftedItems,
+        missions: aoeState.missions.map(m => ({ id: m.id, current: m.current, completed: m.completed })),
+        camPos: { x: cameraTargetPos.x, z: cameraTargetPos.z },
+        timestamp: Date.now()
+      };
+      localStorage.setItem('aoe_empire_save', JSON.stringify(saveObj));
+      playAdvanceAgeFanfare();
+      showAoENotice('[EMPIRE SAVED] Game state stored successfully in local memory!');
+    };
+
+    window.loadAoEGame = function() {
+      const raw = localStorage.getItem('aoe_empire_save');
+      if (!raw) {
+        showAoENotice('[NO SAVE FOUND] No saved empire state detected.');
+        return;
+      }
+      try {
+        const data = JSON.parse(raw);
+        aoeState.age = data.age || 'Dark Age';
+        aoeState.score = data.score || 150;
+        aoeState.level = data.level || 1;
+        aoeState.levelTitle = data.levelTitle || 'Hamlet';
+        aoeState.resources = data.resources || { wood: 200, food: 200, gold: 100, stone: 200 };
+        aoeState.pop = data.pop || 4;
+        aoeState.maxPop = data.maxPop || 10;
+        aoeState.craftedItems = data.craftedItems || {};
+        if (data.missions) {
+          data.missions.forEach(sm => {
+            const m = aoeState.missions.find(x => x.id === sm.id);
+            if (m) {
+              m.current = sm.current;
+              m.completed = sm.completed;
+            }
+          });
+        }
+        if (data.camPos) {
+          cameraTargetPos.set(data.camPos.x, 0, data.camPos.z);
+        }
+        playAdvanceAgeFanfare();
+        showAoENotice('[EMPIRE RESTORED] Sovereign state loaded successfully!');
+        updateResourceUI();
+        updateMissionHUD();
+        refreshBuildingVisuals();
+      } catch (err) {
+        showAoENotice('[LOAD FAILED] Could not parse save file.');
+      }
     };
     """

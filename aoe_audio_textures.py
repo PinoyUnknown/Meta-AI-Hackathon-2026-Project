@@ -453,4 +453,22 @@ def get_aoe_audio_textures_js():
       osc.start(t);
       osc.stop(t + 0.08);
     }
+
+    function playRainSound() {
+      if (!audioCtx) return;
+      initAudio();
+      const t = audioCtx.currentTime;
+      // Soft atmospheric thunder rumble
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(65, t);
+      osc.frequency.exponentialRampToValueAtTime(45, t + 0.8);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 0.9);
+    }
     """

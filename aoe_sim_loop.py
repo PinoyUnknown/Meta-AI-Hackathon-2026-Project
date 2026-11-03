@@ -1,7 +1,7 @@
 def get_aoe_sim_loop_js():
     return """
     // =========================================================================
-    // RTS CAMERA CONTROLLER, SCREEN-EDGE PANNING & INTERACTION LOOP
+    // RTS SELECTION, UI, COMMAND MOVEMENT, HUNTING & BUILDING PLACEMENT
     // =========================================================================
 
     let raycaster = new THREE.Raycaster();
@@ -13,10 +13,8 @@ def get_aoe_sim_loop_js():
     let isDragging = false;
     let selectionBoxEl = document.getElementById('selection-box');
 
-    // RTS Camera Controller (Isometric Top-Down Perspective)
-    // Constrained strictly to the 200x200 world grid (-100m to +100m)
     let cameraTargetPos = new THREE.Vector3(0, 0, 0);
-    let cameraZoom = 36; // Clamped height: 16m min, 65m max
+    let cameraZoom = 36;
     const keysPressed = {};
 
     window.addEventListener('keydown', e => {
@@ -48,19 +46,16 @@ def get_aoe_sim_loop_js():
       keysPressed[e.code] = false;
     });
 
-    // Scroll-Wheel Zooming Clamped between Min (16m) and Max (65m) Heights
     window.addEventListener('wheel', e => {
       cameraZoom = Math.max(16, Math.min(65, cameraZoom + e.deltaY * 0.04));
     }, { passive: true });
 
-    // Track Screen Coordinates for Screen-Edge Mouse Panning
     window.addEventListener('mousemove', e => {
       lastMouseScreen.x = e.clientX;
       lastMouseScreen.y = e.clientY;
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
-      // Selection Box Dragging
       if (isMouseDown) {
         const dx = Math.abs(e.clientX - mouseDownScreen.x);
         const dy = Math.abs(e.clientY - mouseDownScreen.y);
@@ -78,7 +73,6 @@ def get_aoe_sim_loop_js():
         }
       }
 
-      // Blueprint Ghost Snapping & Real-time Collision Check
       if (aoeState.placementGhost) {
         raycaster.setFromCamera(mouse, camera);
         const hits = raycaster.intersectObject(terrainMesh);
@@ -86,7 +80,7 @@ def get_aoe_sim_loop_js():
           const pt = hits[0].point;
           const snapX = Math.round(pt.x / TILE_SIZE) * TILE_SIZE;
           const snapZ = Math.round(pt.z / TILE_SIZE) * TILE_SIZE;
-          aoeState.placementGhost.position.set(snapX, 0, snapZ);
+          aoeState.placementGhost.position.set(snapX, getTerrainHeight(snapX, snapZ), snapZ);
 
           const g = worldToGrid(snapX, snapZ);
           const bDef = BUILDING_TYPES[aoeState.activePlacementType];
@@ -105,10 +99,13 @@ def get_aoe_sim_loop_js():
     });
 
     window.addEventListener('mousedown', e => {
-      if (e.target.closest('#aoe-top-bar') || e.target.closest('#aoe-bottom-bar') || e.target.closest('.aoe-modal')) {
+      if (e.target.closest('#aoe-top-bar') || e.target.closest('#aoe-bottom-bar') || e.target.closest('.aoe-modal') || e.target.closest('#mission-hud')) {
         return;
       }
       initAudio();
+
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
       if (e.button === 0) { // Left Click
         if (aoeState.activePlacementType) {
@@ -119,7 +116,7 @@ def get_aoe_sim_loop_js():
         mouseDownScreen.x = e.clientX;
         mouseDownScreen.y = e.clientY;
         isDragging = false;
-      } else if (e.button === 2) { // Right Click - Smart Action
+      } else if (e.button === 2) { // Right Click - Smart Command
         e.preventDefault();
         if (aoeState.activePlacementType) {
           cancelBuildingPlacement();
@@ -131,19 +128,18 @@ def get_aoe_sim_loop_js():
 
     window.addEventListener('contextmenu', e => e.preventDefault());
 
-    // Mouse Up (Complete Drag Selection)
+    // Complete Left Click or Drag Selection
     window.addEventListener('mouseup', e => {
       if (e.button === 0 && isMouseDown) {
         isMouseDown = false;
         selectionBoxEl.style.display = 'none';
 
         if (isDragging) {
-          isDragging = false;
           // Box Selection
-          const minX = Math.min(e.clientX, mouseDownScreen.x);
-          const maxX = Math.max(e.clientX, mouseDownScreen.x);
-          const minY = Math.min(e.clientY, mouseDownScreen.y);
-          const maxY = Math.max(e.clientY, mouseDownScreen.y);
+          const minX = Math.min(mouseDownScreen.x, e.clientX);
+          const maxX = Math.max(mouseDownScreen.x, e.clientX);
+          const minY = Math.min(mouseDownScreen.y, e.clientY);
+          const maxY = Math.max(mouseDownScreen.y, e.clientY);
 
           const selected = [];
           friendlyUnits.forEach(u => {
@@ -164,7 +160,7 @@ def get_aoe_sim_loop_js():
             clearSelection();
           }
         } else {
-          // Single Click Selection
+          // Single Click Selection with Prioritized Unit Raycasting
           raycaster.setFromCamera(mouse, camera);
           const selectableMeshes = [];
           allSelectable.forEach(item => {
@@ -174,14 +170,28 @@ def get_aoe_sim_loop_js():
           });
           const intersects = raycaster.intersectObjects(selectableMeshes, true);
           if (intersects.length > 0) {
-            let hitObj = intersects[0].object;
-            while (hitObj.parent && !hitObj.userData.entityRef) {
-              hitObj = hitObj.parent;
+            // Find all hit entities
+            const hitEntities = [];
+            for (let hit of intersects) {
+              let obj = hit.object;
+              while (obj.parent && !obj.userData.entityRef) {
+                obj = obj.parent;
+              }
+              if (obj.userData.entityRef && !hitEntities.includes(obj.userData.entityRef)) {
+                hitEntities.push(obj.userData.entityRef);
+              }
             }
-            if (hitObj.userData.entityRef) {
-              selectSingleEntity(hitObj.userData.entityRef);
-              if (hitObj.userData.entityRef.team === 'player') {
-                playVoiceBark(hitObj.userData.entityRef.type === 'villager' ? 'select' : 'attack');
+
+            // Priority: Friendly Units > Enemy Units > Resources / Animals > Buildings
+            const friendlyHit = hitEntities.find(ent => ent.isUnit && ent.team === 'player');
+            const enemyHit = hitEntities.find(ent => ent.isUnit && ent.team === 'enemy');
+            const resHit = hitEntities.find(ent => ent.isResource || ent.isWildAnimal);
+            const target = friendlyHit || enemyHit || resHit || hitEntities[0];
+
+            if (target) {
+              selectSingleEntity(target);
+              if (target.team === 'player') {
+                playVoiceBark(target.type === 'villager' ? 'select' : 'attack');
               }
             }
           } else {
@@ -191,9 +201,12 @@ def get_aoe_sim_loop_js():
       }
     });
 
-    // Smart Right Click: Move, Attack, Harvest, Repair, Garrison
+    // Smart Right Click: Move, Attack, Harvest, Hunt, Repair, Deposit, Garrison
     function handleSmartRightClick(e) {
       if (aoeState.selectedEntities.length === 0) return;
+
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
       const selectableMeshes = allSelectable.map(item => item.mesh).filter(Boolean);
@@ -201,11 +214,22 @@ def get_aoe_sim_loop_js():
 
       let targetEntity = null;
       if (intersects.length > 0) {
-        let hitObj = intersects[0].object;
-        while (hitObj.parent && !hitObj.userData.entityRef) {
-          hitObj = hitObj.parent;
+        const hitEntities = [];
+        for (let hit of intersects) {
+          let obj = hit.object;
+          while (obj.parent && !obj.userData.entityRef) {
+            obj = obj.parent;
+          }
+          if (obj.userData.entityRef && !hitEntities.includes(obj.userData.entityRef)) {
+            hitEntities.push(obj.userData.entityRef);
+          }
         }
-        targetEntity = hitObj.userData.entityRef;
+
+        // Prioritize interactive targets: Enemy > Wild Animal > Resource > Damaged Building
+        targetEntity = hitEntities.find(ent => ent.team === 'enemy') ||
+                       hitEntities.find(ent => ent.isWildAnimal) ||
+                       hitEntities.find(ent => ent.isResource) ||
+                       hitEntities.find(ent => ent.isBuilding && ent.team === 'player' && (ent.hp < ent.maxHp || ent.type === 'town_center' || ent.type === 'mill' || ent.type === 'lumber_camp' || ent.type === 'mining_camp'));
       }
 
       const terrainHits = raycaster.intersectObject(terrainMesh);
@@ -223,8 +247,20 @@ def get_aoe_sim_loop_js():
           spawnAttackMarker(targetEntity.mesh.position);
           playVoiceBark('attack');
           showAoENotice('[ATTACK COMMAND] Targeting ' + targetEntity.name + '!');
+        } else if (targetEntity.isWildAnimal) {
+          // HUNT WILD ANIMAL COMMAND!
+          aoeState.selectedEntities.forEach(unit => {
+            if (unit.type === 'villager' && unit.state !== 'garrisoned') {
+              unit.target = targetEntity;
+              unit.state = 'hunting';
+              updateVillagerToolVisual(unit, 'hunt');
+            }
+          });
+          spawnMoveMarker(targetEntity.mesh.position);
+          playVoiceBark('wood');
+          showAoENotice('[HUNTING COMMAND] Stalking ' + targetEntity.name + ' for sustenance!');
         } else if (targetEntity.isResource) {
-          // GATHER RESOURCE COMMAND!
+          // GATHER NATURAL RESOURCE COMMAND!
           aoeState.selectedEntities.forEach(unit => {
             if (unit.type === 'villager' && unit.state !== 'garrisoned') {
               unit.target = targetEntity;
@@ -235,29 +271,37 @@ def get_aoe_sim_loop_js():
           spawnMoveMarker(targetEntity.mesh.position);
           playVoiceBark(targetEntity.resType === 'wood' ? 'wood' : (targetEntity.resType === 'gold' || targetEntity.resType === 'stone' ? 'mine' : 'select'));
           showAoENotice('[GATHERING] Harvesting ' + targetEntity.name);
-        } else if (targetEntity.team === 'player' && targetEntity.isFoundation) {
-          // BUILD FOUNDATION COMMAND!
+        } else if (targetEntity.isBuilding && targetEntity.team === 'player' && (targetEntity.type === 'town_center' || targetEntity.type === 'mill' || targetEntity.type === 'lumber_camp' || targetEntity.type === 'mining_camp')) {
+          // DEPOSIT CARGO OR GARRISON
+          let anyDeposited = false;
           aoeState.selectedEntities.forEach(unit => {
-            if (unit.type === 'villager') {
-              unit.target = targetEntity;
-              unit.state = 'building';
-              updateVillagerToolVisual(unit, 'build');
+            if (unit.type === 'villager' && unit.carryAmount > 0 && unit.carryType) {
+              aoeState.resources[unit.carryType] += unit.carryAmount;
+              addPoints(Math.floor(unit.carryAmount), `Deposited ${unit.carryType}`);
+              unit.carryAmount = 0;
+              unit.carryType = null;
+              if (unit.mesh.userData && unit.mesh.userData.cargoGroup) {
+                unit.mesh.userData.cargoGroup.visible = false;
+              }
+              anyDeposited = true;
             }
           });
-          spawnMoveMarker(targetEntity.mesh.position);
-          playVoiceBark('build');
-          showAoENotice('[CONSTRUCTING] Constructing ' + targetEntity.name);
-        } else if (targetEntity.team === 'player' && targetEntity.type === 'town_center') {
-          // GARRISON COMMAND!
-          aoeState.selectedEntities.forEach(unit => {
-            if (unit.type === 'villager') {
-              unit.state = 'garrisoned';
-              unit.mesh.visible = false;
-            }
-          });
-          showAoENotice('[GARRISON] Units sheltered inside Town Center.');
-          updateResourceUI();
-        } else if (targetEntity.team === 'player' && targetEntity.hp < targetEntity.maxHp) {
+          if (anyDeposited) {
+            playVoiceBark('move');
+            showAoENotice('[RESOURCES DEPOSITED] Supplies safely stockpiled in storage.');
+            updateResourceUI();
+          } else if (targetEntity.type === 'town_center') {
+            // Garrison
+            aoeState.selectedEntities.forEach(unit => {
+              if (unit.type === 'villager') {
+                unit.state = 'garrisoned';
+                unit.mesh.visible = false;
+              }
+            });
+            showAoENotice('[GARRISON] Villagers sheltered inside Town Center.');
+            updateResourceUI();
+          }
+        } else if (targetEntity.isBuilding && targetEntity.team === 'player' && targetEntity.hp < targetEntity.maxHp) {
           // REPAIR COMMAND!
           aoeState.selectedEntities.forEach(unit => {
             if (unit.type === 'villager') {
@@ -268,38 +312,50 @@ def get_aoe_sim_loop_js():
           });
           spawnMoveMarker(targetEntity.mesh.position);
           playVoiceBark('build');
+        } else if (targetPos) {
+          executeMoveCommand(targetPos);
         }
       } else if (targetPos) {
-        // FORMATION MOVEMENT (Flocking grid offsets)
-        const formationSlots = calculateFormationPositions(targetPos, aoeState.selectedEntities.length);
-        aoeState.selectedEntities.forEach((unit, idx) => {
-          if (unit.state !== 'garrisoned') {
-            const dest = formationSlots[idx] || targetPos;
-            const path = findAStarPath(unit.mesh.position.x, unit.mesh.position.z, dest.x, dest.z);
-            unit.path = path;
-            unit.dest = path.length > 0 ? path[0] : dest;
-            unit.state = 'moving';
-            unit.target = null;
-          }
-        });
-        spawnMoveMarker(targetPos);
-        playVoiceBark('move');
+        executeMoveCommand(targetPos);
       }
     }
 
-    // Waypoint Visual Markers
+    function executeMoveCommand(targetPos) {
+      const formationSlots = calculateFormationPositions(targetPos, aoeState.selectedEntities.length);
+      aoeState.selectedEntities.forEach((unit, idx) => {
+        if (unit.state !== 'garrisoned') {
+          const dest = formationSlots[idx] || targetPos;
+          const path = findAStarPath(unit.mesh.position.x, unit.mesh.position.z, dest.x, dest.z);
+          unit.path = path;
+          // Step towards next node immediately
+          if (path && path.length > 1) {
+            unit.path = path.slice(1);
+            unit.dest = unit.path[0];
+          } else {
+            unit.path = [dest];
+            unit.dest = dest;
+          }
+          unit.state = 'moving';
+          unit.target = null;
+        }
+      });
+      spawnMoveMarker(targetPos);
+      playVoiceBark('move');
+    }
+
+    // Expanding Waypoint Rings
     function spawnMoveMarker(pos) {
-      const geom = new THREE.RingGeometry(0.8, 1.2, 16);
+      const geom = new THREE.RingGeometry(0.8, 1.25, 16);
       geom.rotateX(-Math.PI / 2);
-      const mat = new THREE.MeshBasicMaterial({ color: 0x4ade80, side: THREE.DoubleSide });
+      const mat = new THREE.MeshBasicMaterial({ color: 0x4ade80, side: THREE.DoubleSide, transparent: true, opacity: 1.0 });
       const m = new THREE.Mesh(geom, mat);
-      m.position.set(pos.x, pos.y + 0.15, pos.z);
+      m.position.set(pos.x, getTerrainHeight(pos.x, pos.z) + 0.15, pos.z);
       scene.add(m);
       let scale = 1.0;
       const anim = setInterval(() => {
-        scale += 0.12;
+        scale += 0.14;
         m.scale.set(scale, scale, scale);
-        mat.opacity -= 0.1;
+        mat.opacity -= 0.12;
         if (mat.opacity <= 0) {
           clearInterval(anim);
           scene.remove(m);
@@ -308,17 +364,17 @@ def get_aoe_sim_loop_js():
     }
 
     function spawnAttackMarker(pos) {
-      const geom = new THREE.RingGeometry(1.0, 1.5, 16);
+      const geom = new THREE.RingGeometry(1.0, 1.55, 16);
       geom.rotateX(-Math.PI / 2);
-      const mat = new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide });
+      const mat = new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide, transparent: true, opacity: 1.0 });
       const m = new THREE.Mesh(geom, mat);
-      m.position.set(pos.x, pos.y + 0.2, pos.z);
+      m.position.set(pos.x, getTerrainHeight(pos.x, pos.z) + 0.2, pos.z);
       scene.add(m);
       let scale = 1.0;
       const anim = setInterval(() => {
         scale += 0.15;
         m.scale.set(scale, scale, scale);
-        mat.opacity -= 0.1;
+        mat.opacity -= 0.12;
         if (mat.opacity <= 0) {
           clearInterval(anim);
           scene.remove(m);
@@ -326,7 +382,6 @@ def get_aoe_sim_loop_js():
       }, 30);
     }
 
-    // Selection Handlers
     function selectEntities(entities) {
       clearSelection();
       aoeState.selectedEntities = entities;
@@ -360,15 +415,16 @@ def get_aoe_sim_loop_js():
       updateConsoleUI(null);
     }
 
-    // Dynamic Tool Visuals on Villager
     function updateVillagerToolVisual(unit, type) {
       if (!unit.mesh.userData.axeGroup) return;
       unit.mesh.userData.axeGroup.visible = (type === 'wood');
       unit.mesh.userData.pickGroup.visible = (type === 'gold' || type === 'stone');
       unit.mesh.userData.hammerGroup.visible = (type === 'build');
+      if (unit.mesh.userData.spearGroup) {
+        unit.mesh.userData.spearGroup.visible = (type === 'hunt');
+      }
     }
 
-    // Update Console UI (Left portrait + Stats + Action Grid)
     function updateConsoleUI(entity) {
       const nameEl = document.getElementById('entity-name');
       const typeEl = document.getElementById('entity-type');
@@ -379,6 +435,7 @@ def get_aoe_sim_loop_js():
       const statRng = document.getElementById('stat-rng');
       const tabsBar = document.getElementById('grid-tabs-bar');
       const grid = document.getElementById('action-grid');
+      const trainQueueBar = document.getElementById('train-queue-bar');
 
       if (!entity) {
         nameEl.textContent = 'No Selection';
@@ -389,78 +446,71 @@ def get_aoe_sim_loop_js():
         statArm.textContent = '-';
         statRng.textContent = '-';
         tabsBar.style.display = 'none';
+        trainQueueBar.style.display = 'none';
         grid.innerHTML = '<div style="grid-column: 1/-1; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #8e6834;">Left-click units or drag box to issue commands.</div>';
         renderPortraitCanvas(null);
         return;
       }
 
       nameEl.textContent = entity.name;
-      typeEl.textContent = (entity.team === 'player' ? '[BRITONS] ' : '[RIVAL RED] ') + (entity.isBuilding ? 'Structure' : 'Unit');
+      typeEl.textContent = (entity.team === 'player' ? '[BRITONS] ' : '[RIVAL RED] ') + (entity.isBuilding ? 'Structure' : (entity.isWildAnimal ? 'Wild Game' : 'Unit'));
 
       const hpPct = Math.max(0, Math.min(100, (entity.hp / entity.maxHp) * 100));
       hpFill.style.width = hpPct + '%';
       hpFill.style.background = hpPct > 50 ? '#22c55e' : (hpPct > 25 ? '#eab308' : '#ef4444');
 
-      statHp.textContent = `${Math.floor(entity.hp)} / ${entity.maxHp}`;
-      statAtk.textContent = entity.attack || '0';
-      statArm.textContent = `${entity.armor || 0} / ${entity.armor || 0}`;
-      statRng.textContent = entity.range || '1';
+      statHp.textContent = `${Math.ceil(entity.hp)} / ${entity.maxHp}`;
+      statAtk.textContent = entity.attack !== undefined ? entity.attack : '-';
+      statArm.textContent = entity.armor !== undefined ? `${entity.armor}` : '-';
+      statRng.textContent = entity.range !== undefined ? `${entity.range}m` : '-';
 
       renderPortraitCanvas(entity);
       updateActionGrid();
     }
 
-    // Render 2D Canvas Portrait
     function renderPortraitCanvas(entity) {
       const cvs = document.getElementById('portrait-canvas');
       const ctx = cvs.getContext('2d');
-      ctx.fillStyle = '#1a1008';
-      ctx.fillRect(0, 0, 64, 64);
+      ctx.fillStyle = '#1c130c';
+      ctx.fillRect(0, 0, 68, 68);
       if (!entity) return;
 
-      // Draw Heraldic Crest or Icon
-      ctx.fillStyle = entity.team === 'enemy' ? '#dc2626' : '#2563eb';
+      ctx.fillStyle = entity.team === 'enemy' ? '#dc2626' : (entity.isWildAnimal ? '#78350f' : '#2563eb');
       ctx.beginPath();
-      ctx.arc(32, 28, 18, 0, Math.PI * 2);
+      ctx.arc(34, 30, 20, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = '#ffd700';
-      ctx.font = 'bold 16px Georgia, serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px sans-serif';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const initial = entity.name ? entity.name[0] : 'U';
-      ctx.fillText(initial, 32, 28);
+      const initials = entity.name.split(' ').map(s => s[0]).join('').slice(0, 3);
+      ctx.fillText(initials, 34, 34);
 
       ctx.strokeStyle = '#c9933b';
       ctx.lineWidth = 2;
-      ctx.strokeRect(1, 1, 62, 62);
+      ctx.strokeRect(1, 1, 66, 66);
     }
 
-    // Switch Build Categories (Q: Eco, W: Mil)
     window.setBuildCategory = function(cat) {
       aoeState.buildCategory = cat;
       document.querySelectorAll('.grid-tab-btn').forEach(b => b.classList.remove('active'));
-      const activeBtn = document.getElementById('tab-build-' + cat) || document.getElementById('tab-commands');
+      const activeBtn = document.getElementById(`tab-build-${cat}`);
       if (activeBtn) activeBtn.classList.add('active');
       updateActionGrid();
     };
 
-    // Update Action Grid Buttons Based on Selection
     function updateActionGrid() {
       const grid = document.getElementById('action-grid');
       const tabsBar = document.getElementById('grid-tabs-bar');
+      const trainQueueBar = document.getElementById('train-queue-bar');
       grid.innerHTML = '';
 
       const entity = aoeState.selectedEntity;
-      if (!entity || entity.team !== 'player') {
-        tabsBar.style.display = 'none';
-        return;
-      }
+      if (!entity) return;
 
       if (entity.type === 'villager') {
         tabsBar.style.display = 'flex';
         if (aoeState.buildCategory === 'eco') {
-          // Economic Buildings
           renderActionButton(grid, 'House', '25W', () => startBuildingPlacement('house'), 'Q', aoeState.resources.wood >= 25);
           renderActionButton(grid, 'Mill', '100W', () => startBuildingPlacement('mill'), 'W', aoeState.resources.wood >= 100);
           renderActionButton(grid, 'Lumber Camp', '100W', () => startBuildingPlacement('lumber_camp'), 'E', aoeState.resources.wood >= 100);
@@ -468,239 +518,132 @@ def get_aoe_sim_loop_js():
           renderActionButton(grid, 'Farm', '60W', () => startBuildingPlacement('farm'), 'T', aoeState.resources.wood >= 60);
           renderActionButton(grid, 'Town Center', '275W 100S', () => startBuildingPlacement('town_center'), 'A', aoeState.resources.wood >= 275 && aoeState.resources.stone >= 100 && (aoeState.age === 'Castle Age' || aoeState.age === 'Imperial Age'));
         } else if (aoeState.buildCategory === 'mil') {
-          // Military Buildings
           renderActionButton(grid, 'Barracks', '175W', () => startBuildingPlacement('barracks'), 'Q', aoeState.resources.wood >= 175);
           renderActionButton(grid, 'Archery Range', '175W', () => startBuildingPlacement('archery_range'), 'W', aoeState.resources.wood >= 175 && aoeState.age !== 'Dark Age');
           renderActionButton(grid, 'Stable', '175W', () => startBuildingPlacement('stable'), 'E', aoeState.resources.wood >= 175 && aoeState.age !== 'Dark Age');
           renderActionButton(grid, 'Blacksmith', '150W', () => startBuildingPlacement('blacksmith'), 'R', aoeState.resources.wood >= 150 && aoeState.age !== 'Dark Age');
           renderActionButton(grid, 'Monastery', '175W', () => startBuildingPlacement('monastery'), 'T', aoeState.resources.wood >= 175 && (aoeState.age === 'Castle Age' || aoeState.age === 'Imperial Age'));
           renderActionButton(grid, 'Castle', '650S', () => startBuildingPlacement('castle'), 'A', aoeState.resources.stone >= 650 && (aoeState.age === 'Castle Age' || aoeState.age === 'Imperial Age'));
-          renderActionButton(grid, 'Wonder', '1000W 1000G', () => startBuildingPlacement('wonder'), 'S', aoeState.resources.wood >= 1000 && aoeState.resources.gold >= 1000 && aoeState.resources.stone >= 1000 && aoeState.age === 'Imperial Age');
+          renderActionButton(grid, 'Wonder', '1000WGS', () => startBuildingPlacement('wonder'), 'S', aoeState.resources.wood >= 1000 && aoeState.resources.gold >= 1000 && aoeState.resources.stone >= 1000 && aoeState.age === 'Imperial Age');
           renderActionButton(grid, 'Watchtower', '50W 125S', () => startBuildingPlacement('watchtower'), 'D', aoeState.resources.wood >= 50 && aoeState.resources.stone >= 125 && aoeState.age !== 'Dark Age');
           renderActionButton(grid, 'Stone Wall', '5S', () => startBuildingPlacement('wall'), 'F', aoeState.resources.stone >= 5 && aoeState.age !== 'Dark Age');
         } else {
-          // Commands
           renderActionButton(grid, 'Stop', '', () => stopSelectedUnits(), 'S', true);
         }
       } else if (entity.type === 'town_center') {
         tabsBar.style.display = 'none';
-        renderActionButton(grid, 'Create Villager', '50 Food', () => queueUnitProduction('villager', entity), 'Q', aoeState.resources.food >= 50 && aoeState.pop < aoeState.maxPop);
-        renderActionButton(grid, 'Research Loom', '50 Gold', () => researchLoom(), 'W', aoeState.resources.gold >= 50 && !aoeState.loomResearched);
-        renderActionButton(grid, 'Ring Town Bell', '', () => window.toggleTownBell(), 'B', true);
+        renderActionButton(grid, 'Train Villager', '50F', () => queueUnitProduction('villager', entity), 'Q', aoeState.resources.food >= 50 && aoeState.pop < aoeState.maxPop);
+        renderActionButton(grid, 'Town Bell', '', () => window.toggleTownBell(), 'B', true);
       } else if (entity.type === 'barracks') {
         tabsBar.style.display = 'none';
-        const swordsmanType = aoeState.age === 'Dark Age' ? 'militia' : 'man_at_arms';
-        renderActionButton(grid, 'Train ' + (swordsmanType === 'militia' ? 'Militia' : 'Man-at-Arms'), '60F 20G', () => queueUnitProduction(swordsmanType, entity), 'Q', aoeState.resources.food >= 60 && aoeState.resources.gold >= 20 && aoeState.pop < aoeState.maxPop);
+        renderActionButton(grid, 'Train Militia', '60F 20G', () => queueUnitProduction('militia', entity), 'Q', aoeState.resources.food >= 60 && aoeState.resources.gold >= 20 && aoeState.pop < aoeState.maxPop);
         renderActionButton(grid, 'Train Spearman', '35F 25W', () => queueUnitProduction('spearman', entity), 'W', aoeState.resources.food >= 35 && aoeState.resources.wood >= 25 && aoeState.pop < aoeState.maxPop && aoeState.age !== 'Dark Age');
       } else if (entity.type === 'archery_range') {
         tabsBar.style.display = 'none';
         renderActionButton(grid, 'Train Archer', '25W 45G', () => queueUnitProduction('archer', entity), 'Q', aoeState.resources.wood >= 25 && aoeState.resources.gold >= 45 && aoeState.pop < aoeState.maxPop);
       } else if (entity.type === 'stable') {
         tabsBar.style.display = 'none';
-        renderActionButton(grid, 'Train Scout', '80 Food', () => queueUnitProduction('scout', entity), 'Q', aoeState.resources.food >= 80 && aoeState.pop < aoeState.maxPop);
+        renderActionButton(grid, 'Train Scout', '80F', () => queueUnitProduction('scout', entity), 'Q', aoeState.resources.food >= 80 && aoeState.pop < aoeState.maxPop);
         renderActionButton(grid, 'Train Knight', '60F 75G', () => queueUnitProduction('knight', entity), 'W', aoeState.resources.food >= 60 && aoeState.resources.gold >= 75 && aoeState.pop < aoeState.maxPop && (aoeState.age === 'Castle Age' || aoeState.age === 'Imperial Age'));
-      } else if (entity.type === 'monastery') {
-        tabsBar.style.display = 'none';
-        renderActionButton(grid, 'Train Monk', '100 Gold', () => queueUnitProduction('monk', entity), 'Q', aoeState.resources.gold >= 100 && aoeState.pop < aoeState.maxPop);
       } else if (entity.type === 'castle') {
         tabsBar.style.display = 'none';
         renderActionButton(grid, 'Train Knight', '60F 75G', () => queueUnitProduction('knight', entity), 'Q', aoeState.resources.food >= 60 && aoeState.resources.gold >= 75 && aoeState.pop < aoeState.maxPop);
         renderActionButton(grid, 'Build Trebuchet', '200W 200G', () => queueUnitProduction('trebuchet', entity), 'W', aoeState.resources.wood >= 200 && aoeState.resources.gold >= 200 && aoeState.pop < aoeState.maxPop && aoeState.age === 'Imperial Age');
       } else {
-        // Military Unit Stances
         tabsBar.style.display = 'none';
         renderActionButton(grid, 'Aggressive Stance', '', () => setUnitStance('aggressive'), 'A', true);
         renderActionButton(grid, 'Defensive Stance', '', () => setUnitStance('defensive'), 'D', true);
-        renderActionButton(grid, 'Stand Ground', '', () => setUnitStance('stand_ground'), 'S', true);
-        renderActionButton(grid, 'Stop', '', () => stopSelectedUnits(), 'Space', true);
+        renderActionButton(grid, 'Stand Ground', '', () => setUnitStance('stand'), 'S', true);
+        renderActionButton(grid, 'Halt / Stop', '', () => stopSelectedUnits(), 'H', true);
       }
     }
 
-    function renderActionButton(parent, name, cost, onClick, hotkey, enabled) {
+    function renderActionButton(parent, label, cost, onClick, hotkey, isEnabled) {
       const btn = document.createElement('button');
       btn.className = 'action-btn';
-      if (!enabled) btn.disabled = true;
+      if (!isEnabled) btn.disabled = true;
+
+      btn.innerHTML = `
+        <span class="btn-hotkey">${hotkey}</span>
+        <span class="btn-label">${label}</span>
+        ${cost ? `<span class="btn-cost">${cost}</span>` : ''}
+      `;
       btn.onclick = () => {
-        initAudio();
-        onClick();
-        updateResourceUI();
-        updateActionGrid();
+        if (isEnabled) {
+          initAudio();
+          onClick();
+        }
       };
-
-      if (hotkey) {
-        const hk = document.createElement('span');
-        hk.className = 'btn-hotkey';
-        hk.textContent = hotkey;
-        btn.appendChild(hk);
-      }
-
-      const nm = document.createElement('span');
-      nm.className = 'btn-name';
-      nm.textContent = name;
-      btn.appendChild(nm);
-
-      if (cost) {
-        const cs = document.createElement('span');
-        cs.className = 'btn-cost';
-        cs.textContent = cost;
-        btn.appendChild(cs);
-      }
-
       parent.appendChild(btn);
-    }
-
-    function stopSelectedUnits() {
-      aoeState.selectedEntities.forEach(u => {
-        u.dest = null;
-        u.path = null;
-        u.target = null;
-        u.state = 'idle';
-      });
-      showAoENotice('[COMMAND] Halt.');
     }
 
     function setUnitStance(stance) {
       aoeState.selectedEntities.forEach(u => {
-        u.stance = stance;
+        if (u.isUnit) u.stance = stance;
       });
-      showAoENotice(`[STANCE] Set to ${stance.toUpperCase()}`);
+      showAoENotice('[STANCE SET] ' + stance.toUpperCase());
     }
 
-    function researchLoom() {
-      if (aoeState.resources.gold < 50) return;
-      aoeState.resources.gold -= 50;
-      aoeState.loomResearched = true;
-      friendlyUnits.filter(u => u.type === 'villager').forEach(v => {
-        v.maxHp += 15;
-        v.hp += 15;
-        v.armor += 1;
+    function stopSelectedUnits() {
+      aoeState.selectedEntities.forEach(u => {
+        if (u.isUnit) {
+          u.state = 'idle';
+          u.path = null;
+          u.dest = null;
+          u.target = null;
+        }
       });
-      playAdvanceAgeFanfare();
-      showAoENotice('[RESEARCH COMPLETE: LOOM] Villagers gained +15 HP and +1 Armor!');
+      playVoiceBark('move');
     }
 
     function queueUnitProduction(unitType, building) {
-      const proto = UNIT_TYPES[unitType];
-      if (!proto) return;
+      const uDef = UNIT_TYPES[unitType];
+      if (!uDef) return;
 
-      if (aoeState.pop >= aoeState.maxPop) {
-        showAoENotice('[HOUSES NEEDED] Build additional houses to support more population!');
-        return;
-      }
+      if (uDef.cost.food && aoeState.resources.food < uDef.cost.food) return;
+      if (uDef.cost.wood && aoeState.resources.wood < uDef.cost.wood) return;
+      if (uDef.cost.gold && aoeState.resources.gold < uDef.cost.gold) return;
 
-      for (const [res, amt] of Object.entries(proto.cost)) {
-        if (aoeState.resources[res] < amt) {
-          showAoENotice(`[INSUFFICIENT ${res.toUpperCase()}] Requires ${amt} ${res}.`);
-          return;
-        }
-      }
-      for (const [res, amt] of Object.entries(proto.cost)) {
-        aoeState.resources[res] -= amt;
-      }
-      aoeState.pop++;
+      if (uDef.cost.food) aoeState.resources.food -= uDef.cost.food;
+      if (uDef.cost.wood) aoeState.resources.wood -= uDef.cost.wood;
+      if (uDef.cost.gold) aoeState.resources.gold -= uDef.cost.gold;
 
-      if (!building.queue) building.queue = [];
+      aoeState.pop += 1;
       building.queue.push({
         type: unitType,
-        proto,
-        progress: 0,
-        totalTime: proto.trainTime
+        timeRemaining: uDef.trainTime,
+        totalTime: uDef.trainTime
       });
 
-      playBuildingHammerSound();
-      showAoENotice(`[TRAINING] ${proto.name} ordered.`);
+      playVoiceBark('build');
+      showAoENotice('[QUEUE] ' + uDef.name + ' training commenced.');
       updateResourceUI();
     }
 
-    // Building Placement Logic
     function startBuildingPlacement(bType) {
       const bDef = BUILDING_TYPES[bType];
       if (!bDef) return;
 
-      cancelBuildingPlacement();
-      aoeState.activePlacementType = bType;
-
-      let ghost = null;
-      if (bType === 'town_center') ghost = createTownCenterMesh(aoeState.age, false);
-      else if (bType === 'house') ghost = createHouseMesh(aoeState.age, false);
-      else if (bType === 'mill') ghost = createMillMesh();
-      else if (bType === 'lumber_camp') ghost = createLumberCampMesh();
-      else if (bType === 'mining_camp') ghost = createMiningCampMesh();
-      else if (bType === 'farm') ghost = createFarmMesh();
-      else if (bType === 'barracks') ghost = createBarracksMesh(false);
-      else if (bType === 'archery_range') ghost = createArcheryRangeMesh(false);
-      else if (bType === 'stable') ghost = createStableMesh(false);
-      else if (bType === 'blacksmith') ghost = createBlacksmithMesh();
-      else if (bType === 'monastery') ghost = createMonasteryMesh(false);
-      else if (bType === 'castle') ghost = createCastleMesh(false);
-      else if (bType === 'wonder') ghost = createWonderMesh();
-      else if (bType === 'watchtower') ghost = createWatchtowerMesh(aoeState.age, false);
-      else if (bType === 'wall') ghost = createWallMesh();
-
-      if (ghost) {
-        ghost.traverse(c => {
-          if (c.isMesh) {
-            c.material = c.material.clone();
-            c.material.transparent = true;
-            c.material.opacity = 0.55;
-          }
-        });
-        scene.add(ghost);
-        aoeState.placementGhost = ghost;
+      if (bDef.cost.wood && aoeState.resources.wood < bDef.cost.wood) {
+        showAoENotice('[INSUFFICIENT WOOD] Requires ' + bDef.cost.wood + ' Wood.');
+        return;
       }
-      showAoENotice(`[CONSTRUCTION] Left-click ground to place ${bDef.name}. ESC to cancel.`);
-    }
-
-    function confirmBuildingPlacement() {
-      const bType = aoeState.activePlacementType;
-      const bDef = BUILDING_TYPES[bType];
-      const ghost = aoeState.placementGhost;
-      if (!bType || !bDef || !ghost) return;
-
-      // Coordinate check & buildable test
-      const snapX = ghost.position.x;
-      const snapZ = ghost.position.z;
-      const g = worldToGrid(snapX, snapZ);
-      const sizeTiles = Math.max(1, Math.round(bDef.size / TILE_SIZE));
-
-      if (!isTileBuildable(g.x, g.z, sizeTiles, sizeTiles)) {
-        showAoENotice('[OBSTRUCTED] Cannot place structure on occupied, water, or cliff ground.');
+      if (bDef.cost.stone && aoeState.resources.stone < bDef.cost.stone) {
+        showAoENotice('[INSUFFICIENT STONE] Requires ' + bDef.cost.stone + ' Stone.');
         return;
       }
 
-      for (const [res, amt] of Object.entries(bDef.cost)) {
-        if (aoeState.resources[res] < amt) {
-          showAoENotice(`[INSUFFICIENT ${res.toUpperCase()}] Requires ${amt} ${res}.`);
-          return;
-        }
-      }
-      for (const [res, amt] of Object.entries(bDef.cost)) {
-        aoeState.resources[res] -= amt;
-      }
-
-      const pos = ghost.position.clone();
       cancelBuildingPlacement();
 
-      // Spawn Building and mark grid blocked
-      spawnBuilding(bType, pos.x, pos.z, 'player');
-      occupyGridArea(pos.x, pos.z, sizeTiles, sizeTiles);
+      aoeState.activePlacementType = bType;
+      const ghostGeom = new THREE.BoxGeometry(bDef.size, 4, bDef.size);
+      const ghostMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, wireframe: true });
+      const ghost = new THREE.Mesh(ghostGeom, ghostMat);
+      ghost.position.set(0, 0, 0);
+      scene.add(ghost);
+      aoeState.placementGhost = ghost;
 
-      playBuildingHammerSound();
-      showAoENotice(`[CONSTRUCTED] ${bDef.name} placed!`);
-
-      if (bDef.providesPop) {
-        aoeState.maxPop = Math.min(200, aoeState.maxPop + bDef.providesPop);
-      }
-
-      if (bType === 'wonder') {
-        aoeState.wonderActive = true;
-        aoeState.wonderTimer = 200;
-        document.getElementById('wonder-banner').style.display = 'flex';
-        showAoENotice('[WONDER COMPLETED!] Imperial countdown initiated: Defend for 200 seconds!');
-      }
-
-      updateResourceUI();
-      updateActionGrid();
+      showAoENotice('[BLUEPRINT ACTIVE] Left-click to place ' + bDef.name + ', Right-click to cancel.');
     }
 
     function cancelBuildingPlacement() {
@@ -709,5 +652,77 @@ def get_aoe_sim_loop_js():
         aoeState.placementGhost = null;
       }
       aoeState.activePlacementType = null;
+    }
+
+    function confirmBuildingPlacement() {
+      const bType = aoeState.activePlacementType;
+      const bDef = BUILDING_TYPES[bType];
+      const ghost = aoeState.placementGhost;
+      if (!bType || !bDef || !ghost) return;
+
+      const snapX = ghost.position.x;
+      const snapZ = ghost.position.z;
+      const g = worldToGrid(snapX, snapZ);
+      const sizeTiles = Math.max(1, Math.round(bDef.size / TILE_SIZE));
+
+      if (!isTileBuildable(g.x, g.z, sizeTiles, sizeTiles)) {
+        showAoENotice('[CANNOT BUILD HERE] Terrain obstructed or uneven!');
+        playVoiceBark('select');
+        return;
+      }
+
+      if (bDef.cost.wood) aoeState.resources.wood -= bDef.cost.wood;
+      if (bDef.cost.stone) aoeState.resources.stone -= bDef.cost.stone;
+
+      const pos = ghost.position.clone();
+      cancelBuildingPlacement();
+
+      spawnBuilding(bType, pos.x, pos.z, 'player');
+      occupyGridArea(pos.x, pos.z, sizeTiles, sizeTiles);
+
+      if (bDef.providesPop) {
+        aoeState.maxPop += bDef.providesPop;
+      }
+
+      addPoints(50, `Constructed ${bDef.name}`);
+      triggerMissionProgress('build_house_lumber', 1);
+
+      playVoiceBark('build');
+      showAoENotice('[CONSTRUCTED] ' + bDef.name + ' foundation laid!');
+      updateResourceUI();
+    }
+
+    // Dynamic Weather Controller
+    window.cycleWeather = function() {
+      const weathers = ['Sunny Noon', 'Misty Rain', 'Sunset Glow'];
+      const nextIdx = (weathers.indexOf(aoeState.weather) + 1) % weathers.length;
+      applyWeather(weathers[nextIdx]);
+    };
+
+    function applyWeather(mode) {
+      aoeState.weather = mode;
+      const btn = document.getElementById('btn-weather');
+      if (btn) btn.textContent = `[WEATHER: ${mode.toUpperCase()}]`;
+
+      if (mode === 'Sunny Noon') {
+        scene.background.setHex(0x87ceeb);
+        scene.fog.color.setHex(0xb0d8f0);
+        sunLight.color.setHex(0xfffaed);
+        sunLight.intensity = 1.45;
+        showAoENotice('[WEATHER] Clear skies & radiant medieval sun.');
+      } else if (mode === 'Misty Rain') {
+        scene.background.setHex(0x5a6e7c);
+        scene.fog.color.setHex(0x607380);
+        sunLight.color.setHex(0xd0d8e0);
+        sunLight.intensity = 0.85;
+        playRainSound();
+        showAoENotice('[WEATHER] Overcast skies & cool rainfall.');
+      } else if (mode === 'Sunset Glow') {
+        scene.background.setHex(0xb45309);
+        scene.fog.color.setHex(0xd97706);
+        sunLight.color.setHex(0xffaa44);
+        sunLight.intensity = 1.6;
+        showAoENotice('[WEATHER] Amber dusk & long evening shadows.');
+      }
     }
     """

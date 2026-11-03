@@ -60,7 +60,7 @@ def get_aoe_css():
     .top-left-sect {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .civ-shield {
@@ -100,78 +100,149 @@ def get_aoe_css():
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 4px;
-      animation: pulseAdvance 2s infinite alternate;
+      gap: 6px;
+      transition: all 0.2s;
     }
-    @keyframes pulseAdvance {
-      from { box-shadow: 0 0 4px #f59e0b; }
-      to { box-shadow: 0 0 12px #f59e0b; }
+    .age-advance-btn:hover {
+      background: linear-gradient(180deg, #d97706 0%, #92400e 100%);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
     }
 
+    .level-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(180deg, #2b1f15 0%, #170f08 100%);
+      border: 1px solid #b8860b;
+      border-radius: 4px;
+      padding: 4px 9px;
+      color: #fef08a;
+      font-weight: 800;
+      font-size: 11px;
+      box-shadow: inset 0 0 6px rgba(184, 134, 11, 0.3);
+    }
+
+    /* 4 Classic AoE Resources & Pop Cap */
     .resource-row {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 8px;
     }
 
     .res-pill {
       display: flex;
       align-items: center;
       gap: 6px;
-      background: #19120b;
-      border: 1px solid #5a3e20;
+      background: #150e09;
+      border: 1px solid #583c21;
       border-radius: 4px;
-      padding: 3px 8px;
+      padding: 4px 8px;
       font-weight: 700;
-      font-size: 13px;
-      color: #f3eedf;
-      min-width: 82px;
+      min-width: 78px;
+      justify-content: space-between;
     }
     .res-pill .tag {
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
+      font-size: 11px;
+      font-weight: 800;
     }
-    .res-wood .tag { color: #86efac; }
-    .res-food .tag { color: #fca5a5; }
-    .res-gold .tag { color: #fde047; }
-    .res-stone .tag { color: #cbd5e1; }
-    .res-pop .tag { color: #93c5fd; }
+    .res-wood .tag { color: #84cc16; }
+    .res-food .tag { color: #f97316; }
+    .res-gold .tag { color: #eab308; }
+    .res-stone .tag { color: #94a3b8; }
+    .res-pop .tag { color: #38bdf8; }
 
     .top-right-sect {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .top-btn {
-      background: linear-gradient(180deg, #3d2816 0%, #25180c 100%);
-      border: 1px solid #997039;
+      background: linear-gradient(180deg, #3d2816 0%, #24160a 100%);
+      border: 1px solid #7c5828;
       border-radius: 4px;
-      padding: 5px 10px;
+      color: #f5eedb;
+      font-family: inherit;
       font-size: 11px;
       font-weight: 700;
-      color: #f7eed7;
+      padding: 5px 9px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
       transition: all 0.15s;
     }
     .top-btn:hover {
-      background: linear-gradient(180deg, #53381e 0%, #362312 100%);
-      border-color: #ffd700;
+      background: linear-gradient(180deg, #53371f 0%, #352110 100%);
+      border-color: #c9933b;
       color: #fff;
     }
+
     .idle-btn {
-      background: linear-gradient(180deg, #854d0e 0%, #543105 100%);
-      border-color: #eab308;
+      background: linear-gradient(180deg, #854d0e 0%, #533008 100%);
+      border-color: #ca8a04;
       color: #fef08a;
     }
+
     .bell-btn {
       background: linear-gradient(180deg, #991b1b 0%, #580c0c 100%);
       border-color: #ef4444;
-      color: #fee2e2;
+      color: #fecaca;
+    }
+
+    .craft-btn {
+      background: linear-gradient(180deg, #0f766e 0%, #115e59 100%);
+      border-color: #14b8a6;
+      color: #ccfbf1;
+    }
+
+    .weather-btn {
+      background: linear-gradient(180deg, #1e3a8a 0%, #172554 100%);
+      border-color: #3b82f6;
+      color: #bfdbfe;
+    }
+
+    /* FLOATING ROYAL TASKS & BOUNTIES TRACKER (Top-Left) */
+    #mission-hud {
+      position: absolute;
+      top: 56px;
+      left: 16px;
+      width: 280px;
+      background: rgba(22, 14, 8, 0.94);
+      border: 2px solid #c9933b;
+      border-radius: 6px;
+      padding: 10px 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85);
+      z-index: 45;
+      backdrop-filter: blur(4px);
+    }
+    .mission-hud-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #7c5828;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .mission-hud-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #ffd700;
+      letter-spacing: 0.5px;
+    }
+    .mission-current-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .mission-current-desc {
+      font-size: 10px;
+      color: #d1c0a5;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    .mission-reward-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #4ade80;
     }
 
     /* BOTTOM RTS COMMAND CONSOLE (AoE II Authentic Architecture) */
@@ -180,127 +251,123 @@ def get_aoe_css():
       bottom: 0;
       left: 0;
       right: 0;
-      height: 180px;
-      background: linear-gradient(180deg, #2b1d12 0%, #170f08 100%);
+      height: 172px;
+      background: linear-gradient(180deg, #24160a 0%, #150d06 100%);
       border-top: 3px solid #8e6834;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8);
-      display: flex;
+      box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.8);
+      display: grid;
+      grid-template-columns: 290px 1fr 220px;
       z-index: 50;
-      pointer-events: auto;
     }
 
-    /* LEFT SECTION: Selection Info & Unit Portrait */
+    /* LEFT: Selection Portrait & Details */
     .console-left {
-      width: 290px;
-      min-width: 290px;
       border-right: 2px solid #5a3e20;
       padding: 10px 14px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      background: rgba(18, 12, 7, 0.6);
+      background: #1a1008;
     }
 
     .entity-header {
       display: flex;
-      gap: 12px;
       align-items: center;
+      gap: 12px;
     }
 
     .portrait-frame {
-      width: 64px;
-      height: 64px;
+      width: 68px;
+      height: 68px;
       border: 2px solid #c9933b;
       border-radius: 4px;
-      background: #110c07;
+      background: #0d0804;
+      box-shadow: inset 0 0 10px #000;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
-    }
-    .portrait-canvas {
-      width: 100%;
-      height: 100%;
+      flex-shrink: 0;
     }
 
     .entity-titles {
       flex: 1;
+      min-width: 0;
     }
+
     .entity-name {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 800;
       color: #ffd700;
-      text-shadow: 1px 1px 2px #000;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       margin-bottom: 2px;
     }
+
     .entity-type {
-      font-size: 11px;
-      color: #bfa889;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-size: 10px;
+      color: #a89478;
+      margin-bottom: 6px;
     }
 
     .hp-bar-outer {
       width: 100%;
       height: 8px;
-      background: #2b1111;
+      background: #331f11;
       border: 1px solid #5a3e20;
-      border-radius: 3px;
-      margin-top: 6px;
+      border-radius: 2px;
       overflow: hidden;
     }
+
     .hp-bar-inner {
       height: 100%;
-      width: 100%;
       background: #22c55e;
-      transition: width 0.2s ease;
+      transition: width 0.15s ease-out;
     }
 
     .entity-stats {
-      font-size: 11px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 4px 8px;
+      gap: 3px 8px;
+      font-size: 10px;
       color: #d1c0a5;
-      background: #1f140b;
-      padding: 6px 8px;
+      background: #110b06;
       border: 1px solid #3d2816;
-      border-radius: 4px;
-      margin-top: 6px;
+      border-radius: 3px;
+      padding: 6px 8px;
     }
     .stat-val {
-      font-weight: 700;
-      color: #fef08a;
+      font-weight: 800;
+      color: #fff;
     }
 
-    /* CENTER SECTION: 3x5 Action & Command Grid */
+    /* CENTER: Action & Command Grid */
     .console-center {
-      flex: 1;
+      padding: 8px 16px;
       display: flex;
       flex-direction: column;
-      padding: 10px 14px;
+      justify-content: space-between;
       border-right: 2px solid #5a3e20;
-      position: relative;
+      background: #160e07;
+      min-width: 0;
     }
 
     .action-grid-tabs {
       display: flex;
-      gap: 6px;
-      margin-bottom: 8px;
+      gap: 8px;
+      margin-bottom: 6px;
     }
+
     .grid-tab-btn {
-      background: #28190d;
-      border: 1px solid #634320;
-      border-radius: 4px;
-      padding: 3px 10px;
+      background: #2b1c10;
+      border: 1px solid #5a3e20;
+      color: #d1c0a5;
       font-size: 10px;
-      font-weight: 800;
-      color: #cbb292;
+      font-weight: 700;
+      padding: 3px 8px;
       cursor: pointer;
+      border-radius: 3px;
     }
     .grid-tab-btn.active {
-      background: #5a3b1a;
+      background: #5a3e20;
       border-color: #ffd700;
       color: #ffd700;
     }
@@ -308,95 +375,92 @@ def get_aoe_css():
     .action-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      grid-template-rows: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 44px);
       gap: 6px;
-      height: 116px;
+      flex: 1;
     }
 
     .action-btn {
-      background: linear-gradient(180deg, #3d2716 0%, #201309 100%);
-      border: 1.5px solid #7c5828;
+      background: linear-gradient(180deg, #3d2816 0%, #201309 100%);
+      border: 1.5px solid #6b4923;
       border-radius: 4px;
-      color: #f3eedf;
-      cursor: pointer;
+      color: #f5eedb;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      text-align: center;
-      transition: all 0.12s;
+      cursor: pointer;
       position: relative;
+      padding: 2px;
+      transition: all 0.1s;
     }
     .action-btn:hover:not(:disabled) {
-      background: linear-gradient(180deg, #593920 0%, #352010 100%);
       border-color: #ffd700;
-      transform: translateY(-1px);
-      box-shadow: 0 3px 8px rgba(0,0,0,0.6);
-    }
-    .action-btn:active:not(:disabled) {
-      transform: translateY(1px);
+      background: linear-gradient(180deg, #53371f 0%, #301d0f 100%);
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
     }
     .action-btn:disabled {
-      opacity: 0.4;
+      opacity: 0.35;
       cursor: not-allowed;
-      filter: grayscale(80%);
+      filter: grayscale(0.8);
     }
+
     .btn-hotkey {
       position: absolute;
       top: 2px;
-      right: 3px;
-      font-size: 8px;
-      color: #d97706;
+      left: 4px;
+      font-size: 9px;
       font-weight: 900;
-    }
-    .btn-name {
-      font-size: 10px;
-      font-weight: 800;
       color: #ffd700;
-      margin-top: 2px;
     }
+
+    .btn-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.1;
+      margin-top: 4px;
+    }
+
     .btn-cost {
       font-size: 9px;
-      color: #d1c0a5;
+      color: #a89478;
       margin-top: 1px;
     }
 
-    /* Training Queue Bar */
     .train-queue-bar {
-      position: absolute;
-      bottom: 6px;
-      left: 14px;
-      right: 14px;
-      height: 18px;
-      background: #180e07;
-      border: 1px solid #5a3e20;
-      border-radius: 3px;
       display: flex;
       align-items: center;
-      padding: 0 4px;
-      gap: 6px;
+      gap: 8px;
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid #3d2816;
     }
     .queue-fill {
-      height: 10px;
-      background: #2563eb;
-      border-radius: 2px;
+      height: 100%;
+      background: #3b82f6;
       transition: width 0.1s linear;
     }
     .queue-slots {
       display: flex;
       gap: 4px;
+    }
+    .queue-slot {
+      width: 22px;
+      height: 22px;
+      border: 1px solid #7c5828;
+      border-radius: 2px;
+      background: #1f1309;
       font-size: 9px;
-      color: #fef08a;
-      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffd700;
+      font-weight: 800;
     }
 
-    /* RIGHT SECTION: RTS Radar Minimap */
+    /* RIGHT: Live Radar Minimap */
     .console-right {
-      width: 220px;
-      min-width: 220px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -422,24 +486,25 @@ def get_aoe_css():
       display: block;
     }
 
-    /* 3D FLOATING HOVER TOOLTIP */
+    /* 3D FLOATING HOVER TOOLTIP (Medieval Scroll Look) */
     #hover-tooltip {
       position: absolute;
       pointer-events: none;
-      background: rgba(22, 14, 8, 0.92);
+      background: rgba(22, 14, 8, 0.94);
       border: 1.5px solid #d4af37;
       border-radius: 6px;
       padding: 8px 12px;
       color: #fbf5e6;
       font-size: 11px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.85);
       z-index: 1000;
       display: none;
       transform: translate(-50%, -125%);
       backdrop-filter: blur(4px);
+      max-width: 260px;
     }
     .tip-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
       color: #ffd700;
       margin-bottom: 2px;
@@ -447,6 +512,7 @@ def get_aoe_css():
     .tip-sub {
       color: #d1c0a5;
       font-size: 10px;
+      line-height: 1.3;
     }
 
     /* NOTIFICATION BANNER */
@@ -507,9 +573,52 @@ def get_aoe_css():
       border: 1px solid #7c5828;
       color: #ffd700;
       font-weight: 800;
-      padding: 3px 9px;
+      padding: 4px 10px;
       cursor: pointer;
       border-radius: 4px;
+      font-family: inherit;
+    }
+    .aoe-close-btn:hover {
+      background: #5a3e20;
+      border-color: #ffd700;
+    }
+
+    /* CRAFTING ATELIER RECIPES GRID */
+    .craft-recipes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .craft-card {
+      background: #180e07;
+      border: 1.5px solid #5a3e20;
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .craft-card-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffd700;
+      margin-bottom: 4px;
+    }
+    .craft-card-desc {
+      font-size: 11px;
+      color: #d1c0a5;
+      margin-bottom: 8px;
+    }
+    .craft-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .craft-cost {
+      font-size: 10px;
+      color: #f59e0b;
+      font-weight: 700;
     }
 
     /* WONDER COUNTDOWN OVERLAY */
