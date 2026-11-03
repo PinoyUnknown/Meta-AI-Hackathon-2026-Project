@@ -16,7 +16,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #87ceeb;
+      background: #7ec0ee;
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
       color: #2c2416;
     }
@@ -29,7 +29,7 @@
       z-index: 1;
     }
 
-    /* Top Medieval Resource & Realm Ledger */
+    /* Vibrant Medieval Daytime HUD */
     #hud {
       position: absolute;
       top: 0;
@@ -52,12 +52,13 @@
       pointer-events: auto;
     }
 
+    /* Daytime Realm Nameplate (Warm Parchment & Gold Trim) */
     .town-plate {
-      background: #2b1f14;
+      background: rgba(255, 252, 245, 0.98);
       border: 2px solid #c9933b;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 8px 18px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 18px rgba(60, 40, 20, 0.18);
       display: flex;
       flex-direction: column;
     }
@@ -65,25 +66,26 @@
       font-size: 16px;
       font-weight: 800;
       letter-spacing: 1.2px;
-      color: #f7e6b5;
+      color: #5c3818;
       text-transform: uppercase;
       font-family: Georgia, serif;
     }
     .town-sub {
       font-size: 10px;
-      color: #d1b88c;
+      color: #8c6838;
       letter-spacing: 0.8px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
+    /* Resource Ledger (Bright Warm Cream) */
     .resource-ledger {
       display: flex;
       gap: 14px;
-      background: rgba(254, 249, 235, 0.96);
-      border: 2px solid #8c6838;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
       border-radius: 10px;
       padding: 8px 18px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 18px rgba(60, 40, 20, 0.18);
     }
     .res-item {
       display: flex;
@@ -91,28 +93,31 @@
       gap: 5px;
       font-size: 13px;
       font-weight: 700;
-      color: #3d2c1d;
+      color: #3e2714;
     }
     .res-tag {
       font-size: 10px;
       font-weight: 800;
       color: #8c6838;
-      background: #f1e4ce;
-      padding: 2px 5px;
+      background: #fdf3e0;
+      padding: 2px 6px;
       border-radius: 4px;
+      border: 1px solid #e8cd9b;
     }
 
+    /* Population & Happiness Badge */
     .pop-badge {
       display: flex;
       gap: 12px;
-      background: #2b1f14;
+      align-items: center;
+      background: rgba(255, 252, 245, 0.98);
       border: 2px solid #c9933b;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 8px 16px;
-      color: #f7e6b5;
+      color: #3e2714;
       font-size: 12px;
       font-weight: 700;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 4px 18px rgba(60, 40, 20, 0.18);
     }
 
     /* Left Quest & Estate Dispatch Card */
@@ -121,11 +126,11 @@
       top: 75px;
       left: 20px;
       width: 290px;
-      background: rgba(253, 248, 235, 0.96);
-      border: 2px solid #8c6838;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
       border-radius: 10px;
       padding: 14px 16px;
-      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 6px 22px rgba(60, 40, 20, 0.2);
       pointer-events: auto;
       font-family: Georgia, serif;
     }
@@ -140,7 +145,7 @@
     .quest-title {
       font-size: 14px;
       font-weight: 800;
-      color: #4a3420;
+      color: #5c3818;
       margin-bottom: 6px;
     }
     .quest-desc {
@@ -157,7 +162,7 @@
       font-family: monospace;
     }
 
-    /* Bottom Building Placement Dock (Foundation Gridless Builder) */
+    /* Bottom Building Placement Dock */
     .dock-container {
       display: flex;
       flex-direction: column;
@@ -169,11 +174,11 @@
     .building-dock {
       display: flex;
       gap: 8px;
-      background: rgba(43, 31, 20, 0.96);
+      background: rgba(255, 252, 245, 0.98);
       border: 2px solid #c9933b;
       border-radius: 12px;
       padding: 8px 12px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 25px rgba(60, 40, 20, 0.25);
       max-width: 95vw;
       overflow-x: auto;
     }
@@ -182,31 +187,31 @@
       flex-direction: column;
       align-items: center;
       gap: 3px;
-      background: #4a3420;
-      border: 1px solid #8c6838;
+      background: #fdf8ee;
+      border: 1px solid #c9933b;
       border-radius: 8px;
       padding: 8px 12px;
       min-width: 86px;
       cursor: pointer;
-      color: #f7e6b5;
+      color: #4a3420;
       transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .b-btn:hover {
-      background: #6b4c30;
-      border-color: #f3c262;
+      background: #fcedd0;
+      border-color: #b87a20;
       transform: translateY(-2px);
     }
     .b-btn.active {
-      background: #855d38;
-      border-color: #ffd875;
-      box-shadow: 0 0 12px #ffd875;
+      background: #e8cd9b;
+      border-color: #8c5818;
+      box-shadow: 0 0 10px rgba(201, 147, 59, 0.6);
       transform: translateY(-3px);
     }
     .b-tag {
       font-size: 9px;
       font-weight: 800;
       letter-spacing: 0.5px;
-      color: #d1b88c;
+      color: #8c6838;
     }
     .b-name {
       font-size: 11px;
@@ -215,12 +220,12 @@
     }
     .b-cost {
       font-size: 9px;
-      color: #e5c287;
+      color: #855d38;
     }
 
     .controls-hint {
-      background: rgba(254, 249, 235, 0.92);
-      border: 1px solid #8c6838;
+      background: rgba(255, 252, 245, 0.95);
+      border: 1px solid #c9933b;
       border-radius: 6px;
       padding: 4px 14px;
       font-size: 11px;
@@ -228,9 +233,10 @@
       font-weight: 600;
       display: flex;
       gap: 12px;
+      box-shadow: 0 2px 8px rgba(60, 40, 20, 0.12);
     }
     .controls-hint kbd {
-      background: #2b1f14;
+      background: #5c3818;
       color: #f7e6b5;
       padding: 1px 5px;
       border-radius: 3px;
@@ -238,17 +244,17 @@
       font-size: 10px;
     }
 
-    /* Villager & Building Inspector Cards */
+    /* Villager & Building Inspector Card */
     #inspector-card {
       position: absolute;
       bottom: 120px;
       right: 20px;
       width: 270px;
-      background: rgba(253, 248, 235, 0.96);
-      border: 2px solid #8c6838;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
       border-radius: 10px;
       padding: 14px 16px;
-      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 6px 25px rgba(60, 40, 20, 0.22);
       display: none;
       pointer-events: auto;
       font-family: Georgia, serif;
@@ -264,7 +270,7 @@
     .insp-title {
       font-size: 14px;
       font-weight: 800;
-      color: #4a3420;
+      color: #5c3818;
     }
     .insp-close {
       background: none;
@@ -294,8 +300,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.7);
-      backdrop-filter: blur(8px);
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(6px);
       z-index: 100;
       display: none;
       justify-content: center;
@@ -304,10 +310,10 @@
     .modal-box {
       width: 90%;
       max-width: 620px;
-      background: #fdfaf2;
-      border: 3px solid #8c6838;
+      background: #fffdf9;
+      border: 3px solid #c9933b;
       border-radius: 12px;
-      box-shadow: 0 10px 45px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 10px 45px rgba(0, 0, 0, 0.35);
       padding: 24px 28px;
       color: #3b2818;
     }
@@ -336,18 +342,18 @@
       accent-color: #c9933b;
     }
     .settings-row select {
-      background: #f4ede0;
-      border: 1px solid #8c6838;
+      background: #fdf8ee;
+      border: 1px solid #c9933b;
       border-radius: 4px;
       padding: 4px 8px;
       font-size: 12px;
       color: #3b2818;
     }
     .btn-action {
-      background: #855d38;
-      border: 1px solid #c9933b;
+      background: #c9933b;
+      border: 1px solid #8c5818;
       border-radius: 6px;
-      color: #f7e6b5;
+      color: #fffdf9;
       padding: 8px 18px;
       font-weight: 700;
       font-size: 12px;
@@ -355,8 +361,7 @@
       transition: all 0.15s ease;
     }
     .btn-action:hover {
-      background: #a07248;
-      border-color: #ffd875;
+      background: #b87a20;
     }
   </style>
 </head>
@@ -380,8 +385,8 @@
       </div>
 
       <div class="pop-badge">
-        <div>[SERFS: <span id="pop-count" style="color: #38bdf8;">6</span>]</div>
-        <div>[HAPPINESS: <span id="pop-happy" style="color: #10b981;">100%</span>]</div>
+        <div>[SERFS: <span id="pop-count" style="color: #0284c7; font-weight: 800;">6</span>]</div>
+        <div>[HAPPINESS: <span id="pop-happy" style="color: #15803d; font-weight: 800;">100%</span>]</div>
         <button id="btn-settings-hud" class="btn-action" style="padding: 4px 10px; font-size: 11px;">[SETTINGS]</button>
       </div>
     </div>
@@ -403,9 +408,9 @@
       <div class="insp-row"><span>Status:</span> <span id="insp-status" class="insp-val">Serf</span></div>
       <div class="insp-row"><span>Profession:</span> <span id="insp-job" class="insp-val">Woodcutter</span></div>
       <div class="insp-row"><span>Current Task:</span> <span id="insp-task" class="insp-val">Harvesting Oak</span></div>
-      <div class="insp-row"><span>Hunger:</span> <span id="insp-hunger" class="insp-val" style="color: #10b981;">Satisfied</span></div>
-      <div class="insp-row"><span>Thirst:</span> <span id="insp-thirst" class="insp-val" style="color: #10b981;">Quenched</span></div>
-      <div class="insp-row"><span>Shelter:</span> <span id="insp-shelter" class="insp-val" style="color: #10b981;">Thatched Cottage</span></div>
+      <div class="insp-row"><span>Hunger:</span> <span id="insp-hunger" class="insp-val" style="color: #15803d;">Satisfied</span></div>
+      <div class="insp-row"><span>Thirst:</span> <span id="insp-thirst" class="insp-val" style="color: #15803d;">Quenched</span></div>
+      <div class="insp-row"><span>Shelter:</span> <span id="insp-shelter" class="insp-val" style="color: #15803d;">Thatched Cottage</span></div>
     </div>
 
     <!-- Bottom Building Placement Dock -->
@@ -464,8 +469,8 @@
           <span class="b-name">Lord's Keep</span>
           <span class="b-cost">60 Stone, 40 Wood</span>
         </div>
-        <div class="b-btn" onclick="toggleZoningTool()" style="border-color: #10b981;">
-          <span class="b-tag" style="color: #34d399;">[ZONE]</span>
+        <div class="b-btn" onclick="toggleZoningTool()" style="border-color: #15803d;">
+          <span class="b-tag" style="color: #15803d;">[ZONE]</span>
           <span class="b-name" id="zone-btn-name">Paint Zone</span>
           <span class="b-cost">Residential</span>
         </div>
@@ -483,8 +488,8 @@
 
       <div class="settings-row">
         <span>Sunlight Brightness:</span>
-        <input type="range" id="slider-brightness" min="0.6" max="2.4" step="0.1" value="1.5">
-        <span id="val-brightness">150%</span>
+        <input type="range" id="slider-brightness" min="0.8" max="2.8" step="0.1" value="1.8">
+        <span id="val-brightness">180%</span>
       </div>
 
       <div class="settings-row">
@@ -496,7 +501,7 @@
       <div class="settings-row">
         <span>GPU Quality & Shaders:</span>
         <select id="select-gpu">
-          <option value="ultra">Ultra (High PBR & Shadows)</option>
+          <option value="ultra">Ultra (High PBR & Soft Shadows)</option>
           <option value="high" selected>High (Optimal 60 FPS)</option>
           <option value="medium">Performance (Low Shadows)</option>
         </select>
@@ -520,12 +525,12 @@
         </select>
       </div>
 
-      <div style="background: #f4ede0; border: 1px solid #c9933b; border-radius: 8px; padding: 12px; margin-top: 14px; font-size: 11px; line-height: 1.6;">
-        <div style="font-weight: 800; color: #4a3420; margin-bottom: 2px;">
-          FOUNDATION: ORGANIC SETTLEMENT SIMULATOR (v9.0.0 PROTOTYPE)
+      <div style="background: #fdf8ee; border: 1px solid #c9933b; border-radius: 8px; padding: 12px; margin-top: 14px; font-size: 11px; line-height: 1.6;">
+        <div style="font-weight: 800; color: #5c3818; margin-bottom: 2px;">
+          FOUNDATION: ORGANIC SETTLEMENT SIMULATOR (VIBRANT DAYTIME EDITION)
         </div>
         <div style="color: #6b4c30; margin-bottom: 6px;">
-          Inspired by Foundation (Polymorph Games). Grid-less organic medieval town building, dynamic desire footpaths, autonomous serfs, modular monuments, and estate supply chain economy.
+          Inspired by Foundation (Polymorph Games). Grid-less organic medieval settlement building, dynamic desire footpaths, autonomous serfs, modular monuments, and estate supply chain economy.
         </div>
         <div>
           <strong>Lead Developer:</strong> <a href="https://github.com/pinoyUnknown" target="_blank" style="color: #855d38; font-weight: bold;">github.com/pinoyUnknown</a> |
@@ -543,7 +548,7 @@
     import * as THREE from './lib/three.module.min.js';
 
     // =========================================================================
-    // PROCEDURAL TEXTURE GENERATION (OFFLINE PAINTERLY MEDIEVAL REALISM)
+    // PROCEDURAL TEXTURE GENERATION (BRIGHT DAYLIGHT REALISM)
     // =========================================================================
     function createProceduralCanvas(width, height) {
       const c = document.createElement('canvas');
@@ -552,27 +557,28 @@
       return c;
     }
 
-    // Lush Emerald Meadow with Clover & Wildflowers
+    // Bright Sunlit Meadow Grass with Clover & Wildflowers
     function generateGrassTexture() {
       const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#568239';
+      // Bright vibrant green
+      ctx.fillStyle = '#65a839';
       ctx.fillRect(0, 0, 512, 512);
 
-      // Grass blade noise
-      for (let i = 0; i < 1200; i++) {
+      // Light grass blade flecks
+      for (let i = 0; i < 1400; i++) {
         const x = Math.random() * 512;
         const y = Math.random() * 512;
-        ctx.strokeStyle = Math.random() > 0.5 ? '#679b44' : '#456a2c';
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = Math.random() > 0.5 ? '#7bc445' : '#57962f';
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x + (Math.random() - 0.5) * 6, y - 4 - Math.random() * 6);
+        ctx.lineTo(x + (Math.random() - 0.5) * 6, y - 5 - Math.random() * 6);
         ctx.stroke();
       }
 
-      // Wildflowers (Buttercups & Daisies)
-      for (let i = 0; i < 90; i++) {
+      // Bright Daisies & Golden Buttercups
+      for (let i = 0; i < 120; i++) {
         const x = Math.random() * 512;
         const y = Math.random() * 512;
         ctx.fillStyle = Math.random() > 0.4 ? '#fef08a' : '#ffffff';
@@ -592,13 +598,13 @@
     function generateCobbleTexture() {
       const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#6b6357';
+      ctx.fillStyle = '#8a8275';
       ctx.fillRect(0, 0, 512, 512);
 
       const step = 32;
       for (let x = 0; x < 512; x += step) {
         for (let y = 0; y < 512; y += step) {
-          ctx.fillStyle = (x + y) % 64 === 0 ? '#8a8070' : '#7a7061';
+          ctx.fillStyle = (x + y) % 64 === 0 ? '#aba194' : '#9c9284';
           ctx.beginPath();
           ctx.roundRect(x + 2, y + 2, step - 4, step - 4, 6);
           ctx.fill();
@@ -614,18 +620,18 @@
     function generateWoodTexture() {
       const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#6e4722';
+      ctx.fillStyle = '#85562a';
       ctx.fillRect(0, 0, 512, 512);
 
       for (let y = 0; y < 512; y += 48) {
-        ctx.strokeStyle = '#422810';
+        ctx.strokeStyle = '#5a3818';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(512, y);
         ctx.stroke();
 
-        ctx.strokeStyle = '#85562a';
+        ctx.strokeStyle = '#9e6734';
         ctx.lineWidth = 1;
         for (let j = 0; j < 6; j++) {
           ctx.beginPath();
@@ -641,12 +647,12 @@
     function generateThatchTexture() {
       const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#bfa052';
+      ctx.fillStyle = '#d4b059';
       ctx.fillRect(0, 0, 512, 512);
 
       for (let y = 0; y < 512; y += 24) {
         for (let x = 0; x < 512; x += 12) {
-          ctx.strokeStyle = Math.random() > 0.5 ? '#d9b764' : '#9e8139';
+          ctx.strokeStyle = Math.random() > 0.5 ? '#ecd078' : '#b8943f';
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.moveTo(x, y);
@@ -657,21 +663,21 @@
       return new THREE.CanvasTexture(c);
     }
 
-    // Terracotta Clay Tiles
+    // Warm Terracotta Clay Tiles
     function generateClayTileTexture() {
       const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#a84e31';
+      ctx.fillStyle = '#c25838';
       ctx.fillRect(0, 0, 512, 512);
 
       for (let y = 0; y < 512; y += 28) {
         const offset = (y / 28) % 2 === 0 ? 0 : 16;
         for (let x = -16; x < 528; x += 32) {
-          ctx.fillStyle = '#ba5736';
+          ctx.fillStyle = '#d96a48';
           ctx.beginPath();
           ctx.arc(x + offset + 16, y + 14, 14, 0, Math.PI);
           ctx.fill();
-          ctx.strokeStyle = '#7c3520';
+          ctx.strokeStyle = '#9e3f22';
           ctx.lineWidth = 2;
           ctx.stroke();
         }
@@ -683,30 +689,30 @@
     function generateCanopyTexture() {
       const c = createProceduralCanvas(256, 256);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#f8fafc';
+      ctx.fillStyle = '#fffdf5';
       ctx.fillRect(0, 0, 256, 256);
 
-      ctx.fillStyle = '#b91c1c'; // Crimson red stripes
+      ctx.fillStyle = '#dc2626'; // Vivid red stripes
       for (let x = 0; x < 256; x += 64) {
         ctx.fillRect(x, 0, 32, 256);
       }
       return new THREE.CanvasTexture(c);
     }
 
-    // Water Surface with Gentle Wave Ripples
+    // Sparkling Turquoise Azure Water
     function generateWaterTexture() {
       const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
       const g = ctx.createLinearGradient(0, 0, 512, 512);
       g.addColorStop(0, '#0284c7');
       g.addColorStop(0.5, '#38bdf8');
-      g.addColorStop(1, '#0369a1');
+      g.addColorStop(1, '#0ea5e9');
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, 512, 512);
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 40; i++) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.lineWidth = 2.5;
+      for (let i = 0; i < 45; i++) {
         const y = Math.random() * 512;
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -721,7 +727,7 @@
     }
 
     // =========================================================================
-    // PROCEDURAL WEB AUDIO SYNTHESIZER (ZERO EXTERNAL MP3 DEPENDENCIES)
+    // PROCEDURAL WEB AUDIO SYNTHESIZER
     // =========================================================================
     let audioCtx = null;
     let masterVolume = 0.75;
@@ -737,15 +743,13 @@
       }
     }
 
-    // Peaceful Countryside Ambiance (Soft Wind & Bird Song)
     function startPastoralAmbiance() {
       if (!audioCtx) return;
       try {
-        // Continuous soft wind noise
         const bufSize = audioCtx.sampleRate * 2;
         const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
         const data = buf.getChannelData(0);
-        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.08;
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.06;
 
         const noise = audioCtx.createBufferSource();
         noise.buffer = buf;
@@ -753,7 +757,7 @@
 
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(320, audioCtx.currentTime);
+        filter.frequency.setValueAtTime(340, audioCtx.currentTime);
 
         const gain = audioCtx.createGain();
         gain.gain.setValueAtTime(0.04 * masterVolume, audioCtx.currentTime);
@@ -763,10 +767,9 @@
         gain.connect(audioCtx.destination);
         noise.start();
 
-        // Periodic bird chirps
         setInterval(() => {
-          if (audioCtx && Math.random() > 0.4) playBirdChirp();
-        }, 3800);
+          if (audioCtx && Math.random() > 0.35) playBirdChirp();
+        }, 3600);
       } catch (e) {}
     }
 
@@ -789,14 +792,13 @@
       osc.stop(audioCtx.currentTime + 0.18);
     }
 
-    // Construction Hammer Strike
     function playBuildHammerSound() {
       if (!audioCtx) return;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(180, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.1);
 
       gain.gain.setValueAtTime(0.25 * masterVolume, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
@@ -807,14 +809,13 @@
       osc.stop(audioCtx.currentTime + 0.11);
     }
 
-    // Woodcutter Axe Thud
     function playWoodChopSound() {
       if (!audioCtx) return;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'square';
-      osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.12);
+      osc.frequency.setValueAtTime(130, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(45, audioCtx.currentTime + 0.12);
 
       gain.gain.setValueAtTime(0.2 * masterVolume, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
@@ -825,14 +826,13 @@
       osc.stop(audioCtx.currentTime + 0.13);
     }
 
-    // Stone Quarry Pickaxe Clink
     function playStoneChiselSound() {
       if (!audioCtx) return;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(450, audioCtx.currentTime + 0.08);
+      osc.frequency.setValueAtTime(1450, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(480, audioCtx.currentTime + 0.08);
 
       gain.gain.setValueAtTime(0.18 * masterVolume, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
@@ -843,7 +843,6 @@
       osc.stop(audioCtx.currentTime + 0.1);
     }
 
-    // Resonant Church Belfry Bell
     function playChurchBellSound() {
       if (!audioCtx) return;
       [440, 880, 1320].forEach((freq, i) => {
@@ -861,28 +860,9 @@
       });
     }
 
-    // Gold Coins Clink
-    function playCoinSound() {
-      if (!audioCtx) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(987, audioCtx.currentTime);
-      osc.frequency.setValueAtTime(1318, audioCtx.currentTime + 0.06);
-
-      gain.gain.setValueAtTime(0.12 * masterVolume, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.19);
-    }
-
-    // Quest Complete Royal Horn Fanfare
     function playQuestCompleteSound() {
       if (!audioCtx) return;
-      const notes = [392, 523, 659, 784]; // G4, C5, E5, G5
+      const notes = [392, 523, 659, 784];
       notes.forEach((freq, idx) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -901,7 +881,7 @@
     }
 
     // =========================================================================
-    // 3D LANDSCAPE, ROLLING HILLS, RIVER, FOLIAGE & DESIRE PATH SYSTEM
+    // 3D SCENE, VIBRANT DAYLIGHT ENVIRONMENT & PROCEDURAL LANDSCAPE
     // =========================================================================
     let scene, camera, renderer;
     let ambientLight, sunLight;
@@ -924,9 +904,9 @@
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene();
 
-      // BRIGHT DAYLIGHT SKY (Lush pastoral summer afternoon)
-      scene.background = new THREE.Color(0x93c5fd);
-      scene.fog = new THREE.FogExp2(0xbae6fd, 0.0022);
+      // VIBRANT CRYSTAL BLUE DAYLIGHT SKY (NO DARK COLOR!)
+      scene.background = new THREE.Color(0x7ec0ee);
+      scene.fog = new THREE.FogExp2(0xdbeafe, 0.0012);
 
       camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
       updateCameraPosition();
@@ -935,30 +915,37 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.35;
+      renderer.toneMappingExposure = 1.7; // Bright sunny daylight exposure
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
-      // SUNLIGHT & SKY LIGHTING (Vibrant & Warm)
-      ambientLight = new THREE.AmbientLight(0xfffbeb, 1.4);
+      // SUNNY ILLUMINATION SUITE
+      ambientLight = new THREE.AmbientLight(0xfffaea, 2.2);
       scene.add(ambientLight);
 
-      const hemi = new THREE.HemisphereLight(0xbae6fd, 0x4d7c0f, 1.25);
+      const hemi = new THREE.HemisphereLight(0xbae6fd, 0x86efac, 1.8);
       scene.add(hemi);
 
-      sunLight = new THREE.DirectionalLight(0xfff6db, 2.8);
-      sunLight.position.set(120, 180, 80);
+      sunLight = new THREE.DirectionalLight(0xfffaed, 3.8);
+      sunLight.position.set(150, 220, 90);
       sunLight.castShadow = true;
       sunLight.shadow.mapSize.width = 2048;
       sunLight.shadow.mapSize.height = 2048;
       sunLight.shadow.camera.near = 10;
-      sunLight.shadow.camera.far = 450;
-      sunLight.shadow.camera.left = -160;
-      sunLight.shadow.camera.right = 160;
-      sunLight.shadow.camera.top = 160;
-      sunLight.shadow.camera.bottom = -160;
+      sunLight.shadow.camera.far = 500;
+      sunLight.shadow.camera.left = -180;
+      sunLight.shadow.camera.right = 180;
+      sunLight.shadow.camera.top = 180;
+      sunLight.shadow.camera.bottom = -180;
       scene.add(sunLight);
+
+      // Radiant Sun Orb in Sky
+      const sunGeo = new THREE.SphereGeometry(18, 16, 16);
+      const sunMat = new THREE.MeshBasicMaterial({ color: 0xfff4b8 });
+      const sunOrb = new THREE.Mesh(sunGeo, sunMat);
+      sunOrb.position.copy(sunLight.position);
+      scene.add(sunOrb);
 
       setupDesirePathCanvas();
       setupRollingTerrain();
@@ -976,22 +963,19 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    // Emergent Footpath Texture System (Villagers footsteps carve dynamic dirt paths)
+    // Emergent Footpath Texture System
     function setupDesirePathCanvas() {
       pathCanvas = createProceduralCanvas(512, 512);
       pathCtx = pathCanvas.getContext('2d');
-      // Transparent base
       pathCtx.clearRect(0, 0, 512, 512);
-
       pathTexture = new THREE.CanvasTexture(pathCanvas);
     }
 
     function stampVillagerFootstep(worldX, worldZ) {
-      // Map world coords (-200 to +200) into canvas pixels (0 to 512)
       const u = ((worldX + 200) / 400) * 512;
       const v = ((worldZ + 200) / 400) * 512;
 
-      pathCtx.fillStyle = 'rgba(107, 71, 34, 0.06)';
+      pathCtx.fillStyle = 'rgba(120, 81, 43, 0.07)';
       pathCtx.beginPath();
       pathCtx.arc(u, v, 4.5, 0, Math.PI * 2);
       pathCtx.fill();
@@ -1001,7 +985,6 @@
 
     // Procedural Elevation for Rolling Hills
     function getTerrainHeight(x, z) {
-      // Flatter village center, gentle hills outward
       const distFromCenter = Math.hypot(x, z);
       const centerDamp = Math.min(1.0, distFromCenter / 50);
 
@@ -1009,7 +992,6 @@
       const h2 = Math.sin(x * 0.045 + 1.2) * Math.sin(z * 0.035) * 4;
       const h3 = Math.cos(x * 0.01 - z * 0.015) * 6;
 
-      // River valley cut (-35 < x < -10)
       let riverDepth = 0;
       const riverCenter = -22 + Math.sin(z * 0.03) * 14;
       const distToRiver = Math.abs(x - riverCenter);
@@ -1020,7 +1002,7 @@
       return (h1 + h2 + h3) * centerDamp - riverDepth;
     }
 
-    // 400x400 Organic Meadow Terrain Mesh
+    // 400x400 Meadow Terrain
     function setupRollingTerrain() {
       const geo = new THREE.PlaneGeometry(400, 400, 96, 96);
       geo.rotateX(-Math.PI * 0.5);
@@ -1036,7 +1018,7 @@
       const grassTex = generateGrassTexture();
       const mat = new THREE.MeshStandardMaterial({
         map: grassTex,
-        roughness: 0.85,
+        roughness: 0.8,
         metalness: 0.05
       });
 
@@ -1048,7 +1030,7 @@
       const pathMat = new THREE.MeshStandardMaterial({
         map: pathTexture,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.95,
         roughness: 0.95,
         polygonOffset: true,
         polygonOffsetFactor: -1
@@ -1075,10 +1057,10 @@
       const waterTex = generateWaterTexture();
       const riverMat = new THREE.MeshStandardMaterial({
         map: waterTex,
-        roughness: 0.15,
-        metalness: 0.2,
+        roughness: 0.1,
+        metalness: 0.25,
         transparent: true,
-        opacity: 0.88
+        opacity: 0.9
       });
       riverMesh = new THREE.Mesh(riverGeo, riverMat);
       scene.add(riverMesh);
@@ -1086,28 +1068,25 @@
 
     // Harvestable Oak Trees, Pines & Granite Boulders
     function setupFoliageAndRocks() {
-      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c3818, roughness: 0.9 });
-      const pineLeavesMat = new THREE.MeshStandardMaterial({ color: 0x22542a, roughness: 0.8 });
-      const oakLeavesMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.8 });
+      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78481d, roughness: 0.9 });
+      const pineLeavesMat = new THREE.MeshStandardMaterial({ color: 0x2e6f38, roughness: 0.8 });
+      const oakLeavesMat = new THREE.MeshStandardMaterial({ color: 0x5da61e, roughness: 0.8 });
       const stoneMat = new THREE.MeshStandardMaterial({ map: generateCobbleTexture(), roughness: 0.85 });
 
-      // Spawn 140 Trees across the countryside
       for (let i = 0; i < 140; i++) {
         const x = (Math.random() - 0.5) * 340;
         const z = (Math.random() - 0.5) * 340;
-        if (Math.hypot(x, z) < 30 || Math.abs(x - (-22)) < 24) continue; // Keep village center & river clear
+        if (Math.hypot(x, z) < 30 || Math.abs(x - (-22)) < 24) continue;
 
         const y = getTerrainHeight(x, z);
         const treeGroup = new THREE.Group();
 
-        // Trunk
         const trunkGeo = new THREE.CylinderGeometry(0.35, 0.5, 3.5, 6);
         const trunk = new THREE.Mesh(trunkGeo, trunkMat);
         trunk.position.y = 1.75;
         trunk.castShadow = true;
         treeGroup.add(trunk);
 
-        // Canopy (Oak or Pine)
         const isPine = Math.random() > 0.4;
         if (isPine) {
           for (let l = 0; l < 3; l++) {
@@ -1131,7 +1110,6 @@
         trees.push({ mesh: treeGroup, x: x, z: z, hp: 4 });
       }
 
-      // Spawn 35 Granite Boulders
       for (let i = 0; i < 35; i++) {
         const x = (Math.random() - 0.5) * 320;
         const z = (Math.random() - 0.5) * 320;
@@ -1155,7 +1133,7 @@
         color: 0xffffff,
         roughness: 0.95,
         transparent: true,
-        opacity: 0.85
+        opacity: 0.9
       });
 
       for (let i = 0; i < 18; i++) {
@@ -1205,7 +1183,7 @@
       keep:     { gold: 20,  wood: 40, stone: 60 }
     };
 
-    function selectBuildType(type) {
+    window.selectBuildType = function(type) {
       initAudio();
       if (activeBuildType === type) {
         cancelBuildingPlacement();
@@ -1217,11 +1195,10 @@
       ghostBuilding = createBuildingMesh(type, true);
       scene.add(ghostBuilding);
 
-      // Highlight dock button
       document.querySelectorAll('.b-btn').forEach(btn => btn.classList.remove('active'));
       const activeBtn = Array.from(document.querySelectorAll('.b-btn')).find(b => b.onclick && b.onclick.toString().includes(`'${type}'`));
       if (activeBtn) activeBtn.classList.add('active');
-    }
+    };
 
     function cancelBuildingPlacement() {
       activeBuildType = null;
@@ -1232,7 +1209,6 @@
       document.querySelectorAll('.b-btn').forEach(btn => btn.classList.remove('active'));
     }
 
-    // Procedural 3D Modular Architecture Construction
     function createBuildingMesh(type, isGhost = false) {
       const group = new THREE.Group();
 
@@ -1273,7 +1249,6 @@
       });
 
       if (type === 'center') {
-        // Town Hall / Manor
         const base = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 8), stoneMat);
         base.position.y = 2; base.castShadow = !isGhost; base.receiveShadow = !isGhost;
         group.add(base);
@@ -1286,21 +1261,18 @@
         roof.position.y = 9.5; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost;
         group.add(roof);
 
-        // Banner Flagpole
         const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 6, 6), woodMat);
         pole.position.set(0, 12, 0); group.add(pole);
         const banner = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), canopyMat);
         banner.position.set(0.9, 13.5, 0); group.add(banner);
 
       } else if (type === 'lumber') {
-        // Lumber Camp
         const cabin = new THREE.Mesh(new THREE.BoxGeometry(7, 3.2, 5), woodMat);
         cabin.position.y = 1.6; cabin.castShadow = !isGhost; group.add(cabin);
 
         const roof = new THREE.Mesh(new THREE.ConeGeometry(5, 2.5, 4), thatchMat);
         roof.position.y = 4.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
 
-        // Stacked Logs
         for (let l = 0; l < 5; l++) {
           const log = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 6), woodMat);
           log.rotation.z = Math.PI * 0.5;
@@ -1309,17 +1281,14 @@
         }
 
       } else if (type === 'quarry') {
-        // Stonecutter Quarry
         const yard = new THREE.Mesh(new THREE.BoxGeometry(8, 0.6, 8), stoneMat);
         yard.position.y = 0.3; group.add(yard);
 
-        // Wooden Hoist Crane
         const cranePost = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 6, 6), woodMat);
         cranePost.position.set(-2.5, 3, -2.5); group.add(cranePost);
         const craneArm = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 5, 6), woodMat);
         craneArm.position.set(-1, 5.8, -1); craneArm.rotation.z = Math.PI * 0.35; group.add(craneArm);
 
-        // Chiseled Blocks
         for (let b = 0; b < 4; b++) {
           const block = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), stoneMat);
           block.position.set(1.5 + (b % 2) * 1.5, 0.6, -1 + Math.floor(b / 2) * 1.5);
@@ -1327,7 +1296,6 @@
         }
 
       } else if (type === 'well') {
-        // Town Well
         const ring = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.9, 1.5, 12, 1, true), stoneMat);
         ring.position.y = 0.75; group.add(ring);
 
@@ -1340,26 +1308,22 @@
         canopy.position.y = 3.6; canopy.rotation.y = Math.PI * 0.25; group.add(canopy);
 
       } else if (type === 'cottage') {
-        // Thatched Serf Cottage
         const walls = new THREE.Mesh(new THREE.BoxGeometry(5.5, 3.2, 4.5), stoneMat);
         walls.position.y = 1.6; walls.castShadow = !isGhost; group.add(walls);
 
         const thatch = new THREE.Mesh(new THREE.ConeGeometry(4.6, 3.2, 4), thatchMat);
         thatch.position.y = 4.4; thatch.rotation.y = Math.PI * 0.25; thatch.castShadow = !isGhost; group.add(thatch);
 
-        // Chimney
         const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.9, 4.5, 0.9), stoneMat);
         chimney.position.set(1.8, 3.5, 1.2); group.add(chimney);
 
       } else if (type === 'market') {
-        // Market Stall with Striped Canopy
         const table = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.2, 2.5), woodMat);
         table.position.y = 0.6; group.add(table);
 
         const awning = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 3.5), canopyMat);
         awning.position.y = 3.2; awning.rotation.x = Math.PI * 0.35; group.add(awning);
 
-        // Crates of Food
         const crateMat = new THREE.MeshStandardMaterial({ color: 0xb45309 });
         const crate1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.0), crateMat);
         crate1.position.set(-1.2, 1.4, 0); group.add(crate1);
@@ -1367,14 +1331,12 @@
         crate2.position.set(1.2, 1.4, 0); group.add(crate2);
 
       } else if (type === 'windmill') {
-        // Windmill
         const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 3.5, 9, 8), stoneMat);
         tower.position.y = 4.5; tower.castShadow = !isGhost; group.add(tower);
 
         const cap = new THREE.Mesh(new THREE.ConeGeometry(2.8, 2.2, 8), thatchMat);
         cap.position.y = 9.8; group.add(cap);
 
-        // 4 Rotating Canvas Sails
         const sailsGroup = new THREE.Group();
         sailsGroup.position.set(0, 8.5, 2.4);
         for (let s = 0; s < 4; s++) {
@@ -1386,14 +1348,12 @@
         group.sails = sailsGroup;
 
       } else if (type === 'church') {
-        // Rustic Church
         const nave = new THREE.Mesh(new THREE.BoxGeometry(14, 6.5, 8), stoneMat);
         nave.position.y = 3.25; nave.castShadow = !isGhost; group.add(nave);
 
         const roof = new THREE.Mesh(new THREE.ConeGeometry(8.5, 4.5, 4), tileMat);
         roof.position.y = 8.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
 
-        // Belfry Spire Tower
         const belfry = new THREE.Mesh(new THREE.BoxGeometry(5, 14, 5), stoneMat);
         belfry.position.set(-8, 7, 0); belfry.castShadow = !isGhost; group.add(belfry);
 
@@ -1401,11 +1361,9 @@
         spire.position.set(-8, 17.5, 0); spire.castShadow = !isGhost; group.add(spire);
 
       } else if (type === 'keep') {
-        // Lord's Keep Citadel
         const citadel = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 14), stoneMat);
         citadel.position.y = 5; citadel.castShadow = !isGhost; group.add(citadel);
 
-        // 4 Corner Towers with Crenellations
         [[-8, -7], [8, -7], [-8, 7], [8, 7]].forEach(([tx, tz]) => {
           const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 14, 8), stoneMat);
           tower.position.set(tx, 7, tz); tower.castShadow = !isGhost; group.add(tower);
@@ -1417,18 +1375,15 @@
       return group;
     }
 
-    // Place building on terrain
     function tryPlaceBuilding(worldX, worldZ) {
       if (!activeBuildType) return;
       const cost = buildingCosts[activeBuildType];
 
-      // Check costs
       if (gameState.gold < cost.gold || gameState.wood < cost.wood || gameState.stone < cost.stone) {
         alert(`[INSUFFICIENT RESOURCES] Requires ${cost.gold} Gold, ${cost.wood} Wood, ${cost.stone} Stone.`);
         return;
       }
 
-      // Deduct resources
       gameState.gold -= cost.gold;
       gameState.wood -= cost.wood;
       gameState.stone -= cost.stone;
@@ -1463,22 +1418,19 @@
       'Aldous', 'Beatrice', 'Osric', 'Gisela', 'Dunstan', 'Rowena'
     ];
 
-    function createVillagerMesh(color = 0x3b82f6) {
+    function createVillagerMesh(color = 0x0284c7) {
       const group = new THREE.Group();
 
-      // Body / Tunic
       const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
       const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.2, 8), bodyMat);
       body.position.y = 1.0; body.castShadow = true;
       group.add(body);
 
-      // Head
       const headMat = new THREE.MeshStandardMaterial({ color: 0xfbd2a9, roughness: 0.6 });
       const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), headMat);
       head.position.y = 1.85; head.castShadow = true;
       group.add(head);
 
-      // Limbs for walking animation
       const limbMat = new THREE.MeshStandardMaterial({ color: 0x422810 });
       const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.65, 0.18), limbMat);
       leftLeg.position.set(-0.2, 0.35, 0); group.add(leftLeg);
@@ -1494,7 +1446,7 @@
 
     function spawnVillager(profession = 'Laborer', startPos = null) {
       const name = villagerNames[villagers.length % villagerNames.length];
-      const colors = [0x3b82f6, 0xb45309, 0x15803d, 0xca8a04, 0xb91c1c];
+      const colors = [0x0284c7, 0xb45309, 0x15803d, 0xca8a04, 0xb91c1c];
       const col = colors[villagers.length % colors.length];
 
       const mesh = createVillagerMesh(col);
@@ -1524,19 +1476,15 @@
       return villager;
     }
 
-    // Villager Autonomous Autonomous Decision & Navigation Loop
     function updateVillagers(delta) {
       villagers.forEach((v) => {
-        // Needs depletion
         v.hunger = Math.max(0, v.hunger - delta * 0.4);
         v.thirst = Math.max(0, v.thirst - delta * 0.6);
 
-        // State Machine Decision
         if (!v.targetPos || v.state === 'idle') {
           decideVillagerAction(v);
         }
 
-        // Move towards target
         if (v.targetPos) {
           const dx = v.targetPos.x - v.x;
           const dz = v.targetPos.z - v.z;
@@ -1549,19 +1497,16 @@
             const y = getTerrainHeight(v.x, v.z);
             v.mesh.position.set(v.x, y, v.z);
 
-            // Orient towards motion
             v.mesh.rotation.y = Math.atan2(dx, dz);
 
-            // Walking limb swing animation
             v.walkAnim += delta * 12;
             v.mesh.leftLeg.rotation.x = Math.sin(v.walkAnim) * 0.6;
             v.mesh.rightLeg.rotation.x = -Math.sin(v.walkAnim) * 0.6;
 
-            // STAMP DESIRE PATH FOOTSTEP
+            // Stamp desire path footprint
             stampVillagerFootstep(v.x, v.z);
 
           } else {
-            // Reached Destination
             v.mesh.leftLeg.rotation.x = 0;
             v.mesh.rightLeg.rotation.x = 0;
             handleDestinationArrival(v, delta);
@@ -1571,7 +1516,6 @@
     }
 
     function decideVillagerAction(v) {
-      // 1. Thirst Check -> Find Well
       if (v.thirst < 40) {
         const well = buildings.find(b => b.type === 'well');
         if (well) {
@@ -1581,7 +1525,6 @@
         }
       }
 
-      // 2. Hunger Check -> Find Market
       if (v.hunger < 40) {
         const market = buildings.find(b => b.type === 'market');
         if (market) {
@@ -1591,10 +1534,8 @@
         }
       }
 
-      // 3. Work Duty
       const lumberCamp = buildings.find(b => b.type === 'lumber');
       if (lumberCamp && trees.length > 0) {
-        // Find closest tree
         let closestTree = trees[0];
         let minDist = 9999;
         trees.forEach(t => {
@@ -1617,7 +1558,6 @@
         return;
       }
 
-      // 4. Stroll Village Center
       v.state = 'strolling';
       v.targetPos = new THREE.Vector3((Math.random() - 0.5) * 30, 0, (Math.random() - 0.5) * 30);
     }
@@ -1677,7 +1617,6 @@
       }
     }
 
-    // Villager & Building Inspector Click
     function inspectVillager(v) {
       const card = document.getElementById('inspector-card');
       if (!card) return;
@@ -1696,7 +1635,7 @@
     };
 
     // =========================================================================
-    // ECONOMY, ESTATE QUESTS, CAMERA CONTROLS, SETTINGS & 60 FPS LOOP
+    // ECONOMY, ESTATE QUESTS, CAMERA CONTROLS & SETTINGS
     // =========================================================================
     const gameState = {
       gold: 250,
@@ -1790,7 +1729,6 @@
       if (popEl) popEl.innerText = villagers.length;
     }
 
-    // Raycaster for Terrain Intersection
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
@@ -1807,7 +1745,6 @@
         }
       });
 
-      // Right Mouse Drag to Orbit Horizon
       window.addEventListener('mousedown', (e) => {
         initAudio();
         if (e.button === 2) {
@@ -1815,7 +1752,6 @@
           prevMouseX = e.clientX;
           prevMouseY = e.clientY;
         } else if (e.button === 0) {
-          // Left Click: Place building or inspect
           handleLeftClick(e);
         }
       });
@@ -1841,7 +1777,6 @@
           updateCameraPosition();
         }
 
-        // Update Ghost Building Position on Terrain
         if (activeBuildType && ghostBuilding && terrainMesh) {
           raycaster.setFromCamera(mouse, camera);
           const intersects = raycaster.intersectObject(terrainMesh);
@@ -1858,7 +1793,6 @@
         updateCameraPosition();
       }, { passive: true });
 
-      // Settings DOM Events
       const btnSettings = document.getElementById('btn-settings-hud');
       if (btnSettings) btnSettings.addEventListener('click', () => togglePauseSettings());
 
@@ -1899,7 +1833,6 @@
         return;
       }
 
-      // Check click on Villager
       raycaster.setFromCamera(mouse, camera);
       for (const v of villagers) {
         const intersects = raycaster.intersectObjects(v.mesh.children);
@@ -1910,7 +1843,6 @@
       }
     }
 
-    // Keyboard Pan (WASD / Arrows)
     const keys = {};
     window.addEventListener('keydown', (e) => { keys[e.code] = true; });
     window.addEventListener('keyup', (e) => { keys[e.code] = false; });
@@ -1935,7 +1867,6 @@
       }
     }
 
-    // Settings Modal Toggle
     window.togglePauseSettings = function() {
       const modal = document.getElementById('settings-modal');
       if (!modal) return;
@@ -1943,10 +1874,9 @@
       modal.style.display = isOpen ? 'none' : 'flex';
     };
 
-    // Zoning Toggle
     window.toggleZoningTool = function() {
       initAudio();
-      alert('[ZONING SYSTEM ACTIVE] Paint Residential zones (Green) on rolling hills. Serfs will autonomously construct their thatched cottages near wells and workplaces!');
+      alert('[ZONING SYSTEM ACTIVE] Paint Residential zones on sunny rolling hills. Serfs will autonomously construct their thatched cottages near wells and workplaces!');
     };
 
     // MAIN 60 FPS SIMULATION ANIMATION LOOP
@@ -1958,20 +1888,15 @@
       const delta = Math.min((currentTime - lastTime) * 0.001, 0.05);
       lastTime = currentTime;
 
-      // 1. Camera Pan
       updateCameraPan(delta);
-
-      // 2. Autonomous Villagers & Desire Footpaths
       updateVillagers(delta);
 
-      // 3. Windmill Sail Rotation
       buildings.forEach((b) => {
         if (b.type === 'windmill' && b.mesh.sails) {
           b.mesh.sails.rotation.z += delta * 1.2;
         }
       });
 
-      // 4. Drifting Fluffy Clouds
       clouds.forEach((c) => {
         c.mesh.position.x += c.speed * delta;
         if (c.mesh.position.x > 320) c.mesh.position.x = -320;
@@ -1980,18 +1905,16 @@
       renderer.render(scene, camera);
     }
 
-    // BOOTSTRAP REALM (Spawn Town Center & First 6 Serfs)
+    // BOOTSTRAP REALM (Daylight Foundation World)
     window.addEventListener('DOMContentLoaded', () => {
       init3DEnvironment();
       setupControlsAndInput();
 
-      // Default Town Center Manor at (0, 0)
       const centerBuilding = createBuildingMesh('center', false);
       centerBuilding.position.set(0, getTerrainHeight(0, 0), 0);
       scene.add(centerBuilding);
       buildings.push({ type: 'center', mesh: centerBuilding, x: 0, z: 0 });
 
-      // Spawn First 6 Autonomous Serfs
       for (let i = 0; i < 6; i++) {
         const offset = new THREE.Vector3((Math.random() - 0.5) * 16, 0, (Math.random() - 0.5) * 16);
         spawnVillager(i < 3 ? 'Woodcutter' : 'Laborer', offset);

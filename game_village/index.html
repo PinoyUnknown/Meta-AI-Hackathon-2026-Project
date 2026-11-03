@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FOUNDATION: ORGANIC SETTLEMENT SIMULATOR</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #7ec0ee;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      color: #2c2416;
+    }
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Vibrant Medieval Daytime HUD */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px 20px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      pointer-events: auto;
+    }
+
+    /* Daytime Realm Nameplate (Warm Parchment & Gold Trim) */
+    .town-plate {
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 8px 18px;
+      box-shadow: 0 4px 18px rgba(60, 40, 20, 0.18);
+      display: flex;
+      flex-direction: column;
+    }
+    .town-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      color: #5c3818;
+      text-transform: uppercase;
+      font-family: Georgia, serif;
+    }
+    .town-sub {
+      font-size: 10px;
+      color: #8c6838;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+    }
+
+    /* Resource Ledger (Bright Warm Cream) */
+    .resource-ledger {
+      display: flex;
+      gap: 14px;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 8px 18px;
+      box-shadow: 0 4px 18px rgba(60, 40, 20, 0.18);
+    }
+    .res-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #3e2714;
+    }
+    .res-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #8c6838;
+      background: #fdf3e0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #e8cd9b;
+    }
+
+    /* Population & Happiness Badge */
+    .pop-badge {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 8px 16px;
+      color: #3e2714;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 4px 18px rgba(60, 40, 20, 0.18);
+    }
+
+    /* Left Quest & Estate Dispatch Card */
+    .quest-card {
+      position: absolute;
+      top: 75px;
+      left: 20px;
+      width: 290px;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 6px 22px rgba(60, 40, 20, 0.2);
+      pointer-events: auto;
+      font-family: Georgia, serif;
+    }
+    .quest-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #8c6838;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .quest-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #5c3818;
+      margin-bottom: 6px;
+    }
+    .quest-desc {
+      font-size: 11px;
+      color: #5c4530;
+      line-height: 1.45;
+      font-family: 'Segoe UI', sans-serif;
+      margin-bottom: 8px;
+    }
+    .quest-progress {
+      font-size: 11px;
+      font-weight: 700;
+      color: #15803d;
+      font-family: monospace;
+    }
+
+    /* Bottom Building Placement Dock */
+    .dock-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      pointer-events: auto;
+    }
+    .building-dock {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 12px;
+      padding: 8px 12px;
+      box-shadow: 0 8px 25px rgba(60, 40, 20, 0.25);
+      max-width: 95vw;
+      overflow-x: auto;
+    }
+    .b-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: #fdf8ee;
+      border: 1px solid #c9933b;
+      border-radius: 8px;
+      padding: 8px 12px;
+      min-width: 86px;
+      cursor: pointer;
+      color: #4a3420;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .b-btn:hover {
+      background: #fcedd0;
+      border-color: #b87a20;
+      transform: translateY(-2px);
+    }
+    .b-btn.active {
+      background: #e8cd9b;
+      border-color: #8c5818;
+      box-shadow: 0 0 10px rgba(201, 147, 59, 0.6);
+      transform: translateY(-3px);
+    }
+    .b-tag {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #8c6838;
+    }
+    .b-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .b-cost {
+      font-size: 9px;
+      color: #855d38;
+    }
+
+    .controls-hint {
+      background: rgba(255, 252, 245, 0.95);
+      border: 1px solid #c9933b;
+      border-radius: 6px;
+      padding: 4px 14px;
+      font-size: 11px;
+      color: #4a3420;
+      font-weight: 600;
+      display: flex;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(60, 40, 20, 0.12);
+    }
+    .controls-hint kbd {
+      background: #5c3818;
+      color: #f7e6b5;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 10px;
+    }
+
+    /* Villager & Building Inspector Card */
+    #inspector-card {
+      position: absolute;
+      bottom: 120px;
+      right: 20px;
+      width: 270px;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 6px 25px rgba(60, 40, 20, 0.22);
+      display: none;
+      pointer-events: auto;
+      font-family: Georgia, serif;
+    }
+    .insp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #c9933b;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .insp-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #5c3818;
+    }
+    .insp-close {
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: bold;
+      color: #8c6838;
+      cursor: pointer;
+    }
+    .insp-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 4px;
+      color: #5c4530;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .insp-val {
+      font-weight: 700;
+      color: #2c2416;
+    }
+
+    /* Settings & Pause Modal (ESC Key) */
+    #settings-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-box {
+      width: 90%;
+      max-width: 620px;
+      background: #fffdf9;
+      border: 3px solid #c9933b;
+      border-radius: 12px;
+      box-shadow: 0 10px 45px rgba(0, 0, 0, 0.35);
+      padding: 24px 28px;
+      color: #3b2818;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      font-family: Georgia, serif;
+      color: #5c3818;
+      border-bottom: 2px solid #c9933b;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .settings-row input[type="range"] {
+      width: 180px;
+      accent-color: #c9933b;
+    }
+    .settings-row select {
+      background: #fdf8ee;
+      border: 1px solid #c9933b;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      color: #3b2818;
+    }
+    .btn-action {
+      background: #c9933b;
+      border: 1px solid #8c5818;
+      border-radius: 6px;
+      color: #fffdf9;
+      padding: 8px 18px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      background: #b87a20;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div id="hud">
+    <!-- Top Bar: Realm Name & Resource Ledger -->
+    <div class="top-bar">
+      <div class="town-plate">
+        <div class="town-title">RIVERWOOD REALM</div>
+        <div class="town-sub">FOUNDATION // ORGANIC SETTLEMENT SIMULATOR</div>
+      </div>
+
+      <div class="resource-ledger">
+        <div class="res-item"><span class="res-tag">[GOLD]</span> <span id="res-gold">250</span></div>
+        <div class="res-item"><span class="res-tag">[WOOD]</span> <span id="res-wood">40</span></div>
+        <div class="res-item"><span class="res-tag">[STONE]</span> <span id="res-stone">20</span></div>
+        <div class="res-item"><span class="res-tag">[BERRIES]</span> <span id="res-berries">30</span></div>
+        <div class="res-item"><span class="res-tag">[BREAD]</span> <span id="res-bread">15</span></div>
+      </div>
+
+      <div class="pop-badge">
+        <div>[SERFS: <span id="pop-count" style="color: #0284c7; font-weight: 800;">6</span>]</div>
+        <div>[HAPPINESS: <span id="pop-happy" style="color: #15803d; font-weight: 800;">100%</span>]</div>
+        <button id="btn-settings-hud" class="btn-action" style="padding: 4px 10px; font-size: 11px;">[SETTINGS]</button>
+      </div>
+    </div>
+
+    <!-- Left Quest & Estate Dispatch Card -->
+    <div class="quest-card">
+      <div class="quest-tag">[ESTATE DISPATCH // KINGDOM CHARTER]</div>
+      <div id="quest-title" class="quest-title">1. Lay the Foundation</div>
+      <div id="quest-desc" class="quest-desc">Construct a Lumber Camp and a Town Well to secure vital supplies for your serfs.</div>
+      <div id="quest-progress" class="quest-progress">[PROGRESS: 0/2 BUILDINGS]</div>
+    </div>
+
+    <!-- Villager / Building Inspector Card -->
+    <div id="inspector-card">
+      <div class="insp-header">
+        <div id="insp-title" class="insp-title">Godwin the Woodcutter</div>
+        <button class="insp-close" onclick="closeInspector()">[X]</button>
+      </div>
+      <div class="insp-row"><span>Status:</span> <span id="insp-status" class="insp-val">Serf</span></div>
+      <div class="insp-row"><span>Profession:</span> <span id="insp-job" class="insp-val">Woodcutter</span></div>
+      <div class="insp-row"><span>Current Task:</span> <span id="insp-task" class="insp-val">Harvesting Oak</span></div>
+      <div class="insp-row"><span>Hunger:</span> <span id="insp-hunger" class="insp-val" style="color: #15803d;">Satisfied</span></div>
+      <div class="insp-row"><span>Thirst:</span> <span id="insp-thirst" class="insp-val" style="color: #15803d;">Quenched</span></div>
+      <div class="insp-row"><span>Shelter:</span> <span id="insp-shelter" class="insp-val" style="color: #15803d;">Thatched Cottage</span></div>
+    </div>
+
+    <!-- Bottom Building Placement Dock -->
+    <div class="dock-container">
+      <div class="controls-hint">
+        <span><kbd>WASD / Arrows</kbd> Pan View</span>
+        <span><kbd>Right-Drag</kbd> Rotate Horizon</span>
+        <span><kbd>Mouse Scroll</kbd> Zoom 8m - 260m</span>
+        <span><kbd>R</kbd> Rotate Structure</span>
+        <span><kbd>ESC</kbd> Settings & Pause</span>
+      </div>
+
+      <div class="building-dock">
+        <div class="b-btn" onclick="selectBuildType('center')">
+          <span class="b-tag">[CORE]</span>
+          <span class="b-name">Town Hall</span>
+          <span class="b-cost">FREE</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('lumber')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Lumber Camp</span>
+          <span class="b-cost">15 Wood</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('quarry')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Stone Quarry</span>
+          <span class="b-cost">20 Wood</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('well')">
+          <span class="b-tag">[CIVIC]</span>
+          <span class="b-name">Town Well</span>
+          <span class="b-cost">10 Stone</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('cottage')">
+          <span class="b-tag">[RES]</span>
+          <span class="b-name">Cottage</span>
+          <span class="b-cost">12 Wood, 5 Stone</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('market')">
+          <span class="b-tag">[COMM]</span>
+          <span class="b-name">Market Stall</span>
+          <span class="b-cost">15 Wood, 5 Gold</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('windmill')">
+          <span class="b-tag">[AGRI]</span>
+          <span class="b-name">Windmill</span>
+          <span class="b-cost">25 Wood, 10 Stone</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('church')">
+          <span class="b-tag">[FAITH]</span>
+          <span class="b-name">Rustic Church</span>
+          <span class="b-cost">40 Stone, 20 Wood</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('keep')">
+          <span class="b-tag">[DEF]</span>
+          <span class="b-name">Lord's Keep</span>
+          <span class="b-cost">60 Stone, 40 Wood</span>
+        </div>
+        <div class="b-btn" onclick="toggleZoningTool()" style="border-color: #15803d;">
+          <span class="b-tag" style="color: #15803d;">[ZONE]</span>
+          <span class="b-name" id="zone-btn-name">Paint Zone</span>
+          <span class="b-cost">Residential</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings & Pause Modal (ESC Key) -->
+  <div id="settings-modal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>[REALM SETTINGS & PAUSE]</span>
+        <span style="font-size: 11px; color: #8c6838; font-family: sans-serif;">PRESS ESC TO RESUME</span>
+      </div>
+
+      <div class="settings-row">
+        <span>Sunlight Brightness:</span>
+        <input type="range" id="slider-brightness" min="0.8" max="2.8" step="0.1" value="1.8">
+        <span id="val-brightness">180%</span>
+      </div>
+
+      <div class="settings-row">
+        <span>Master Audio Volume:</span>
+        <input type="range" id="slider-volume" min="0" max="1" step="0.05" value="0.75">
+        <span id="val-volume">75%</span>
+      </div>
+
+      <div class="settings-row">
+        <span>GPU Quality & Shaders:</span>
+        <select id="select-gpu">
+          <option value="ultra">Ultra (High PBR & Soft Shadows)</option>
+          <option value="high" selected>High (Optimal 60 FPS)</option>
+          <option value="medium">Performance (Low Shadows)</option>
+        </select>
+      </div>
+
+      <div class="settings-row">
+        <span>Resolution Scaling:</span>
+        <select id="select-resolution">
+          <option value="1.0" selected>Native 100% (1080p / 1440p / 4K)</option>
+          <option value="0.75">Balanced 75%</option>
+          <option value="0.5">High Performance 50%</option>
+        </select>
+      </div>
+
+      <div class="settings-row">
+        <span>Display Monitor:</span>
+        <select id="select-monitor">
+          <option value="1">Primary Desktop Display (Default)</option>
+          <option value="2">Secondary Studio Display</option>
+          <option value="vr">Meta Horizon XR Headset Display</option>
+        </select>
+      </div>
+
+      <div style="background: #fdf8ee; border: 1px solid #c9933b; border-radius: 8px; padding: 12px; margin-top: 14px; font-size: 11px; line-height: 1.6;">
+        <div style="font-weight: 800; color: #5c3818; margin-bottom: 2px;">
+          FOUNDATION: ORGANIC SETTLEMENT SIMULATOR (VIBRANT DAYTIME EDITION)
+        </div>
+        <div style="color: #6b4c30; margin-bottom: 6px;">
+          Inspired by Foundation (Polymorph Games). Grid-less organic medieval settlement building, dynamic desire footpaths, autonomous serfs, modular monuments, and estate supply chain economy.
+        </div>
+        <div>
+          <strong>Lead Developer:</strong> <a href="https://github.com/pinoyUnknown" target="_blank" style="color: #855d38; font-weight: bold;">github.com/pinoyUnknown</a> |
+          <a href="https://instagram.com/pinoyunknown" target="_blank" style="color: #855d38; font-weight: bold;">instagram.com/pinoyunknown</a>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+        <button class="btn-action" onclick="togglePauseSettings()">[RESUME REALM]</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from './lib/three.module.min.js';
+
+    // =========================================================================
+    // PROCEDURAL TEXTURE GENERATION (BRIGHT DAYLIGHT REALISM)
+    // =========================================================================
+    function createProceduralCanvas(width, height) {
+      const c = document.createElement('canvas');
+      c.width = width;
+      c.height = height;
+      return c;
+    }
+
+    // Bright Sunlit Meadow Grass with Clover & Wildflowers
+    function generateGrassTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      // Bright vibrant green
+      ctx.fillStyle = '#65a839';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Light grass blade flecks
+      for (let i = 0; i < 1400; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.strokeStyle = Math.random() > 0.5 ? '#7bc445' : '#57962f';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + (Math.random() - 0.5) * 6, y - 5 - Math.random() * 6);
+        ctx.stroke();
+      }
+
+      // Bright Daisies & Golden Buttercups
+      for (let i = 0; i < 120; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.fillStyle = Math.random() > 0.4 ? '#fef08a' : '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y, 2 + Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(16, 16);
+      return tex;
+    }
+
+    // Cobblestone Paving for Roads & Foundations
+    function generateCobbleTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#8a8275';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const step = 32;
+      for (let x = 0; x < 512; x += step) {
+        for (let y = 0; y < 512; y += step) {
+          ctx.fillStyle = (x + y) % 64 === 0 ? '#aba194' : '#9c9284';
+          ctx.beginPath();
+          ctx.roundRect(x + 2, y + 2, step - 4, step - 4, 6);
+          ctx.fill();
+        }
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Aged Oak Wood Beam Grain
+    function generateWoodTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#85562a';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let y = 0; y < 512; y += 48) {
+        ctx.strokeStyle = '#5a3818';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(512, y);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#9e6734';
+        ctx.lineWidth = 1;
+        for (let j = 0; j < 6; j++) {
+          ctx.beginPath();
+          ctx.moveTo(0, y + j * 8);
+          ctx.lineTo(512, y + j * 8 + Math.sin(j) * 4);
+          ctx.stroke();
+        }
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Golden Straw Thatch Roof
+    function generateThatchTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#d4b059';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let y = 0; y < 512; y += 24) {
+        for (let x = 0; x < 512; x += 12) {
+          ctx.strokeStyle = Math.random() > 0.5 ? '#ecd078' : '#b8943f';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + (Math.random() - 0.5) * 4, y + 22);
+          ctx.stroke();
+        }
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Warm Terracotta Clay Tiles
+    function generateClayTileTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#c25838';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let y = 0; y < 512; y += 28) {
+        const offset = (y / 28) % 2 === 0 ? 0 : 16;
+        for (let x = -16; x < 528; x += 32) {
+          ctx.fillStyle = '#d96a48';
+          ctx.beginPath();
+          ctx.arc(x + offset + 16, y + 14, 14, 0, Math.PI);
+          ctx.fill();
+          ctx.strokeStyle = '#9e3f22';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Striped Medieval Market Stall Canopy
+    function generateCanopyTexture() {
+      const c = createProceduralCanvas(256, 256);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fffdf5';
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.fillStyle = '#dc2626'; // Vivid red stripes
+      for (let x = 0; x < 256; x += 64) {
+        ctx.fillRect(x, 0, 32, 256);
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Sparkling Turquoise Azure Water
+    function generateWaterTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 512, 512);
+      g.addColorStop(0, '#0284c7');
+      g.addColorStop(0.5, '#38bdf8');
+      g.addColorStop(1, '#0ea5e9');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.lineWidth = 2.5;
+      for (let i = 0; i < 45; i++) {
+        const y = Math.random() * 512;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(150, y + 20, 350, y - 20, 512, y);
+        ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(8, 8);
+      return tex;
+    }
+
+    // =========================================================================
+    // PROCEDURAL WEB AUDIO SYNTHESIZER
+    // =========================================================================
+    let audioCtx = null;
+    let masterVolume = 0.75;
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioClass();
+        startPastoralAmbiance();
+      } catch (e) {
+        console.warn('AudioContext unavailable:', e);
+      }
+    }
+
+    function startPastoralAmbiance() {
+      if (!audioCtx) return;
+      try {
+        const bufSize = audioCtx.sampleRate * 2;
+        const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.06;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buf;
+        noise.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(340, audioCtx.currentTime);
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.04 * masterVolume, audioCtx.currentTime);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+
+        setInterval(() => {
+          if (audioCtx && Math.random() > 0.35) playBirdChirp();
+        }, 3600);
+      } catch (e) {}
+    }
+
+    function playBirdChirp() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      const baseFreq = 2200 + Math.random() * 800;
+      osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq + 600, audioCtx.currentTime + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq - 200, audioCtx.currentTime + 0.16);
+
+      gain.gain.setValueAtTime(0.02 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.18);
+    }
+
+    function playBuildHammerSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.1);
+
+      gain.gain.setValueAtTime(0.25 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.11);
+    }
+
+    function playWoodChopSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(130, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(45, audioCtx.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.2 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.13);
+    }
+
+    function playStoneChiselSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1450, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(480, audioCtx.currentTime + 0.08);
+
+      gain.gain.setValueAtTime(0.18 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playChurchBellSound() {
+      if (!audioCtx) return;
+      [440, 880, 1320].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime((0.15 / (i + 1)) * masterVolume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2.5);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 2.6);
+      });
+    }
+
+    function playQuestCompleteSound() {
+      if (!audioCtx) return;
+      const notes = [392, 523, 659, 784];
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.12);
+
+        gain.gain.setValueAtTime(0.0, audioCtx.currentTime + idx * 0.12);
+        gain.gain.linearRampToValueAtTime(0.15 * masterVolume, audioCtx.currentTime + idx * 0.12 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.12 + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.12);
+        osc.stop(audioCtx.currentTime + idx * 0.12 + 0.38);
+      });
+    }
+
+    // =========================================================================
+    // 3D SCENE, VIBRANT DAYLIGHT ENVIRONMENT & PROCEDURAL LANDSCAPE
+    // =========================================================================
+    let scene, camera, renderer;
+    let ambientLight, sunLight;
+    let terrainMesh, riverMesh;
+    let pathCanvas, pathCtx, pathTexture;
+
+    const trees = [];
+    const stoneRocks = [];
+    const clouds = [];
+
+    // Camera Orbit & Pan State
+    let camTarget = new THREE.Vector3(0, 0, 0);
+    let camDistance = 75; // Mouse scroll wheel scales 8m to 260m
+    let camPitch = 0.75;
+    let camYaw = 0.5;
+    let isRightDragging = false;
+    let prevMouseX = 0, prevMouseY = 0;
+
+    function init3DEnvironment() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+
+      // VIBRANT CRYSTAL BLUE DAYLIGHT SKY (NO DARK COLOR!)
+      scene.background = new THREE.Color(0x7ec0ee);
+      scene.fog = new THREE.FogExp2(0xdbeafe, 0.0012);
+
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+      updateCameraPosition();
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.7; // Bright sunny daylight exposure
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      // SUNNY ILLUMINATION SUITE
+      ambientLight = new THREE.AmbientLight(0xfffaea, 2.2);
+      scene.add(ambientLight);
+
+      const hemi = new THREE.HemisphereLight(0xbae6fd, 0x86efac, 1.8);
+      scene.add(hemi);
+
+      sunLight = new THREE.DirectionalLight(0xfffaed, 3.8);
+      sunLight.position.set(150, 220, 90);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.near = 10;
+      sunLight.shadow.camera.far = 500;
+      sunLight.shadow.camera.left = -180;
+      sunLight.shadow.camera.right = 180;
+      sunLight.shadow.camera.top = 180;
+      sunLight.shadow.camera.bottom = -180;
+      scene.add(sunLight);
+
+      // Radiant Sun Orb in Sky
+      const sunGeo = new THREE.SphereGeometry(18, 16, 16);
+      const sunMat = new THREE.MeshBasicMaterial({ color: 0xfff4b8 });
+      const sunOrb = new THREE.Mesh(sunGeo, sunMat);
+      sunOrb.position.copy(sunLight.position);
+      scene.add(sunOrb);
+
+      setupDesirePathCanvas();
+      setupRollingTerrain();
+      setupWindingRiver();
+      setupFoliageAndRocks();
+      setupSkyClouds();
+
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function onWindowResize() {
+      if (!camera || !renderer) return;
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // Emergent Footpath Texture System
+    function setupDesirePathCanvas() {
+      pathCanvas = createProceduralCanvas(512, 512);
+      pathCtx = pathCanvas.getContext('2d');
+      pathCtx.clearRect(0, 0, 512, 512);
+      pathTexture = new THREE.CanvasTexture(pathCanvas);
+    }
+
+    function stampVillagerFootstep(worldX, worldZ) {
+      const u = ((worldX + 200) / 400) * 512;
+      const v = ((worldZ + 200) / 400) * 512;
+
+      pathCtx.fillStyle = 'rgba(120, 81, 43, 0.07)';
+      pathCtx.beginPath();
+      pathCtx.arc(u, v, 4.5, 0, Math.PI * 2);
+      pathCtx.fill();
+
+      pathTexture.needsUpdate = true;
+    }
+
+    // Procedural Elevation for Rolling Hills
+    function getTerrainHeight(x, z) {
+      const distFromCenter = Math.hypot(x, z);
+      const centerDamp = Math.min(1.0, distFromCenter / 50);
+
+      const h1 = Math.sin(x * 0.02) * Math.cos(z * 0.02) * 8;
+      const h2 = Math.sin(x * 0.045 + 1.2) * Math.sin(z * 0.035) * 4;
+      const h3 = Math.cos(x * 0.01 - z * 0.015) * 6;
+
+      let riverDepth = 0;
+      const riverCenter = -22 + Math.sin(z * 0.03) * 14;
+      const distToRiver = Math.abs(x - riverCenter);
+      if (distToRiver < 16) {
+        riverDepth = (1 - distToRiver / 16) * 5.5;
+      }
+
+      return (h1 + h2 + h3) * centerDamp - riverDepth;
+    }
+
+    // 400x400 Meadow Terrain
+    function setupRollingTerrain() {
+      const geo = new THREE.PlaneGeometry(400, 400, 96, 96);
+      geo.rotateX(-Math.PI * 0.5);
+
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const z = pos.getZ(i);
+        pos.setY(i, getTerrainHeight(x, z));
+      }
+      geo.computeVertexNormals();
+
+      const grassTex = generateGrassTexture();
+      const mat = new THREE.MeshStandardMaterial({
+        map: grassTex,
+        roughness: 0.8,
+        metalness: 0.05
+      });
+
+      terrainMesh = new THREE.Mesh(geo, mat);
+      terrainMesh.receiveShadow = true;
+      scene.add(terrainMesh);
+
+      // Overlay Desire Path Mesh
+      const pathMat = new THREE.MeshStandardMaterial({
+        map: pathTexture,
+        transparent: true,
+        opacity: 0.95,
+        roughness: 0.95,
+        polygonOffset: true,
+        polygonOffsetFactor: -1
+      });
+      const pathMesh = new THREE.Mesh(geo.clone(), pathMat);
+      scene.add(pathMesh);
+    }
+
+    // Winding Sparkling Blue River
+    function setupWindingRiver() {
+      const riverGeo = new THREE.PlaneGeometry(28, 400, 16, 64);
+      riverGeo.rotateX(-Math.PI * 0.5);
+
+      const pos = riverGeo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const z = pos.getZ(i);
+        const riverCenter = -22 + Math.sin(z * 0.03) * 14;
+        const x = pos.getX(i);
+        pos.setX(i, x + riverCenter);
+        pos.setY(i, -2.4);
+      }
+      riverGeo.computeVertexNormals();
+
+      const waterTex = generateWaterTexture();
+      const riverMat = new THREE.MeshStandardMaterial({
+        map: waterTex,
+        roughness: 0.1,
+        metalness: 0.25,
+        transparent: true,
+        opacity: 0.9
+      });
+      riverMesh = new THREE.Mesh(riverGeo, riverMat);
+      scene.add(riverMesh);
+    }
+
+    // Harvestable Oak Trees, Pines & Granite Boulders
+    function setupFoliageAndRocks() {
+      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78481d, roughness: 0.9 });
+      const pineLeavesMat = new THREE.MeshStandardMaterial({ color: 0x2e6f38, roughness: 0.8 });
+      const oakLeavesMat = new THREE.MeshStandardMaterial({ color: 0x5da61e, roughness: 0.8 });
+      const stoneMat = new THREE.MeshStandardMaterial({ map: generateCobbleTexture(), roughness: 0.85 });
+
+      for (let i = 0; i < 140; i++) {
+        const x = (Math.random() - 0.5) * 340;
+        const z = (Math.random() - 0.5) * 340;
+        if (Math.hypot(x, z) < 30 || Math.abs(x - (-22)) < 24) continue;
+
+        const y = getTerrainHeight(x, z);
+        const treeGroup = new THREE.Group();
+
+        const trunkGeo = new THREE.CylinderGeometry(0.35, 0.5, 3.5, 6);
+        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+        trunk.position.y = 1.75;
+        trunk.castShadow = true;
+        treeGroup.add(trunk);
+
+        const isPine = Math.random() > 0.4;
+        if (isPine) {
+          for (let l = 0; l < 3; l++) {
+            const coneGeo = new THREE.ConeGeometry(2.4 - l * 0.5, 2.5, 7);
+            const cone = new THREE.Mesh(coneGeo, pineLeavesMat);
+            cone.position.y = 3.2 + l * 1.5;
+            cone.castShadow = true;
+            treeGroup.add(cone);
+          }
+        } else {
+          const sphereGeo = new THREE.SphereGeometry(2.2, 8, 8);
+          const sphere = new THREE.Mesh(sphereGeo, oakLeavesMat);
+          sphere.position.y = 4.2;
+          sphere.scale.set(1.1, 1.3, 1.1);
+          sphere.castShadow = true;
+          treeGroup.add(sphere);
+        }
+
+        treeGroup.position.set(x, y, z);
+        scene.add(treeGroup);
+        trees.push({ mesh: treeGroup, x: x, z: z, hp: 4 });
+      }
+
+      for (let i = 0; i < 35; i++) {
+        const x = (Math.random() - 0.5) * 320;
+        const z = (Math.random() - 0.5) * 320;
+        if (Math.hypot(x, z) < 25) continue;
+        const y = getTerrainHeight(x, z);
+
+        const rockRad = 1.8 + Math.random() * 2.2;
+        const rockGeo = new THREE.DodecahedronGeometry(rockRad, 1);
+        const rock = new THREE.Mesh(rockGeo, stoneMat);
+        rock.position.set(x, y + rockRad * 0.6, z);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.castShadow = true;
+        scene.add(rock);
+        stoneRocks.push({ mesh: rock, x: x, z: z, hp: 6 });
+      }
+    }
+
+    // Fluffy Drifting Cumulus Clouds
+    function setupSkyClouds() {
+      const cloudMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.95,
+        transparent: true,
+        opacity: 0.9
+      });
+
+      for (let i = 0; i < 18; i++) {
+        const cloudGroup = new THREE.Group();
+        const pCount = 5 + Math.floor(Math.random() * 5);
+        for (let p = 0; p < pCount; p++) {
+          const rad = 12 + Math.random() * 15;
+          const puff = new THREE.Mesh(new THREE.SphereGeometry(rad, 7, 7), cloudMat);
+          puff.position.set((Math.random() - 0.5) * 35, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 25);
+          cloudGroup.add(puff);
+        }
+        cloudGroup.position.set(
+          (Math.random() - 0.5) * 600,
+          90 + Math.random() * 40,
+          (Math.random() - 0.5) * 600
+        );
+        scene.add(cloudGroup);
+        clouds.push({ mesh: cloudGroup, speed: 1.5 + Math.random() * 2.5 });
+      }
+    }
+
+    function updateCameraPosition() {
+      const x = camTarget.x + camDistance * Math.sin(camYaw) * Math.cos(camPitch);
+      const y = camTarget.y + camDistance * Math.sin(camPitch);
+      const z = camTarget.z + camDistance * Math.cos(camYaw) * Math.cos(camPitch);
+      camera.position.set(x, Math.max(4, y), z);
+      camera.lookAt(camTarget);
+    }
+
+    // =========================================================================
+    // 3D BUILDINGS & ORGANIC GRID-LESS PLACEMENT SYSTEM
+    // =========================================================================
+    const buildings = [];
+    let activeBuildType = null;
+    let ghostBuilding = null;
+    let ghostRotation = 0;
+
+    const buildingCosts = {
+      center:   { gold: 0,   wood: 0,  stone: 0 },
+      lumber:   { gold: 0,   wood: 15, stone: 0 },
+      quarry:   { gold: 0,   wood: 20, stone: 0 },
+      well:     { gold: 0,   wood: 0,  stone: 10 },
+      cottage:  { gold: 0,   wood: 12, stone: 5 },
+      market:   { gold: 5,   wood: 15, stone: 0 },
+      windmill: { gold: 0,   wood: 25, stone: 10 },
+      church:   { gold: 0,   wood: 20, stone: 40 },
+      keep:     { gold: 20,  wood: 40, stone: 60 }
+    };
+
+    window.selectBuildType = function(type) {
+      initAudio();
+      if (activeBuildType === type) {
+        cancelBuildingPlacement();
+        return;
+      }
+      activeBuildType = type;
+      if (ghostBuilding) scene.remove(ghostBuilding);
+
+      ghostBuilding = createBuildingMesh(type, true);
+      scene.add(ghostBuilding);
+
+      document.querySelectorAll('.b-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.b-btn')).find(b => b.onclick && b.onclick.toString().includes(`'${type}'`));
+      if (activeBtn) activeBtn.classList.add('active');
+    };
+
+    function cancelBuildingPlacement() {
+      activeBuildType = null;
+      if (ghostBuilding) {
+        scene.remove(ghostBuilding);
+        ghostBuilding = null;
+      }
+      document.querySelectorAll('.b-btn').forEach(btn => btn.classList.remove('active'));
+    }
+
+    function createBuildingMesh(type, isGhost = false) {
+      const group = new THREE.Group();
+
+      const stoneMat = new THREE.MeshStandardMaterial({
+        map: generateCobbleTexture(),
+        roughness: 0.85,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const woodMat = new THREE.MeshStandardMaterial({
+        map: generateWoodTexture(),
+        roughness: 0.75,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const thatchMat = new THREE.MeshStandardMaterial({
+        map: generateThatchTexture(),
+        roughness: 0.9,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const tileMat = new THREE.MeshStandardMaterial({
+        map: generateClayTileTexture(),
+        roughness: 0.7,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const canopyMat = new THREE.MeshStandardMaterial({
+        map: generateCanopyTexture(),
+        roughness: 0.5,
+        side: THREE.DoubleSide,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      if (type === 'center') {
+        const base = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 8), stoneMat);
+        base.position.y = 2; base.castShadow = !isGhost; base.receiveShadow = !isGhost;
+        group.add(base);
+
+        const upper = new THREE.Mesh(new THREE.BoxGeometry(9.6, 3.5, 7.6), woodMat);
+        upper.position.y = 5.75; upper.castShadow = !isGhost;
+        group.add(upper);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(7, 4, 4), tileMat);
+        roof.position.y = 9.5; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost;
+        group.add(roof);
+
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 6, 6), woodMat);
+        pole.position.set(0, 12, 0); group.add(pole);
+        const banner = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), canopyMat);
+        banner.position.set(0.9, 13.5, 0); group.add(banner);
+
+      } else if (type === 'lumber') {
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(7, 3.2, 5), woodMat);
+        cabin.position.y = 1.6; cabin.castShadow = !isGhost; group.add(cabin);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(5, 2.5, 4), thatchMat);
+        roof.position.y = 4.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        for (let l = 0; l < 5; l++) {
+          const log = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 6), woodMat);
+          log.rotation.z = Math.PI * 0.5;
+          log.position.set(4.5, 0.3 + (l % 2) * 0.5, (l - 2) * 0.6);
+          group.add(log);
+        }
+
+      } else if (type === 'quarry') {
+        const yard = new THREE.Mesh(new THREE.BoxGeometry(8, 0.6, 8), stoneMat);
+        yard.position.y = 0.3; group.add(yard);
+
+        const cranePost = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 6, 6), woodMat);
+        cranePost.position.set(-2.5, 3, -2.5); group.add(cranePost);
+        const craneArm = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 5, 6), woodMat);
+        craneArm.position.set(-1, 5.8, -1); craneArm.rotation.z = Math.PI * 0.35; group.add(craneArm);
+
+        for (let b = 0; b < 4; b++) {
+          const block = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), stoneMat);
+          block.position.set(1.5 + (b % 2) * 1.5, 0.6, -1 + Math.floor(b / 2) * 1.5);
+          group.add(block);
+        }
+
+      } else if (type === 'well') {
+        const ring = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.9, 1.5, 12, 1, true), stoneMat);
+        ring.position.y = 0.75; group.add(ring);
+
+        [-1.2, 1.2].forEach(x => {
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.2, 6), woodMat);
+          post.position.set(x, 1.6, 0); group.add(post);
+        });
+
+        const canopy = new THREE.Mesh(new THREE.ConeGeometry(2.4, 1.6, 4), tileMat);
+        canopy.position.y = 3.6; canopy.rotation.y = Math.PI * 0.25; group.add(canopy);
+
+      } else if (type === 'cottage') {
+        const walls = new THREE.Mesh(new THREE.BoxGeometry(5.5, 3.2, 4.5), stoneMat);
+        walls.position.y = 1.6; walls.castShadow = !isGhost; group.add(walls);
+
+        const thatch = new THREE.Mesh(new THREE.ConeGeometry(4.6, 3.2, 4), thatchMat);
+        thatch.position.y = 4.4; thatch.rotation.y = Math.PI * 0.25; thatch.castShadow = !isGhost; group.add(thatch);
+
+        const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.9, 4.5, 0.9), stoneMat);
+        chimney.position.set(1.8, 3.5, 1.2); group.add(chimney);
+
+      } else if (type === 'market') {
+        const table = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.2, 2.5), woodMat);
+        table.position.y = 0.6; group.add(table);
+
+        const awning = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 3.5), canopyMat);
+        awning.position.y = 3.2; awning.rotation.x = Math.PI * 0.35; group.add(awning);
+
+        const crateMat = new THREE.MeshStandardMaterial({ color: 0xb45309 });
+        const crate1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.0), crateMat);
+        crate1.position.set(-1.2, 1.4, 0); group.add(crate1);
+        const crate2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.0), crateMat);
+        crate2.position.set(1.2, 1.4, 0); group.add(crate2);
+
+      } else if (type === 'windmill') {
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 3.5, 9, 8), stoneMat);
+        tower.position.y = 4.5; tower.castShadow = !isGhost; group.add(tower);
+
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(2.8, 2.2, 8), thatchMat);
+        cap.position.y = 9.8; group.add(cap);
+
+        const sailsGroup = new THREE.Group();
+        sailsGroup.position.set(0, 8.5, 2.4);
+        for (let s = 0; s < 4; s++) {
+          const sail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 7.5, 0.8), woodMat);
+          sail.rotation.z = (s * Math.PI) / 2;
+          sailsGroup.add(sail);
+        }
+        group.add(sailsGroup);
+        group.sails = sailsGroup;
+
+      } else if (type === 'church') {
+        const nave = new THREE.Mesh(new THREE.BoxGeometry(14, 6.5, 8), stoneMat);
+        nave.position.y = 3.25; nave.castShadow = !isGhost; group.add(nave);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(8.5, 4.5, 4), tileMat);
+        roof.position.y = 8.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        const belfry = new THREE.Mesh(new THREE.BoxGeometry(5, 14, 5), stoneMat);
+        belfry.position.set(-8, 7, 0); belfry.castShadow = !isGhost; group.add(belfry);
+
+        const spire = new THREE.Mesh(new THREE.ConeGeometry(3.6, 7, 8), tileMat);
+        spire.position.set(-8, 17.5, 0); spire.castShadow = !isGhost; group.add(spire);
+
+      } else if (type === 'keep') {
+        const citadel = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 14), stoneMat);
+        citadel.position.y = 5; citadel.castShadow = !isGhost; group.add(citadel);
+
+        [[-8, -7], [8, -7], [-8, 7], [8, 7]].forEach(([tx, tz]) => {
+          const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 14, 8), stoneMat);
+          tower.position.set(tx, 7, tz); tower.castShadow = !isGhost; group.add(tower);
+          const roof = new THREE.Mesh(new THREE.ConeGeometry(3.2, 3.5, 8), tileMat);
+          roof.position.set(tx, 15.5, tz); group.add(roof);
+        });
+      }
+
+      return group;
+    }
+
+    function tryPlaceBuilding(worldX, worldZ) {
+      if (!activeBuildType) return;
+      const cost = buildingCosts[activeBuildType];
+
+      if (gameState.gold < cost.gold || gameState.wood < cost.wood || gameState.stone < cost.stone) {
+        alert(`[INSUFFICIENT RESOURCES] Requires ${cost.gold} Gold, ${cost.wood} Wood, ${cost.stone} Stone.`);
+        return;
+      }
+
+      gameState.gold -= cost.gold;
+      gameState.wood -= cost.wood;
+      gameState.stone -= cost.stone;
+      updateResourceLedger();
+
+      const building = createBuildingMesh(activeBuildType, false);
+      const groundY = getTerrainHeight(worldX, worldZ);
+      building.position.set(worldX, groundY, worldZ);
+      building.rotation.y = ghostRotation;
+      scene.add(building);
+
+      playBuildHammerSound();
+
+      buildings.push({
+        type: activeBuildType,
+        mesh: building,
+        x: worldX,
+        z: worldZ,
+        workers: []
+      });
+
+      checkQuestMilestone(activeBuildType);
+      cancelBuildingPlacement();
+    }
+
+    // =========================================================================
+    // AUTONOMOUS VILLAGER SIMULATION, NEEDS & DESIRE FOOTPATHS
+    // =========================================================================
+    const villagers = [];
+    const villagerNames = [
+      'Godwin', 'Elsbeth', 'Cedric', 'Rosalind', 'Wulfric', 'Morwenna',
+      'Aldous', 'Beatrice', 'Osric', 'Gisela', 'Dunstan', 'Rowena'
+    ];
+
+    function createVillagerMesh(color = 0x0284c7) {
+      const group = new THREE.Group();
+
+      const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.2, 8), bodyMat);
+      body.position.y = 1.0; body.castShadow = true;
+      group.add(body);
+
+      const headMat = new THREE.MeshStandardMaterial({ color: 0xfbd2a9, roughness: 0.6 });
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), headMat);
+      head.position.y = 1.85; head.castShadow = true;
+      group.add(head);
+
+      const limbMat = new THREE.MeshStandardMaterial({ color: 0x422810 });
+      const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.65, 0.18), limbMat);
+      leftLeg.position.set(-0.2, 0.35, 0); group.add(leftLeg);
+
+      const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.65, 0.18), limbMat);
+      rightLeg.position.set(0.2, 0.35, 0); group.add(rightLeg);
+
+      group.leftLeg = leftLeg;
+      group.rightLeg = rightLeg;
+
+      return group;
+    }
+
+    function spawnVillager(profession = 'Laborer', startPos = null) {
+      const name = villagerNames[villagers.length % villagerNames.length];
+      const colors = [0x0284c7, 0xb45309, 0x15803d, 0xca8a04, 0xb91c1c];
+      const col = colors[villagers.length % colors.length];
+
+      const mesh = createVillagerMesh(col);
+      const pos = startPos || new THREE.Vector3((Math.random() - 0.5) * 15, 0, (Math.random() - 0.5) * 15);
+      pos.y = getTerrainHeight(pos.x, pos.z);
+      mesh.position.copy(pos);
+      scene.add(mesh);
+
+      const villager = {
+        name: name,
+        mesh: mesh,
+        x: pos.x,
+        z: pos.z,
+        profession: profession,
+        state: 'idle',
+        targetPos: null,
+        targetObj: null,
+        workTimer: 0,
+        hunger: 100,
+        thirst: 100,
+        faith: 100,
+        walkAnim: 0
+      };
+
+      villagers.push(villager);
+      updatePopulationHUD();
+      return villager;
+    }
+
+    function updateVillagers(delta) {
+      villagers.forEach((v) => {
+        v.hunger = Math.max(0, v.hunger - delta * 0.4);
+        v.thirst = Math.max(0, v.thirst - delta * 0.6);
+
+        if (!v.targetPos || v.state === 'idle') {
+          decideVillagerAction(v);
+        }
+
+        if (v.targetPos) {
+          const dx = v.targetPos.x - v.x;
+          const dz = v.targetPos.z - v.z;
+          const dist = Math.hypot(dx, dz);
+
+          if (dist > 1.2) {
+            const speed = 4.2;
+            v.x += (dx / dist) * speed * delta;
+            v.z += (dz / dist) * speed * delta;
+            const y = getTerrainHeight(v.x, v.z);
+            v.mesh.position.set(v.x, y, v.z);
+
+            v.mesh.rotation.y = Math.atan2(dx, dz);
+
+            v.walkAnim += delta * 12;
+            v.mesh.leftLeg.rotation.x = Math.sin(v.walkAnim) * 0.6;
+            v.mesh.rightLeg.rotation.x = -Math.sin(v.walkAnim) * 0.6;
+
+            // Stamp desire path footprint
+            stampVillagerFootstep(v.x, v.z);
+
+          } else {
+            v.mesh.leftLeg.rotation.x = 0;
+            v.mesh.rightLeg.rotation.x = 0;
+            handleDestinationArrival(v, delta);
+          }
+        }
+      });
+    }
+
+    function decideVillagerAction(v) {
+      if (v.thirst < 40) {
+        const well = buildings.find(b => b.type === 'well');
+        if (well) {
+          v.state = 'drinking';
+          v.targetPos = new THREE.Vector3(well.x, 0, well.z);
+          return;
+        }
+      }
+
+      if (v.hunger < 40) {
+        const market = buildings.find(b => b.type === 'market');
+        if (market) {
+          v.state = 'eating';
+          v.targetPos = new THREE.Vector3(market.x, 0, market.z);
+          return;
+        }
+      }
+
+      const lumberCamp = buildings.find(b => b.type === 'lumber');
+      if (lumberCamp && trees.length > 0) {
+        let closestTree = trees[0];
+        let minDist = 9999;
+        trees.forEach(t => {
+          const d = Math.hypot(t.x - lumberCamp.x, t.z - lumberCamp.z);
+          if (d < minDist) { minDist = d; closestTree = t; }
+        });
+
+        v.state = 'chopping';
+        v.targetObj = closestTree;
+        v.targetPos = new THREE.Vector3(closestTree.x, 0, closestTree.z);
+        return;
+      }
+
+      const quarry = buildings.find(b => b.type === 'quarry');
+      if (quarry && stoneRocks.length > 0) {
+        const closestRock = stoneRocks[0];
+        v.state = 'quarrying';
+        v.targetObj = closestRock;
+        v.targetPos = new THREE.Vector3(closestRock.x, 0, closestRock.z);
+        return;
+      }
+
+      v.state = 'strolling';
+      v.targetPos = new THREE.Vector3((Math.random() - 0.5) * 30, 0, (Math.random() - 0.5) * 30);
+    }
+
+    function handleDestinationArrival(v, delta) {
+      v.workTimer += delta;
+
+      if (v.state === 'chopping' && v.targetObj) {
+        if (v.workTimer > 3.0) {
+          playWoodChopSound();
+          v.workTimer = 0;
+          v.targetObj.hp--;
+          gameState.wood += 2;
+          updateResourceLedger();
+
+          if (v.targetObj.hp <= 0) {
+            scene.remove(v.targetObj.mesh);
+            const idx = trees.indexOf(v.targetObj);
+            if (idx !== -1) trees.splice(idx, 1);
+          }
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+      } else if (v.state === 'quarrying' && v.targetObj) {
+        if (v.workTimer > 3.5) {
+          playStoneChiselSound();
+          v.workTimer = 0;
+          v.targetObj.hp--;
+          gameState.stone += 2;
+          updateResourceLedger();
+
+          if (v.targetObj.hp <= 0) {
+            scene.remove(v.targetObj.mesh);
+            const idx = stoneRocks.indexOf(v.targetObj);
+            if (idx !== -1) stoneRocks.splice(idx, 1);
+          }
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+      } else if (v.state === 'drinking') {
+        v.thirst = 100;
+        v.state = 'idle';
+        v.targetPos = null;
+      } else if (v.state === 'eating') {
+        v.hunger = 100;
+        if (gameState.berries > 0) gameState.berries--;
+        else if (gameState.bread > 0) gameState.bread--;
+        updateResourceLedger();
+        v.state = 'idle';
+        v.targetPos = null;
+      } else {
+        if (v.workTimer > 2.0) {
+          v.workTimer = 0;
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+      }
+    }
+
+    function inspectVillager(v) {
+      const card = document.getElementById('inspector-card');
+      if (!card) return;
+      document.getElementById('insp-title').innerText = `${v.name} the ${v.profession}`;
+      document.getElementById('insp-status').innerText = 'Serf';
+      document.getElementById('insp-job').innerText = v.profession;
+      document.getElementById('insp-task').innerText = v.state.toUpperCase();
+      document.getElementById('insp-hunger').innerText = v.hunger > 50 ? 'Satisfied' : 'Hungry';
+      document.getElementById('insp-thirst').innerText = v.thirst > 50 ? 'Quenched' : 'Thirsty';
+      card.style.display = 'block';
+    }
+
+    window.closeInspector = function() {
+      const card = document.getElementById('inspector-card');
+      if (card) card.style.display = 'none';
+    };
+
+    // =========================================================================
+    // ECONOMY, ESTATE QUESTS, CAMERA CONTROLS & SETTINGS
+    // =========================================================================
+    const gameState = {
+      gold: 250,
+      wood: 40,
+      stone: 20,
+      berries: 30,
+      bread: 15,
+      happiness: 100
+    };
+
+    let currentQuestIdx = 1;
+    const quests = [
+      {
+        id: 1,
+        title: '1. Lay the Foundation',
+        desc: 'Construct a Lumber Camp and a Town Well to secure vital supplies for your serfs.',
+        check: () => buildings.some(b => b.type === 'lumber') && buildings.some(b => b.type === 'well'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'lumber' || b.type === 'well').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 100; gameState.bread += 20; spawnVillager('Woodcutter'); spawnVillager('Laborer'); }
+      },
+      {
+        id: 2,
+        title: '2. Feed the Hamlet',
+        desc: 'Construct a Market Stall and Thatched Cottages to house your growing population.',
+        check: () => buildings.some(b => b.type === 'market') && buildings.filter(b => b.type === 'cottage').length >= 2,
+        progressText: () => `[PROGRESS: Market ${buildings.filter(b => b.type === 'market').length}/1, Cottages ${buildings.filter(b => b.type === 'cottage').length}/2]`,
+        reward: () => { gameState.gold += 150; spawnVillager('Market Tender'); spawnVillager('Farmer'); }
+      },
+      {
+        id: 3,
+        title: '3. Grain & Masonry',
+        desc: 'Construct a Stonecutter Quarry and a Windmill to produce bread and stone blocks.',
+        check: () => buildings.some(b => b.type === 'quarry') && buildings.some(b => b.type === 'windmill'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'quarry' || b.type === 'windmill').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 200; spawnVillager('Stone Mason'); spawnVillager('Miller'); }
+      },
+      {
+        id: 4,
+        title: '4. Spiritual Devotion',
+        desc: 'Erect a Rustic Church to inspire your serfs and satisfy their need for Faith.',
+        check: () => buildings.some(b => b.type === 'church'),
+        progressText: () => `[PROGRESS: Church ${buildings.filter(b => b.type === 'church').length}/1]`,
+        reward: () => { gameState.gold += 300; playChurchBellSound(); spawnVillager('Priest'); }
+      },
+      {
+        id: 5,
+        title: '5. Seat of the Sovereign',
+        desc: 'Erect the fortified Lord\'s Keep citadel to establish your realm\'s military authority!',
+        check: () => buildings.some(b => b.type === 'keep'),
+        progressText: () => `[PROGRESS: Lord's Keep ${buildings.filter(b => b.type === 'keep').length}/1]`,
+        reward: () => { alert('CONGRATULATIONS, MY LORD! You have forged a grand medieval civilization in Foundation!'); }
+      }
+    ];
+
+    function checkQuestMilestone(newBuildingType) {
+      const q = quests[currentQuestIdx - 1];
+      if (q && q.check()) {
+        playQuestCompleteSound();
+        q.reward();
+        currentQuestIdx++;
+        if (currentQuestIdx <= quests.length) {
+          updateQuestUI();
+        } else {
+          document.getElementById('quest-title').innerText = 'VICTORY: Realm Established';
+          document.getElementById('quest-desc').innerText = 'Your kingdom stands proud upon the rolling hills.';
+          document.getElementById('quest-progress').innerText = '[ALL QUESTS COMPLETE]';
+        }
+      } else {
+        updateQuestUI();
+      }
+    }
+
+    function updateQuestUI() {
+      if (currentQuestIdx > quests.length) return;
+      const q = quests[currentQuestIdx - 1];
+      document.getElementById('quest-title').innerText = q.title;
+      document.getElementById('quest-desc').innerText = q.desc;
+      document.getElementById('quest-progress').innerText = q.progressText();
+    }
+
+    function updateResourceLedger() {
+      document.getElementById('res-gold').innerText = gameState.gold;
+      document.getElementById('res-wood').innerText = gameState.wood;
+      document.getElementById('res-stone').innerText = gameState.stone;
+      document.getElementById('res-berries').innerText = gameState.berries;
+      document.getElementById('res-bread').innerText = gameState.bread;
+    }
+
+    function updatePopulationHUD() {
+      const popEl = document.getElementById('pop-count');
+      if (popEl) popEl.innerText = villagers.length;
+    }
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function setupControlsAndInput() {
+      window.addEventListener('keydown', (e) => {
+        initAudio();
+        if (e.code === 'Escape') {
+          if (activeBuildType) cancelBuildingPlacement();
+          else togglePauseSettings();
+        }
+        if (e.code === 'KeyR' && ghostBuilding) {
+          ghostRotation += Math.PI * 0.25;
+          ghostBuilding.rotation.y = ghostRotation;
+        }
+      });
+
+      window.addEventListener('mousedown', (e) => {
+        initAudio();
+        if (e.button === 2) {
+          isRightDragging = true;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+        } else if (e.button === 0) {
+          handleLeftClick(e);
+        }
+      });
+
+      window.addEventListener('mouseup', (e) => {
+        if (e.button === 2) isRightDragging = false;
+      });
+
+      window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        if (isRightDragging) {
+          const deltaX = e.clientX - prevMouseX;
+          const deltaY = e.clientY - prevMouseY;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+
+          camYaw -= deltaX * 0.005;
+          camPitch = Math.max(0.15, Math.min(1.4, camPitch - deltaY * 0.005));
+          updateCameraPosition();
+        }
+
+        if (activeBuildType && ghostBuilding && terrainMesh) {
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObject(terrainMesh);
+          if (intersects.length > 0) {
+            const p = intersects[0].point;
+            ghostBuilding.position.set(p.x, getTerrainHeight(p.x, p.z), p.z);
+          }
+        }
+      });
+
+      // CONTINUOUS MOUSE SCROLL WHEEL OPTICAL ZOOM (8m to 260m)
+      window.addEventListener('wheel', (e) => {
+        camDistance = Math.max(8.0, Math.min(260.0, camDistance + e.deltaY * 0.08));
+        updateCameraPosition();
+      }, { passive: true });
+
+      const btnSettings = document.getElementById('btn-settings-hud');
+      if (btnSettings) btnSettings.addEventListener('click', () => togglePauseSettings());
+
+      const sBright = document.getElementById('slider-brightness');
+      if (sBright) {
+        sBright.addEventListener('input', (e) => {
+          const v = parseFloat(e.target.value);
+          if (renderer) renderer.toneMappingExposure = v;
+          document.getElementById('val-brightness').innerText = `${Math.round(v * 100)}%`;
+        });
+      }
+
+      const sVol = document.getElementById('slider-volume');
+      if (sVol) {
+        sVol.addEventListener('input', (e) => {
+          masterVolume = parseFloat(e.target.value);
+          document.getElementById('val-volume').innerText = `${Math.round(masterVolume * 100)}%`;
+        });
+      }
+
+      const selGPU = document.getElementById('select-gpu');
+      if (selGPU) {
+        selGPU.addEventListener('change', (e) => {
+          if (!renderer) return;
+          const mode = e.target.value;
+          if (mode === 'ultra') renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          else if (mode === 'high') renderer.setPixelRatio(1.25);
+          else renderer.setPixelRatio(1.0);
+        });
+      }
+    }
+
+    function handleLeftClick(e) {
+      if (e.target.closest('#hud') || e.target.closest('#settings-modal') || e.target.closest('#inspector-card')) return;
+
+      if (activeBuildType && ghostBuilding) {
+        tryPlaceBuilding(ghostBuilding.position.x, ghostBuilding.position.z);
+        return;
+      }
+
+      raycaster.setFromCamera(mouse, camera);
+      for (const v of villagers) {
+        const intersects = raycaster.intersectObjects(v.mesh.children);
+        if (intersects.length > 0) {
+          inspectVillager(v);
+          return;
+        }
+      }
+    }
+
+    const keys = {};
+    window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+    function updateCameraPan(delta) {
+      let dx = 0, dz = 0;
+      if (keys['KeyW'] || keys['ArrowUp']) dz -= 1;
+      if (keys['KeyS'] || keys['ArrowDown']) dz += 1;
+      if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+      if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+
+      if (dx !== 0 || dz !== 0) {
+        const panSpeed = (camDistance * 0.8) * delta;
+        const sinYaw = Math.sin(camYaw);
+        const cosYaw = Math.cos(camYaw);
+
+        camTarget.x += (dx * cosYaw - dz * sinYaw) * panSpeed;
+        camTarget.z += (dx * sinYaw + dz * cosYaw) * panSpeed;
+        camTarget.x = Math.max(-180, Math.min(180, camTarget.x));
+        camTarget.z = Math.max(-180, Math.min(180, camTarget.z));
+        updateCameraPosition();
+      }
+    }
+
+    window.togglePauseSettings = function() {
+      const modal = document.getElementById('settings-modal');
+      if (!modal) return;
+      const isOpen = modal.style.display === 'flex';
+      modal.style.display = isOpen ? 'none' : 'flex';
+    };
+
+    window.toggleZoningTool = function() {
+      initAudio();
+      alert('[ZONING SYSTEM ACTIVE] Paint Residential zones on sunny rolling hills. Serfs will autonomously construct their thatched cottages near wells and workplaces!');
+    };
+
+    // MAIN 60 FPS SIMULATION ANIMATION LOOP
+    let lastTime = performance.now();
+
+    function animate(currentTime) {
+      requestAnimationFrame(animate);
+
+      const delta = Math.min((currentTime - lastTime) * 0.001, 0.05);
+      lastTime = currentTime;
+
+      updateCameraPan(delta);
+      updateVillagers(delta);
+
+      buildings.forEach((b) => {
+        if (b.type === 'windmill' && b.mesh.sails) {
+          b.mesh.sails.rotation.z += delta * 1.2;
+        }
+      });
+
+      clouds.forEach((c) => {
+        c.mesh.position.x += c.speed * delta;
+        if (c.mesh.position.x > 320) c.mesh.position.x = -320;
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    // BOOTSTRAP REALM (Daylight Foundation World)
+    window.addEventListener('DOMContentLoaded', () => {
+      init3DEnvironment();
+      setupControlsAndInput();
+
+      const centerBuilding = createBuildingMesh('center', false);
+      centerBuilding.position.set(0, getTerrainHeight(0, 0), 0);
+      scene.add(centerBuilding);
+      buildings.push({ type: 'center', mesh: centerBuilding, x: 0, z: 0 });
+
+      for (let i = 0; i < 6; i++) {
+        const offset = new THREE.Vector3((Math.random() - 0.5) * 16, 0, (Math.random() - 0.5) * 16);
+        spawnVillager(i < 3 ? 'Woodcutter' : 'Laborer', offset);
+      }
+
+      updateResourceLedger();
+      updateQuestUI();
+      requestAnimationFrame(animate);
+    });
+
+  </script>
+</body>
+</html>

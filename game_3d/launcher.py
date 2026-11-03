@@ -41,28 +41,28 @@ def launch_3d_game(port: int = 8088, use_window: bool = True):
     server_port = start_local_game_server(port)
     game_url = f"http://127.0.0.1:{server_port}/index.html"
     print("=" * 80)
-    print("  METAHORIZON ODYSSEY 3D: FRONTIER VOYAGER")
-    print(f"  3D Game Engine Server Active: {game_url}")
-    print("  Controls: WASD (Flight) | Space/Click (Blasters) | Shift (Phase Warp)")
-    print("            TAB (Invariant Terminal) | M (Audio Toggle) | 1-5 (Switch Stages)")
+    print("  FOUNDATION: ORGANIC SETTLEMENT SIMULATOR (VIBRANT DAYTIME EDITION)")
+    print(f"  Game Engine Server Active: {game_url}")
+    print("  Controls: WASD (Pan View) | Right-Drag (Rotate) | Mouse Scroll (Zoom 8m-260m)")
+    print("            Click (Build / Inspect) | R (Rotate Structure) | ESC (Settings)")
     print("=" * 80)
 
     if use_window:
         try:
             import webview
-            print("[3D ENGINE] Launching Hardware-Accelerated 3D Desktop Window (WebView2)...")
+            print("[ENGINE] Launching Hardware-Accelerated Daytime 3D Window (WebView2)...")
             window = webview.create_window(
-                title="METAHORIZON ODYSSEY 3D: FRONTIER VOYAGER",
+                title="FOUNDATION: ORGANIC SETTLEMENT SIMULATOR",
                 url=game_url,
                 width=1280,
                 height=760,
                 resizable=True,
-                background_color="#02040a"
+                background_color="#7ec0ee"
             )
             webview.start()
             return
         except Exception as e:
-            print(f"[3D ENGINE] Native window fallback ({str(e)}). Opening in browser:")
+            print(f"[ENGINE] Native window fallback ({str(e)}). Opening in browser:")
 
     # Fallback to default browser
     webbrowser.open(game_url)
