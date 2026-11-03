@@ -177,7 +177,7 @@ def get_aoe_html():
         </div>
         <div style="background: #180e07; border: 1px solid #5a3e20; border-radius: 6px; padding: 12px; margin-top: 14px; font-size: 11px;">
           <div style="color: #ffd700; font-weight: 800; margin-bottom: 4px;">AGE OF EMPIRES RTS HISTORICAL SIMULATOR</div>
-          <div>Built for the Meta Global AI Developer Hackathon. Solo Developer: <a href="https://github.com/pinoyUnknown" target="_blank" style="color: #ffd700;">PinoyUnknown</a></div>
+          <div>Built for the Meta Global Developer Hackathon. Solo Developer: <a href="https://github.com/pinoyUnknown" target="_blank" style="color: #ffd700;">PinoyUnknown</a></div>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
           <button class="aoe-close-btn" onclick="window.saveAoEGame()">[SAVE GAME]</button>

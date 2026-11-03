@@ -6,6 +6,7 @@ from aoe_html import get_aoe_html
 from aoe_audio_textures import get_aoe_audio_textures_js
 from aoe_models import get_aoe_models_js
 from aoe_units_combat import get_aoe_units_combat_js
+from aoe_pathfinding_fsm import get_aoe_pathfinding_fsm_js
 from aoe_engine import get_aoe_engine_js
 from aoe_sim_loop import get_aoe_sim_loop_js
 from aoe_world_director import get_aoe_world_director_js
@@ -77,6 +78,7 @@ def build():
         """,
         get_aoe_models_js(),
         get_aoe_units_combat_js(),
+        get_aoe_pathfinding_fsm_js(),
         get_aoe_engine_js(),
         get_aoe_sim_loop_js(),
         get_aoe_world_director_js(),
@@ -131,7 +133,7 @@ def build():
         f.write(full_html)
     print(f"Successfully wrote {out_path} ({len(full_html)} bytes).")
 
-    # Also extract and check script with node
+    # Extract and check script with node
     with open('test_aoe_script.js', 'w', encoding='utf-8') as f:
         f.write(full_js)
 
@@ -141,7 +143,7 @@ def build():
         print("Node check stderr:\n", res.stderr)
     else:
         print("Node check PASSED with 0 syntax errors!")
-    
+
     if os.path.exists('test_aoe_script.js'):
         os.remove('test_aoe_script.js')
 
