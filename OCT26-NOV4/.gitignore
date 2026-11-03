@@ -1,0 +1,126 @@
+# ==============================================================================
+# MetaFrontier NeuroTwin - Strict Developer Security & Data Privacy Ignore List
+# Protects all private developer credentials, secrets, admin keys, and certs
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Private Keys, Certificates & Authentication Tokens
+# ------------------------------------------------------------------------------
+*.pem
+*.key
+*.pkcs*
+*.p12
+*.pfx
+*.cert
+*.crt
+*.der
+*.csr
+*.cer
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*.gpg
+*.asc
+*.kdbx
+*.keystore
+
+# ------------------------------------------------------------------------------
+# 2. Environment Variables & Secret Configuration Files
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+local.settings.json
+
+# ------------------------------------------------------------------------------
+# 3. API Keys, Serial Keys, Passwords & Credentials
+# ------------------------------------------------------------------------------
+*api_key*
+*apikey*
+*secret*
+*password*
+*credential*
+*token*
+serial_keys.txt
+developer_passwords.txt
+admin_passwords.txt
+credentials.json
+client_secret*.json
+service-account*.json
+*.token
+
+# ------------------------------------------------------------------------------
+# 4. Admin Panels, Private Datasets & Sensitive Dumps
+# ------------------------------------------------------------------------------
+admin/
+admin_panel/
+private/
+secrets/
+vault/
+auth/tokens/
+*.dump
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+*.swp
+
+# ------------------------------------------------------------------------------
+# 5. Cloud Platform Credentials & Configs
+# ------------------------------------------------------------------------------
+.aws/
+.gcp/
+.azure/
+gcloud/
+firebase-debug.log
+serviceAccountKey.json
+
+# ------------------------------------------------------------------------------
+# 6. Node Dependencies, Cache & Build Output
+# ------------------------------------------------------------------------------
+node_modules/
+dist/
+dist-ssr/
+build/
+.cache/
+.parcel-cache/
+.npm/
+
+# ------------------------------------------------------------------------------
+# 7. Python Cache, Virtual Environments & Bytecode
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ------------------------------------------------------------------------------
+# 8. Logs, Debug Output & OS System Files
+# ------------------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace

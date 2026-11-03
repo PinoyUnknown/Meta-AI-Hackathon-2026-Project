@@ -1,0 +1,38 @@
+{
+  "name": "meta-frontier-neurotwin",
+  "version": "1.0.0",
+  "description": "Meta Global AI Hackathon - Frontier Multimodal Digital-Twin & Scientific Discovery Agent Engine powered by Meta SAM 3.1, Llama 3.2 Vision, and Muse Code Agent",
+  "type": "module",
+  "main": "cli/meta-frontier-cli.js",
+  "bin": {
+    "meta-frontier": "./cli/meta-frontier-cli.js"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "python server/server.py",
+    "start": "node cli/meta-frontier-cli.js --demo",
+    "test:models": "node cli/test-models.js",
+    "security:check": "node cli/security-check.js"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  },
+  "keywords": [
+    "meta-hackathon",
+    "llama-3.2-vision",
+    "sam-3.1",
+    "muse-code",
+    "digital-twin",
+    "robotics",
+    "scientific-ai",
+    "multi-agent",
+    "frontier-ai"
+  ],
+  "author": "Frontier AI Developer",
+  "license": "MIT"
+}
