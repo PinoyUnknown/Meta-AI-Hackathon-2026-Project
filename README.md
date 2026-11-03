@@ -1,5 +1,5 @@
-# METAHORIZON ODYSSEY: NOVA GALAXY 3D (v6.0.0)
-### Story-Driven 3D Space Flight Simulation & Galaxy Fleet Combat Campaign
+# METAHORIZON ODYSSEY: NOVA GALAXY 3D (v7.0.0 AAA Realistic Edition)
+### AAA Realistic 3D Space Flight Simulation, 360 Free Exploration & Tactical Dogfighting Engine
 ### Autonomous Hardware-Accelerated 3D Simulation Engine & Multi-Stage Sci-Fi Action Experience
 **Built for the Meta Global AI Developer Hackathon ($1,000,000 Prize Pool | Oct 26 – Nov 4, 2026)**  
 **Track: Indie Developer (Solo Submission) | Themes: Push the Frontier & Build for Your World**
@@ -16,7 +16,17 @@
 
 ---
 
-### 🚀 What's New in v6.0.0:
+### What's New in v7.0.0 (AAA Realistic Edition):
+- [360-Degree Free Space Exploration]: Navigate freely in any direction across massive planetary sectors with throttle control (80 to 750 km/s), strafing, and 6-DoF flight dynamics.
+- [Mouse Tilt Yoke & Mobile Gyroscope]: Control flight attitude via mouse tilt or device gyroscope (beta/gamma tilt) with realistic rotational banking.
+- [Active Autonomous Dogfighting]: Hostile interceptor jets and alien swarm bioships actively pursue, flank, lead shots, and attack the player.
+- [Destructible 3D Environment]: Blast apart tumbling asteroids into rock fracture debris, shatter comets into ice crystals, and destroy satellites.
+- [3D Holographic Target Locking]: Real-time screen-space tracking reticle displays target designation, distance in meters, and health meter.
+- [360-Degree Tactical Sensor Radar]: Visualizes hostile, friendly, and environmental contacts in real time.
+- [Zero AI Emoticons]: Clean, professional military aerospace typography and telemetry.
+- [Zero 'AI' Invariant]: Strict 0 occurrences of 'AI' in game interface.
+
+### What's New in v6.0.0 (Archived):
 - ⏸️ **ESC Key Pause & Tactical Settings**: Instant pause and toggle of in-game configuration with ESC hotkey.
 - ⚙️ **Comprehensive Settings Matrix**:
   - **Display**: Brightness slider (50%-200%), Multi-Resolution (4K, 1440p, 1080p, 720p, Fullscreen), Target Monitor (Primary, Secondary, Meta Quest WebXR VR).

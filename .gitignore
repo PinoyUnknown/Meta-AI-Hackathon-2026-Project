@@ -61,3 +61,6 @@ Thumbs.db
 *.log
 *.zip
 Meta-AI-Hackathon-2026-Project/
+
+# Legacy workshops
+legal-agent-workshop/
