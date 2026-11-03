@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>METAHORIZON ODYSSEY: NOVA GALAXY 3D</title>
+  <title>FOUNDATION: ORGANIC SETTLEMENT SIMULATOR</title>
   <style>
     * {
       box-sizing: border-box;
@@ -16,9 +16,9 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #01040a;
+      background: #87ceeb;
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      color: #e2e8f0;
+      color: #2c2416;
     }
     #canvas-container {
       position: absolute;
@@ -27,142 +27,9 @@
       width: 100%;
       height: 100%;
       z-index: 1;
-      transition: filter 0.2s ease;
     }
 
-    /* Screen Post-Processing Overlays */
-    .cockpit-vignette {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 5;
-      box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.85);
-    }
-    .damage-flash {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 6;
-      opacity: 0;
-      background: radial-gradient(circle, rgba(239, 68, 68, 0.55) 0%, rgba(220, 38, 38, 0) 70%);
-      transition: opacity 0.08s ease-out;
-    }
-    .warp-flash {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 6;
-      opacity: 0;
-      background: radial-gradient(circle, rgba(0, 240, 255, 0.65) 0%, rgba(147, 51, 234, 0) 70%);
-      transition: opacity 0.15s ease-out;
-    }
-
-    /* AAA Flight Reticle & Crosshairs */
-    #flight-reticle {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 60px;
-      height: 60px;
-      pointer-events: none;
-      z-index: 8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .reticle-center-dot {
-      width: 4px;
-      height: 4px;
-      background: #00f0ff;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #00f0ff;
-    }
-    .reticle-inner-ring {
-      position: absolute;
-      width: 28px;
-      height: 28px;
-      border: 1.5px solid rgba(0, 240, 255, 0.6);
-      border-radius: 50%;
-    }
-    .reticle-bracket-l {
-      position: absolute;
-      left: 4px;
-      width: 8px;
-      height: 16px;
-      border-left: 2px solid #00f0ff;
-      border-top: 2px solid #00f0ff;
-      border-bottom: 2px solid #00f0ff;
-    }
-    .reticle-bracket-r {
-      position: absolute;
-      right: 4px;
-      width: 8px;
-      height: 16px;
-      border-right: 2px solid #00f0ff;
-      border-top: 2px solid #00f0ff;
-      border-bottom: 2px solid #00f0ff;
-    }
-
-    /* Dynamic 3D Target Lock Overlay */
-    #target-lock-box {
-      position: absolute;
-      display: none;
-      pointer-events: none;
-      z-index: 9;
-      transform: translate(-50%, -50%);
-      transition: width 0.1s, height 0.1s;
-    }
-    .lock-bracket {
-      width: 50px;
-      height: 50px;
-      border: 2px solid #ef4444;
-      border-radius: 4px;
-      box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
-      animation: lockPulse 1s infinite alternate;
-    }
-    @keyframes lockPulse {
-      0% { transform: scale(0.95); border-color: #ef4444; }
-      100% { transform: scale(1.05); border-color: #f87171; }
-    }
-    .lock-info-text {
-      position: absolute;
-      top: -18px;
-      left: 0;
-      white-space: nowrap;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      color: #ef4444;
-      text-transform: uppercase;
-      text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
-    }
-    .lock-hp-track {
-      position: absolute;
-      bottom: -8px;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 2px;
-    }
-    .lock-hp-fill {
-      height: 100%;
-      width: 100%;
-      background: #ef4444;
-      border-radius: 2px;
-    }
-
-    /* Cockpit HUD Framework */
+    /* Top Medieval Resource & Realm Ledger */
     #hud {
       position: absolute;
       top: 0;
@@ -171,1331 +38,898 @@
       height: 100%;
       pointer-events: none;
       z-index: 10;
-      padding: 18px 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      padding: 16px 20px;
     }
-    .hud-top {
+
+    .top-bar {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    /* Ship Systems Status Cluster */
-    .brand-card {
-      background: rgba(4, 9, 20, 0.88);
-      border: 1px solid rgba(0, 240, 255, 0.35);
-      border-left: 4px solid #00f0ff;
-      border-radius: 6px;
-      padding: 10px 18px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      align-items: center;
+      width: 100%;
       pointer-events: auto;
     }
-    .brand-title {
-      font-size: 15px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      color: #f8fafc;
-      text-transform: uppercase;
-    }
-    .brand-sub {
-      font-size: 10px;
-      color: #38bdf8;
-      letter-spacing: 1.5px;
-      margin-top: 2px;
-      font-weight: 700;
-    }
-    .sector-badge {
-      display: inline-block;
-      margin-top: 6px;
-      font-size: 10px;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 4px;
-      background: rgba(0, 240, 255, 0.12);
-      color: #00f0ff;
-      border: 1px solid rgba(0, 240, 255, 0.35);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
 
-    /* Telemetry & Gauges */
-    .stat-cluster {
+    .town-plate {
+      background: #2b1f14;
+      border: 2px solid #c9933b;
+      border-radius: 8px;
+      padding: 8px 18px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
       display: flex;
       flex-direction: column;
-      gap: 7px;
-      min-width: 250px;
-      pointer-events: auto;
     }
-    .gauge-box {
-      background: rgba(4, 9, 20, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 6px;
-      padding: 6px 12px;
-      backdrop-filter: blur(12px);
+    .town-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      color: #f7e6b5;
+      text-transform: uppercase;
+      font-family: Georgia, serif;
     }
-    .gauge-row {
-      display: flex;
-      justify-content: space-between;
+    .town-sub {
       font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      margin-bottom: 3px;
-      letter-spacing: 1px;
-    }
-    .gauge-track {
-      width: 100%;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .gauge-fill {
-      height: 100%;
-      width: 100%;
-      border-radius: 3px;
-      transition: width 0.15s ease-out;
-    }
-    .fill-shield { background: linear-gradient(90deg, #00f0ff, #38bdf8); box-shadow: 0 0 10px #00f0ff; }
-    .fill-hull { background: linear-gradient(90deg, #10b981, #34d399); box-shadow: 0 0 10px #10b981; }
-    .fill-throttle { background: linear-gradient(90deg, #3b82f6, #00f0ff); box-shadow: 0 0 10px #3b82f6; }
-    .fill-heat { background: linear-gradient(90deg, #f59e0b, #ef4444); box-shadow: 0 0 10px #ef4444; }
-
-    /* 3D Tactical Radar Compass */
-    #radar-container {
-      position: absolute;
-      top: 18px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 120px;
-      height: 120px;
-      background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, rgba(4, 9, 20, 0.85) 75%);
-      border: 1.5px solid rgba(0, 240, 255, 0.35);
-      border-radius: 50%;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
-      pointer-events: auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .radar-grid {
-      position: absolute;
-      width: 70px;
-      height: 70px;
-      border: 1px dashed rgba(0, 240, 255, 0.25);
-      border-radius: 50%;
-    }
-    .radar-axis-h {
-      position: absolute;
-      width: 100%;
-      height: 1px;
-      background: rgba(0, 240, 255, 0.2);
-    }
-    .radar-axis-v {
-      position: absolute;
-      height: 100%;
-      width: 1px;
-      background: rgba(0, 240, 255, 0.2);
-    }
-    .radar-player-marker {
-      width: 6px;
-      height: 6px;
-      background: #00f0ff;
-      border-radius: 50%;
-      box-shadow: 0 0 6px #00f0ff;
-      z-index: 2;
-    }
-    #radar-blips {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-    .radar-blip {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-    }
-    .blip-enemy { background: #ef4444; box-shadow: 0 0 4px #ef4444; }
-    .blip-satellite { background: #10b981; box-shadow: 0 0 4px #10b981; }
-    .blip-asteroid { background: #94a3b8; }
-    .radar-label {
-      position: absolute;
-      bottom: -18px;
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      color: #94a3b8;
-      text-transform: uppercase;
-    }
-
-    /* Mission Transmission Comms Box */
-    .comms-container {
-      position: absolute;
-      bottom: 84px;
-      left: 24px;
-      max-width: 460px;
-      background: rgba(4, 9, 20, 0.92);
-      border-left: 4px solid #00f0ff;
-      border-top: 1px solid rgba(0, 240, 255, 0.25);
-      border-right: 1px solid rgba(0, 240, 255, 0.2);
-      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
-      border-radius: 0 6px 6px 0;
-      padding: 12px 16px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-      pointer-events: auto;
-    }
-    .comms-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .comms-wave {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      height: 12px;
-    }
-    .comms-bar {
-      width: 2px;
-      height: 8px;
-      background: #00f0ff;
-      animation: wavePulse 1s infinite alternate ease-in-out;
-    }
-    .comms-bar:nth-child(2) { animation-delay: 0.2s; height: 12px; }
-    .comms-bar:nth-child(3) { animation-delay: 0.4s; height: 6px; }
-    .comms-bar:nth-child(4) { animation-delay: 0.1s; height: 10px; }
-    @keyframes wavePulse {
-      0% { transform: scaleY(0.4); }
-      100% { transform: scaleY(1.3); }
-    }
-    .comms-title {
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      color: #38bdf8;
-      text-transform: uppercase;
-    }
-    .comms-sender {
-      font-size: 9px;
-      color: #94a3b8;
+      color: #d1b88c;
+      letter-spacing: 0.8px;
       font-weight: 600;
     }
-    .comms-text {
-      font-size: 12px;
-      line-height: 1.45;
-      color: #e2e8f0;
-      font-weight: 500;
-    }
-    .comms-objective {
-      margin-top: 6px;
-      padding-top: 6px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.15);
-      font-size: 10px;
-      color: #facc15;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
 
-    /* HUD Bottom Controls */
-    .hud-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-    }
-    .dock-bar {
-      display: flex;
-      gap: 8px;
-      pointer-events: auto;
-    }
-    .dock-btn {
-      background: rgba(8, 14, 28, 0.9);
-      border: 1px solid rgba(0, 240, 255, 0.3);
-      color: #f1f5f9;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 8px 14px;
-      border-radius: 4px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      backdrop-filter: blur(8px);
-      transition: all 0.2s ease;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .dock-btn:hover {
-      background: rgba(0, 240, 255, 0.2);
-      border-color: #00f0ff;
-      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
-      transform: translateY(-1px);
-    }
-    .key-hint {
-      background: rgba(255, 255, 255, 0.12);
-      padding: 2px 5px;
-      border-radius: 3px;
-      font-size: 9px;
-      color: #38bdf8;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      font-weight: 700;
-    }
-
-    .telemetry-card {
-      background: rgba(4, 9, 20, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 6px;
-      padding: 8px 14px;
-      backdrop-filter: blur(10px);
+    .resource-ledger {
       display: flex;
       gap: 14px;
-      font-size: 10px;
-      font-weight: 700;
-      color: #94a3b8;
-      pointer-events: auto;
+      background: rgba(254, 249, 235, 0.96);
+      border: 2px solid #8c6838;
+      border-radius: 10px;
+      padding: 8px 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     }
-    .telemetry-item span {
-      color: #00f0ff;
-      font-weight: 900;
+    .res-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #3d2c1d;
+    }
+    .res-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #8c6838;
+      background: #f1e4ce;
+      padding: 2px 5px;
+      border-radius: 4px;
     }
 
-    /* Modal Windows (Pause / Settings / About / Galaxy Map) */
-    .modal-overlay {
+    .pop-badge {
+      display: flex;
+      gap: 12px;
+      background: #2b1f14;
+      border: 2px solid #c9933b;
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: #f7e6b5;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Left Quest & Estate Dispatch Card */
+    .quest-card {
+      position: absolute;
+      top: 75px;
+      left: 20px;
+      width: 290px;
+      background: rgba(253, 248, 235, 0.96);
+      border: 2px solid #8c6838;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+      pointer-events: auto;
+      font-family: Georgia, serif;
+    }
+    .quest-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #8c6838;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .quest-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #4a3420;
+      margin-bottom: 6px;
+    }
+    .quest-desc {
+      font-size: 11px;
+      color: #5c4530;
+      line-height: 1.45;
+      font-family: 'Segoe UI', sans-serif;
+      margin-bottom: 8px;
+    }
+    .quest-progress {
+      font-size: 11px;
+      font-weight: 700;
+      color: #15803d;
+      font-family: monospace;
+    }
+
+    /* Bottom Building Placement Dock (Foundation Gridless Builder) */
+    .dock-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      pointer-events: auto;
+    }
+    .building-dock {
+      display: flex;
+      gap: 8px;
+      background: rgba(43, 31, 20, 0.96);
+      border: 2px solid #c9933b;
+      border-radius: 12px;
+      padding: 8px 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      max-width: 95vw;
+      overflow-x: auto;
+    }
+    .b-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: #4a3420;
+      border: 1px solid #8c6838;
+      border-radius: 8px;
+      padding: 8px 12px;
+      min-width: 86px;
+      cursor: pointer;
+      color: #f7e6b5;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .b-btn:hover {
+      background: #6b4c30;
+      border-color: #f3c262;
+      transform: translateY(-2px);
+    }
+    .b-btn.active {
+      background: #855d38;
+      border-color: #ffd875;
+      box-shadow: 0 0 12px #ffd875;
+      transform: translateY(-3px);
+    }
+    .b-tag {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #d1b88c;
+    }
+    .b-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .b-cost {
+      font-size: 9px;
+      color: #e5c287;
+    }
+
+    .controls-hint {
+      background: rgba(254, 249, 235, 0.92);
+      border: 1px solid #8c6838;
+      border-radius: 6px;
+      padding: 4px 14px;
+      font-size: 11px;
+      color: #4a3420;
+      font-weight: 600;
+      display: flex;
+      gap: 12px;
+    }
+    .controls-hint kbd {
+      background: #2b1f14;
+      color: #f7e6b5;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 10px;
+    }
+
+    /* Villager & Building Inspector Cards */
+    #inspector-card {
+      position: absolute;
+      bottom: 120px;
+      right: 20px;
+      width: 270px;
+      background: rgba(253, 248, 235, 0.96);
+      border: 2px solid #8c6838;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35);
+      display: none;
+      pointer-events: auto;
+      font-family: Georgia, serif;
+    }
+    .insp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #c9933b;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .insp-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #4a3420;
+    }
+    .insp-close {
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: bold;
+      color: #8c6838;
+      cursor: pointer;
+    }
+    .insp-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 4px;
+      color: #5c4530;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .insp-val {
+      font-weight: 700;
+      color: #2c2416;
+    }
+
+    /* Settings & Pause Modal (ESC Key) */
+    #settings-modal {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(2, 6, 16, 0.85);
-      backdrop-filter: blur(16px);
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(8px);
       z-index: 100;
       display: none;
       justify-content: center;
       align-items: center;
-      padding: 20px;
     }
-    .modal-card {
-      background: #050a18;
-      border: 1px solid rgba(0, 240, 255, 0.4);
-      border-radius: 8px;
-      box-shadow: 0 0 50px rgba(0, 240, 255, 0.2), 0 20px 40px rgba(0, 0, 0, 0.85);
-      max-width: 820px;
-      width: 100%;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes modalFadeIn {
-      from { opacity: 0; transform: scale(0.96); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    .modal-header {
-      padding: 14px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(10, 18, 36, 0.7);
-    }
-    .modal-title-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .modal-box {
+      width: 90%;
+      max-width: 620px;
+      background: #fdfaf2;
+      border: 3px solid #8c6838;
+      border-radius: 12px;
+      box-shadow: 0 10px 45px rgba(0, 0, 0, 0.6);
+      padding: 24px 28px;
+      color: #3b2818;
     }
     .modal-title {
-      font-size: 14px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      color: #f8fafc;
-      text-transform: uppercase;
-    }
-    .modal-nav {
-      display: flex;
-      gap: 6px;
-      padding: 10px 20px 0 20px;
-      background: rgba(7, 13, 28, 0.8);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .modal-tab-btn {
-      background: transparent;
-      border: none;
-      border-bottom: 3px solid transparent;
-      padding: 8px 14px;
-      color: #94a3b8;
-      font-weight: 700;
-      font-size: 11px;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.2s;
-    }
-    .modal-tab-btn.active {
-      color: #00f0ff;
-      border-bottom-color: #00f0ff;
-    }
-    .modal-body {
-      padding: 20px;
-      overflow-y: auto;
-      flex: 1;
-    }
-    .modal-footer {
-      padding: 12px 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(10, 18, 36, 0.7);
-    }
-
-    /* Settings UI Controls */
-    .settings-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-    .settings-group {
-      background: rgba(10, 18, 36, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 6px;
-      padding: 14px;
-    }
-    .group-title {
-      font-size: 11px;
+      font-size: 18px;
       font-weight: 800;
-      color: #38bdf8;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .setting-item {
-      margin-bottom: 12px;
-    }
-    .setting-item:last-child {
-      margin-bottom: 0;
-    }
-    .setting-label {
+      font-family: Georgia, serif;
+      color: #5c3818;
+      border-bottom: 2px solid #c9933b;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
       display: flex;
       justify-content: space-between;
-      font-size: 10px;
-      font-weight: 700;
-      color: #cbd5e1;
-      margin-bottom: 5px;
+      align-items: center;
     }
-    .setting-slider {
-      width: 100%;
-      height: 5px;
-      border-radius: 3px;
-      background: #1e293b;
-      outline: none;
-      -webkit-appearance: none;
-    }
-    .setting-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #00f0ff;
-      cursor: pointer;
-      box-shadow: 0 0 6px #00f0ff;
-    }
-    .setting-select {
-      width: 100%;
-      background: #141f36;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
-      color: #f1f5f9;
-      padding: 7px 9px;
-      font-size: 11px;
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 13px;
       font-weight: 600;
-      outline: none;
-      cursor: pointer;
     }
-    .setting-select:focus {
-      border-color: #00f0ff;
+    .settings-row input[type="range"] {
+      width: 180px;
+      accent-color: #c9933b;
+    }
+    .settings-row select {
+      background: #f4ede0;
+      border: 1px solid #8c6838;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      color: #3b2818;
     }
     .btn-action {
-      background: linear-gradient(135deg, #00f0ff, #0284c7);
-      color: #020617;
-      border: none;
-      border-radius: 4px;
-      padding: 8px 16px;
-      font-weight: 800;
-      font-size: 11px;
+      background: #855d38;
+      border: 1px solid #c9933b;
+      border-radius: 6px;
+      color: #f7e6b5;
+      padding: 8px 18px;
+      font-weight: 700;
+      font-size: 12px;
       cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
     }
     .btn-action:hover {
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
-      transform: translateY(-1px);
-    }
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.08);
-      color: #f1f5f9;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
-      padding: 8px 14px;
-      font-weight: 700;
-      font-size: 11px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.16);
-    }
-
-    /* About Section */
-    .about-card {
-      background: rgba(10, 18, 36, 0.6);
-      border: 1px solid rgba(0, 240, 255, 0.25);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 14px;
-    }
-    .dev-badge {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .dev-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 4px;
-      background: #0284c7;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: 900;
-      font-size: 16px;
-      color: #f8fafc;
-      border: 1px solid #00f0ff;
-    }
-    .dev-links {
-      display: flex;
-      gap: 10px;
-      margin-top: 5px;
-    }
-    .dev-link {
-      color: #38bdf8;
-      text-decoration: none;
-      font-size: 11px;
-      font-weight: 700;
-      background: rgba(56, 189, 248, 0.12);
-      padding: 4px 9px;
-      border-radius: 3px;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      transition: all 0.2s;
-    }
-    .dev-link:hover {
-      background: rgba(56, 189, 248, 0.25);
-      color: #f8fafc;
-    }
-
-    /* Galaxy Map Modal */
-    #galaxy-map-modal {
-      display: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 120;
-      background: radial-gradient(circle at center, #050b1a 0%, #010309 100%);
-    }
-    #galaxy-canvas-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      cursor: grab;
-    }
-    #galaxy-canvas-container:active {
-      cursor: grabbing;
-    }
-    .galaxy-map-overlay {
-      position: absolute;
-      top: 18px;
-      left: 24px;
-      right: 24px;
-      display: flex;
-      justify-content: space-between;
-      pointer-events: none;
-      z-index: 10;
-    }
-    .sector-info-panel {
-      position: absolute;
-      bottom: 24px;
-      right: 24px;
-      width: 320px;
-      background: rgba(4, 9, 20, 0.94);
-      border: 1px solid rgba(0, 240, 255, 0.4);
-      border-radius: 8px;
-      padding: 14px 18px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
-      z-index: 10;
+      background: #a07248;
+      border-color: #ffd875;
     }
   </style>
 </head>
 <body>
   <div id="canvas-container"></div>
-  <div class="cockpit-vignette"></div>
-  <div id="damage-flash" class="damage-flash"></div>
-  <div id="warp-flash" class="warp-flash"></div>
 
-  <!-- Flight Reticle & Dynamic Target Locking -->
-  <div id="flight-reticle">
-    <div class="reticle-center-dot"></div>
-    <div class="reticle-inner-ring"></div>
-    <div class="reticle-bracket-l"></div>
-    <div class="reticle-bracket-r"></div>
-  </div>
-
-  <div id="target-lock-box">
-    <div class="lock-bracket"></div>
-    <div id="target-lock-info" class="lock-info-text">[TARGET LOCKED] 420M</div>
-    <div class="lock-hp-track"><div id="target-lock-hp" class="lock-hp-fill"></div></div>
-  </div>
-
-  <!-- In-Game Cockpit HUD -->
   <div id="hud">
-    <div class="hud-top">
-      <div class="brand-card">
-        <div class="brand-title">METAHORIZON ODYSSEY</div>
-        <div class="brand-sub">NOVA FLEET TACTICAL SIMULATOR</div>
-        <div id="sector-badge" class="sector-badge">SECTOR 1: PROXIMA CENTAURI</div>
+    <!-- Top Bar: Realm Name & Resource Ledger -->
+    <div class="top-bar">
+      <div class="town-plate">
+        <div class="town-title">RIVERWOOD REALM</div>
+        <div class="town-sub">FOUNDATION // ORGANIC SETTLEMENT SIMULATOR</div>
       </div>
 
-      <!-- 3D Tactical Radar Compass -->
-      <div id="radar-container">
-        <div class="radar-grid"></div>
-        <div class="radar-axis-h"></div>
-        <div class="radar-axis-v"></div>
-        <div class="radar-player-marker"></div>
-        <div id="radar-blips"></div>
-        <div class="radar-label">360 SENSOR RADAR</div>
+      <div class="resource-ledger">
+        <div class="res-item"><span class="res-tag">[GOLD]</span> <span id="res-gold">250</span></div>
+        <div class="res-item"><span class="res-tag">[WOOD]</span> <span id="res-wood">40</span></div>
+        <div class="res-item"><span class="res-tag">[STONE]</span> <span id="res-stone">20</span></div>
+        <div class="res-item"><span class="res-tag">[BERRIES]</span> <span id="res-berries">30</span></div>
+        <div class="res-item"><span class="res-tag">[BREAD]</span> <span id="res-bread">15</span></div>
       </div>
 
-      <div class="stat-cluster">
-        <div class="gauge-box">
-          <div class="gauge-row">
-            <span style="color: #00f0ff;">[DEFLECTOR SHIELDS]</span>
-            <span id="shield-val" style="color: #00f0ff;">100%</span>
-          </div>
-          <div class="gauge-track"><div id="shield-bar" class="gauge-fill fill-shield"></div></div>
-        </div>
-
-        <div class="gauge-box">
-          <div class="gauge-row">
-            <span style="color: #10b981;">[HULL INTEGRITY]</span>
-            <span id="hull-val" style="color: #10b981;">100%</span>
-          </div>
-          <div class="gauge-track"><div id="hull-bar" class="gauge-fill fill-hull"></div></div>
-        </div>
-
-        <div class="gauge-box">
-          <div class="gauge-row">
-            <span style="color: #3b82f6;">[ENGINE THROTTLE]</span>
-            <span id="throttle-val" style="color: #38bdf8;">100%</span>
-          </div>
-          <div class="gauge-track"><div id="throttle-bar" class="gauge-fill fill-throttle"></div></div>
-        </div>
-
-        <div class="gauge-box">
-          <div class="gauge-row">
-            <span style="color: #f59e0b;">[WEAPON HEAT CORE]</span>
-            <span id="heat-val" style="color: #f59e0b;">0%</span>
-          </div>
-          <div class="gauge-track"><div id="heat-bar" class="gauge-fill fill-heat" style="width: 0%;"></div></div>
-        </div>
+      <div class="pop-badge">
+        <div>[SERFS: <span id="pop-count" style="color: #38bdf8;">6</span>]</div>
+        <div>[HAPPINESS: <span id="pop-happy" style="color: #10b981;">100%</span>]</div>
+        <button id="btn-settings-hud" class="btn-action" style="padding: 4px 10px; font-size: 11px;">[SETTINGS]</button>
       </div>
     </div>
 
-    <!-- Real-time Story Transmission Comms Hologram -->
-    <div id="comms-box" class="comms-container">
-      <div class="comms-header">
-        <div class="comms-wave">
-          <div class="comms-bar"></div>
-          <div class="comms-bar"></div>
-          <div class="comms-bar"></div>
-          <div class="comms-bar"></div>
+    <!-- Left Quest & Estate Dispatch Card -->
+    <div class="quest-card">
+      <div class="quest-tag">[ESTATE DISPATCH // KINGDOM CHARTER]</div>
+      <div id="quest-title" class="quest-title">1. Lay the Foundation</div>
+      <div id="quest-desc" class="quest-desc">Construct a Lumber Camp and a Town Well to secure vital supplies for your serfs.</div>
+      <div id="quest-progress" class="quest-progress">[PROGRESS: 0/2 BUILDINGS]</div>
+    </div>
+
+    <!-- Villager / Building Inspector Card -->
+    <div id="inspector-card">
+      <div class="insp-header">
+        <div id="insp-title" class="insp-title">Godwin the Woodcutter</div>
+        <button class="insp-close" onclick="closeInspector()">[X]</button>
+      </div>
+      <div class="insp-row"><span>Status:</span> <span id="insp-status" class="insp-val">Serf</span></div>
+      <div class="insp-row"><span>Profession:</span> <span id="insp-job" class="insp-val">Woodcutter</span></div>
+      <div class="insp-row"><span>Current Task:</span> <span id="insp-task" class="insp-val">Harvesting Oak</span></div>
+      <div class="insp-row"><span>Hunger:</span> <span id="insp-hunger" class="insp-val" style="color: #10b981;">Satisfied</span></div>
+      <div class="insp-row"><span>Thirst:</span> <span id="insp-thirst" class="insp-val" style="color: #10b981;">Quenched</span></div>
+      <div class="insp-row"><span>Shelter:</span> <span id="insp-shelter" class="insp-val" style="color: #10b981;">Thatched Cottage</span></div>
+    </div>
+
+    <!-- Bottom Building Placement Dock -->
+    <div class="dock-container">
+      <div class="controls-hint">
+        <span><kbd>WASD / Arrows</kbd> Pan View</span>
+        <span><kbd>Right-Drag</kbd> Rotate Horizon</span>
+        <span><kbd>Mouse Scroll</kbd> Zoom 8m - 260m</span>
+        <span><kbd>R</kbd> Rotate Structure</span>
+        <span><kbd>ESC</kbd> Settings & Pause</span>
+      </div>
+
+      <div class="building-dock">
+        <div class="b-btn" onclick="selectBuildType('center')">
+          <span class="b-tag">[CORE]</span>
+          <span class="b-name">Town Hall</span>
+          <span class="b-cost">FREE</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('lumber')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Lumber Camp</span>
+          <span class="b-cost">15 Wood</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('quarry')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Stone Quarry</span>
+          <span class="b-cost">20 Wood</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('well')">
+          <span class="b-tag">[CIVIC]</span>
+          <span class="b-name">Town Well</span>
+          <span class="b-cost">10 Stone</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('cottage')">
+          <span class="b-tag">[RES]</span>
+          <span class="b-name">Cottage</span>
+          <span class="b-cost">12 Wood, 5 Stone</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('market')">
+          <span class="b-tag">[COMM]</span>
+          <span class="b-name">Market Stall</span>
+          <span class="b-cost">15 Wood, 5 Gold</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('windmill')">
+          <span class="b-tag">[AGRI]</span>
+          <span class="b-name">Windmill</span>
+          <span class="b-cost">25 Wood, 10 Stone</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('church')">
+          <span class="b-tag">[FAITH]</span>
+          <span class="b-name">Rustic Church</span>
+          <span class="b-cost">40 Stone, 20 Wood</span>
+        </div>
+        <div class="b-btn" onclick="selectBuildType('keep')">
+          <span class="b-tag">[DEF]</span>
+          <span class="b-name">Lord's Keep</span>
+          <span class="b-cost">60 Stone, 40 Wood</span>
+        </div>
+        <div class="b-btn" onclick="toggleZoningTool()" style="border-color: #10b981;">
+          <span class="b-tag" style="color: #34d399;">[ZONE]</span>
+          <span class="b-name" id="zone-btn-name">Paint Zone</span>
+          <span class="b-cost">Residential</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings & Pause Modal (ESC Key) -->
+  <div id="settings-modal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>[REALM SETTINGS & PAUSE]</span>
+        <span style="font-size: 11px; color: #8c6838; font-family: sans-serif;">PRESS ESC TO RESUME</span>
+      </div>
+
+      <div class="settings-row">
+        <span>Sunlight Brightness:</span>
+        <input type="range" id="slider-brightness" min="0.6" max="2.4" step="0.1" value="1.5">
+        <span id="val-brightness">150%</span>
+      </div>
+
+      <div class="settings-row">
+        <span>Master Audio Volume:</span>
+        <input type="range" id="slider-volume" min="0" max="1" step="0.05" value="0.75">
+        <span id="val-volume">75%</span>
+      </div>
+
+      <div class="settings-row">
+        <span>GPU Quality & Shaders:</span>
+        <select id="select-gpu">
+          <option value="ultra">Ultra (High PBR & Shadows)</option>
+          <option value="high" selected>High (Optimal 60 FPS)</option>
+          <option value="medium">Performance (Low Shadows)</option>
+        </select>
+      </div>
+
+      <div class="settings-row">
+        <span>Resolution Scaling:</span>
+        <select id="select-resolution">
+          <option value="1.0" selected>Native 100% (1080p / 1440p / 4K)</option>
+          <option value="0.75">Balanced 75%</option>
+          <option value="0.5">High Performance 50%</option>
+        </select>
+      </div>
+
+      <div class="settings-row">
+        <span>Display Monitor:</span>
+        <select id="select-monitor">
+          <option value="1">Primary Desktop Display (Default)</option>
+          <option value="2">Secondary Studio Display</option>
+          <option value="vr">Meta Horizon XR Headset Display</option>
+        </select>
+      </div>
+
+      <div style="background: #f4ede0; border: 1px solid #c9933b; border-radius: 8px; padding: 12px; margin-top: 14px; font-size: 11px; line-height: 1.6;">
+        <div style="font-weight: 800; color: #4a3420; margin-bottom: 2px;">
+          FOUNDATION: ORGANIC SETTLEMENT SIMULATOR (v9.0.0 PROTOTYPE)
+        </div>
+        <div style="color: #6b4c30; margin-bottom: 6px;">
+          Inspired by Foundation (Polymorph Games). Grid-less organic medieval town building, dynamic desire footpaths, autonomous serfs, modular monuments, and estate supply chain economy.
         </div>
         <div>
-          <div id="comms-title" class="comms-title">[TRANSMISSION LOG]</div>
-          <div id="comms-sender" class="comms-sender">FLEET ADMIRAL VANCE // VANGUARD COMMAND</div>
+          <strong>Lead Developer:</strong> <a href="https://github.com/pinoyUnknown" target="_blank" style="color: #855d38; font-weight: bold;">github.com/pinoyUnknown</a> |
+          <a href="https://instagram.com/pinoyunknown" target="_blank" style="color: #855d38; font-weight: bold;">instagram.com/pinoyunknown</a>
         </div>
       </div>
-      <div id="comms-text" class="comms-text">
-        "Commander Unknown, hostile renegade interceptors have breached our orbital perimeter at Proxima Centauri! You have full 360-degree free flight clearance. Intercept and destroy all hostiles!"
-      </div>
-      <div id="comms-objective" class="comms-objective">
-        <span>[DIRECTIVE]</span>
-        <span id="comms-mission-task">Eliminate Renegade Interceptor Jets (0 / 5)</span>
-      </div>
-    </div>
 
-    <div class="hud-bottom">
-      <div class="dock-bar">
-        <button id="btn-settings-hud" class="dock-btn" onclick="togglePauseSettings()">
-          [SETTINGS] <span class="key-hint">ESC</span>
-        </button>
-        <button id="btn-map" class="dock-btn" onclick="openGalaxyMap()">
-          [GALAXY MAP] <span class="key-hint">M</span>
-        </button>
-        <button id="btn-warp" class="dock-btn" onclick="executePhaseWarp()">
-          [WARP BOOST] <span class="key-hint">SHIFT</span>
-        </button>
-        <button id="btn-gyro" class="dock-btn" onclick="toggleGyroControls()">
-          [GYRO TILT: OFF]
-        </button>
-      </div>
-
-      <div class="telemetry-card">
-        <div class="telemetry-item">SPEED: <span id="speed-val">480</span> KM/S</div>
-        <div class="telemetry-item">SHARDS: <span id="shards-val">0</span></div>
-        <div class="telemetry-item">TARGETS: <span id="enemies-val">0</span></div>
-        <div class="telemetry-item">SCORE: <span id="score-val">0</span></div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+        <button class="btn-action" onclick="togglePauseSettings()">[RESUME REALM]</button>
       </div>
     </div>
   </div>
 
-  <!-- Pause & Settings Modal (Triggered by ESC) -->
-  <div id="settings-modal" class="modal-overlay">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title-row">
-          <div>
-            <div class="modal-title">[FLIGHT SYSTEMS CONFIGURATION & PAUSE]</div>
-            <div style="font-size: 10px; color: #94a3b8;">Astraeus-9 Tactical Flight Computer Matrix</div>
-          </div>
-        </div>
-        <span class="key-hint" style="padding: 4px 8px; font-weight: 800;">PRESS ESC TO RESUME</span>
-      </div>
-
-      <div class="modal-nav">
-        <button id="tab-btn-graphics" class="modal-tab-btn active" onclick="switchSettingsTab('graphics')">Graphics & Display</button>
-        <button id="tab-btn-audio" class="modal-tab-btn" onclick="switchSettingsTab('audio')">Audio & Comms</button>
-        <button id="tab-btn-controls" class="modal-tab-btn" onclick="switchSettingsTab('controls')">Flight Controls</button>
-        <button id="tab-btn-about" class="modal-tab-btn" onclick="switchSettingsTab('about')">About & Intel</button>
-      </div>
-
-      <div class="modal-body">
-        <!-- Tab 1: Graphics & Display -->
-        <div id="tab-content-graphics" class="settings-tab-pane">
-          <div class="settings-grid">
-            <div class="settings-group">
-              <div class="group-title">[DISPLAY & CAMERA EXPOSURE]</div>
-              
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Brightness / Exposure</span>
-                  <span id="brightness-val">100%</span>
-                </div>
-                <input id="slider-brightness" type="range" min="50" max="200" value="100" class="setting-slider" oninput="updateBrightness(this.value)">
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">Display Resolution</div>
-                <select id="select-resolution" class="setting-select" onchange="updateResolution(this.value)">
-                  <option value="native" selected>Native Screen Resolution (Recommended)</option>
-                  <option value="4k">3840 x 2160 (4K Ultra HD)</option>
-                  <option value="1440p">2560 x 1440 (1440p QHD)</option>
-                  <option value="1080p">1920 x 1080 (1080p FHD)</option>
-                  <option value="720p">1280 x 720 (720p HD)</option>
-                </select>
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">Display Target / Output</div>
-                <select id="select-monitor" class="setting-select" onchange="updateMonitor(this.value)">
-                  <option value="primary" selected>Primary Monitor 0 (Main Gaming Display)</option>
-                  <option value="secondary">Secondary Monitor 1 (Cockpit Auxiliary)</option>
-                  <option value="vr">Meta Quest 3 / Horizon WebXR VR Headset</option>
-                  <option value="windowed">Windowed Borderless Simulator</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="settings-group">
-              <div class="group-title">[GPU & ATMOSPHERIC RENDERING]</div>
-              
-              <div class="setting-item">
-                <div class="setting-label">GPU Performance Profile</div>
-                <select id="select-gpu" class="setting-select" onchange="updateGPUProfile(this.value)">
-                  <option value="ultra" selected>AAA Quality (Full PBR Shaders, Shadows & Dust)</option>
-                  <option value="balanced">Balanced 60 FPS (Optimized Shaders)</option>
-                  <option value="performance">High Framerate (Max Performance)</option>
-                </select>
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Cosmic Nebular Fog Density</span>
-                  <span id="fog-val">Normal</span>
-                </div>
-                <select id="select-fog" class="setting-select" onchange="updateFogDensity(this.value)">
-                  <option value="off">Disabled (Clear Vacuum)</option>
-                  <option value="low">Low Ion Haze</option>
-                  <option value="normal" selected>Normal Nebular Fog</option>
-                  <option value="dense">Dense Planetary Shroud</option>
-                </select>
-              </div>
-
-              <div class="setting-item" style="margin-top: 10px;">
-                <button class="btn-secondary" style="width: 100%;" onclick="toggleFullscreen()">
-                  [TOGGLE FULLSCREEN MODE]
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 2: Audio & Comms -->
-        <div id="tab-content-audio" class="settings-tab-pane" style="display: none;">
-          <div class="settings-grid">
-            <div class="settings-group">
-              <div class="group-title">[PROCEDURAL AUDIO SYNTHESIZER]</div>
-              
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Master Volume</span>
-                  <span id="vol-master-val">80%</span>
-                </div>
-                <input id="slider-vol-master" type="range" min="0" max="100" value="80" class="setting-slider" oninput="updateMasterVol(this.value)">
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Weapons & Explosions Volume</span>
-                  <span id="vol-sfx-val">85%</span>
-                </div>
-                <input id="slider-vol-sfx" type="range" min="0" max="100" value="85" class="setting-slider" oninput="updateSfxVol(this.value)">
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Ion Thrusters & Ambient Drone</span>
-                  <span id="vol-bgm-val">70%</span>
-                </div>
-                <input id="slider-vol-bgm" type="range" min="0" max="100" value="70" class="setting-slider" oninput="updateBgmVol(this.value)">
-              </div>
-            </div>
-
-            <div class="settings-group">
-              <div class="group-title">[COMMS & SOUND PROTOCOLS]</div>
-              <div style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 12px;">
-                All sound effects and spatial audio are synthesized via Web Audio API oscillators without static MP3 or WAV dependencies.
-              </div>
-              <div class="setting-item">
-                <button id="btn-mute-toggle" class="btn-secondary" style="width: 100%;" onclick="toggleMute()">
-                  [AUDIO MUTE: OFF]
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 3: Flight Controls -->
-        <div id="tab-content-controls" class="settings-tab-pane" style="display: none;">
-          <div class="settings-grid">
-            <div class="settings-group">
-              <div class="group-title">[FLIGHT DYNAMICS & TILT SENSITIVITY]</div>
-              
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Flight Mouse Sensitivity</span>
-                  <span id="sens-val">1.0x</span>
-                </div>
-                <input id="slider-sens" type="range" min="5" max="25" value="10" class="setting-slider" oninput="updateSensitivity(this.value)">
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">
-                  <span>Field of View (FOV)</span>
-                  <span id="fov-val">65°</span>
-                </div>
-                <input id="slider-fov" type="range" min="50" max="90" value="65" class="setting-slider" oninput="updateFOV(this.value)">
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">Pitch Control (Y-Axis)</div>
-                <select id="select-invert-y" class="setting-select" onchange="updateInvertY(this.value)">
-                  <option value="normal" selected>Normal Controls</option>
-                  <option value="inverted">Inverted Flight Stick (Pull Back to Climb)</option>
-                </select>
-              </div>
-
-              <div class="setting-item">
-                <div class="setting-label">Mobile / Device Gyroscope Tilt</div>
-                <select id="select-gyro" class="setting-select" onchange="setGyroOption(this.value)">
-                  <option value="off" selected>Disabled</option>
-                  <option value="on">Enabled (Tilt device to steer pitch & roll)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="settings-group">
-              <div class="group-title">[KEYBOARD & FLIGHT BINDINGS]</div>
-              <table style="width: 100%; font-size: 11px; color: #cbd5e1; border-collapse: collapse;">
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 5px 0;"><span class="key-hint">MOUSE</span></td>
-                  <td style="text-align: right; color: #38bdf8;">Pitch & Yaw Tilt Steering</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 5px 0;"><span class="key-hint">W</span> / <span class="key-hint">S</span></td>
-                  <td style="text-align: right; color: #38bdf8;">Throttle Forward / Decelerate</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 5px 0;"><span class="key-hint">A</span> / <span class="key-hint">D</span></td>
-                  <td style="text-align: right; color: #38bdf8;">Strafe / Rudder Turn</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 5px 0;"><span class="key-hint">Q</span> / <span class="key-hint">E</span></td>
-                  <td style="text-align: right; color: #38bdf8;">Roll Bank Left / Right</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 5px 0;"><span class="key-hint">SPACE</span> / <span class="key-hint">L-CLICK</span></td>
-                  <td style="text-align: right; color: #38bdf8;">Fire Plasma Lasers</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                  <td style="padding: 5px 0;"><span class="key-hint">SHIFT</span></td>
-                  <td style="text-align: right; color: #38bdf8;">Afterburner Warp Boost</td>
-                </tr>
-                <tr>
-                  <td style="padding: 5px 0;"><span class="key-hint">ESC</span></td>
-                  <td style="text-align: right; color: #38bdf8;">Pause & Settings Menu</td>
-                </tr>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 4: About & Intel -->
-        <div id="tab-content-about" class="settings-tab-pane" style="display: none;">
-          <div class="about-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div>
-                <h2 style="font-size: 16px; font-weight: 900; color: #00f0ff; letter-spacing: 1.5px;">
-                  METAHORIZON ODYSSEY: NOVA GALAXY 3D
-                </h2>
-                <div style="font-size: 11px; color: #94a3b8; font-weight: 700; margin-top: 2px;">
-                  Version 7.0.0 (AAA Realistic Edition) // Meta Global Developer Hackathon 2026 Submission
-                </div>
-              </div>
-              <span class="sector-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: #10b981;">
-                DUAL STORE READY
-              </span>
-            </div>
-
-            <p style="font-size: 12px; line-height: 1.6; color: #e2e8f0; margin-top: 12px;">
-              <strong>METAHORIZON ODYSSEY: NOVA GALAXY 3D</strong> is an original 3D high-velocity space flight and tactical fleet combat simulation built natively with Three.js WebGL and procedural Web Audio synthesis. Navigate the Perseus Arm in full 360-degree free flight, engage in dogfights against aggressive interceptor jets and alien swarm bioships, and target destructible asteroids, comets, and satellites across 5 planetary sectors.
-            </p>
-
-            <div class="dev-badge">
-              <div class="dev-avatar">PU</div>
-              <div>
-                <div style="font-size: 13px; font-weight: 800; color: #f8fafc;">
-                  Lead Solo Developer: PinoyUnknown
-                </div>
-                <div style="font-size: 11px; color: #94a3b8;">
-                  Independent Game & Systems Architect
-                </div>
-                <div class="dev-links">
-                  <a href="https://github.com/pinoyUnknown" target="_blank" class="dev-link">
-                    github.com/pinoyUnknown
-                  </a>
-                  <a href="https://instagram.com/pinoyunknown" target="_blank" class="dev-link">
-                    instagram.com/pinoyunknown
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-            <div style="background: rgba(10, 18, 36, 0.6); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 10px;">
-              <div style="color: #00f0ff; font-weight: 800; margin-bottom: 3px;">STEAM READY</div>
-              <div style="color: #94a3b8;">VDF appmanifest_4206900 and launcher batch files verified.</div>
-            </div>
-            <div style="background: rgba(10, 18, 36, 0.6); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 10px;">
-              <div style="color: #38bdf8; font-weight: 800; margin-bottom: 3px;">HORIZON WORLDS</div>
-              <div style="color: #94a3b8;">Meta Horizon WebXR scene graph and spatial audio configuration.</div>
-            </div>
-            <div style="background: rgba(10, 18, 36, 0.6); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 10px;">
-              <div style="color: #c084fc; font-weight: 800; margin-bottom: 3px;">OFFLINE ENGINE</div>
-              <div style="color: #94a3b8;">Self-contained Three.js offline bundle with zero external CDN downloads.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <div style="font-size: 10px; color: #94a3b8;">
-          Hackathon Project ID: <span style="color: #00f0ff;">1042883398799623</span> | Team ID: <span style="color: #38bdf8;">1716967459402469</span>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn-secondary" onclick="togglePauseSettings()">[CLOSE MENU]</button>
-          <button class="btn-action" onclick="resumeGame()">[RESUME FLIGHT]</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Full Galaxy Map Modal -->
-  <div id="galaxy-map-modal">
-    <div id="galaxy-canvas-container"></div>
-    
-    <div class="galaxy-map-overlay">
-      <div class="brand-card">
-        <div class="brand-title">NOVA PERSEUS ARM</div>
-        <div class="brand-sub">ORBITAL SECTOR NAVIGATION // DRAG TO PAN</div>
-      </div>
-
-      <div style="display: flex; gap: 8px; pointer-events: auto;">
-        <button class="btn-action" onclick="closeGalaxyMap()">[RETURN TO COCKPIT]</button>
-      </div>
-    </div>
-
-    <div class="sector-info-panel">
-      <div id="map-sector-title" style="font-size: 13px; font-weight: 900; color: #00f0ff; letter-spacing: 1px; margin-bottom: 3px;">
-        SECTOR 1: PROXIMA CENTAURI
-      </div>
-      <div id="map-sector-status" style="font-size: 10px; font-weight: 700; color: #10b981; margin-bottom: 8px;">
-        STATUS: CURRENT MISSION LOCATION
-      </div>
-      <div id="map-sector-desc" style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 12px;">
-        First defensive outpost guarding the Terran orbital ring. Hostile renegade jet fighters are targeting communications satellites.
-      </div>
-      <button id="btn-warp-to-sector" class="btn-action" style="width: 100%;" onclick="warpToSelectedSector()">
-        [ENGAGE SECTOR WARP JUMP]
-      </button>
-    </div>
-  </div>
-  <!-- Core Three.js Engine Script -->
   <script type="module">
     import * as THREE from './lib/three.module.min.js';
 
-    // Simulation & Game State
-    let scene, camera, renderer;
-    let player, playerVelocity = new THREE.Vector3();
-    let playerProjectiles = [], enemyProjectiles = [];
-    let enemies = [], asteroids = [], comets = [], satellites = [], spaceMines = [];
-    let particles = [], debrisChunks = [];
-    let backgroundGalaxyPoints, planetaryBody;
-
-    // Flight Dynamics & Exploration State
-    let isPaused = false;
-    let inGalaxyMap = false;
-    let gyroEnabled = false;
-    let gyroBeta = 0, gyroGamma = 0;
-    let playerShield = 100, playerHull = 100, laserHeat = 0;
-    let throttlePercent = 100;
-    let currentSpeed = 480, maxSpeed = 750, minSpeed = 80;
-    let shards = 0, score = 0;
-    let currentSectorId = 1, unlockedSectors = 1;
-    let enemiesEliminatedInSector = 0;
-    let bossActive = false, boss = null;
-    let selectedTarget = null;
-
-    // Settings Parameters
-    let brightnessMultiplier = 1.0;
-    let soundMasterVol = 0.8, soundSfxVol = 0.85, soundBgmVol = 0.7;
-    let isMuted = false;
-    let mouseSensitivity = 1.0;
-    let invertPitch = false;
-
-    // Web Audio Procedural Synthesizer
-    let audioCtx = null;
-    let masterGainNode = null;
-    let bgmOsc = null, bgmGain = null;
-
-    function initAudio() {
-      if (!audioCtx) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AudioContext();
-        masterGainNode = audioCtx.createGain();
-        masterGainNode.gain.value = soundMasterVol;
-        masterGainNode.connect(audioCtx.destination);
-
-        try {
-          bgmOsc = audioCtx.createOscillator();
-          bgmGain = audioCtx.createGain();
-          bgmOsc.type = 'sawtooth';
-          bgmOsc.frequency.setValueAtTime(45, audioCtx.currentTime);
-          bgmGain.gain.setValueAtTime(0.03 * soundBgmVol, audioCtx.currentTime);
-
-          const lowpass = audioCtx.createBiquadFilter();
-          lowpass.type = 'lowpass';
-          lowpass.frequency.setValueAtTime(140, audioCtx.currentTime);
-
-          bgmOsc.connect(lowpass);
-          lowpass.connect(bgmGain);
-          bgmGain.connect(masterGainNode);
-          bgmOsc.start();
-        } catch(e) {}
-      }
+    // =========================================================================
+    // PROCEDURAL TEXTURE GENERATION (OFFLINE PAINTERLY MEDIEVAL REALISM)
+    // =========================================================================
+    function createProceduralCanvas(width, height) {
+      const c = document.createElement('canvas');
+      c.width = width;
+      c.height = height;
+      return c;
     }
 
-    function playSound(type) {
-      if (!audioCtx || isMuted) return;
-      try {
-        const now = audioCtx.currentTime;
-        const sfxGain = audioCtx.createGain();
-        sfxGain.gain.value = soundSfxVol;
-        sfxGain.connect(masterGainNode);
-
-        if (type === 'laser') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(960, now);
-          osc.frequency.exponentialRampToValueAtTime(80, now + 0.14);
-          gain.gain.setValueAtTime(0.14, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
-          osc.connect(gain);
-          gain.connect(sfxGain);
-          osc.start(now);
-          osc.stop(now + 0.15);
-        } else if (type === 'enemy_laser') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(420, now);
-          osc.frequency.exponentialRampToValueAtTime(70, now + 0.18);
-          gain.gain.setValueAtTime(0.09, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-          osc.connect(gain);
-          gain.connect(sfxGain);
-          osc.start(now);
-          osc.stop(now + 0.19);
-        } else if (type === 'alien_plasma') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(680, now);
-          osc.frequency.linearRampToValueAtTime(150, now + 0.22);
-          gain.gain.setValueAtTime(0.16, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-          osc.connect(gain);
-          gain.connect(sfxGain);
-          osc.start(now);
-          osc.stop(now + 0.23);
-        } else if (type === 'explosion') {
-          const bufferSize = audioCtx.sampleRate * 0.45;
-          const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-          const data = buffer.getChannelData(0);
-          for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-          const noise = audioCtx.createBufferSource();
-          noise.buffer = buffer;
-          const filter = audioCtx.createBiquadFilter();
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(750, now);
-          filter.frequency.exponentialRampToValueAtTime(40, now + 0.42);
-          const gain = audioCtx.createGain();
-          gain.gain.setValueAtTime(0.28, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.42);
-          noise.connect(filter);
-          filter.connect(gain);
-          gain.connect(sfxGain);
-          noise.start(now);
-        } else if (type === 'comms_beep') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(1150, now);
-          osc.frequency.setValueAtTime(1500, now + 0.05);
-          gain.gain.setValueAtTime(0.07, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-          osc.connect(gain);
-          gain.connect(sfxGain);
-          osc.start(now);
-          osc.stop(now + 0.13);
-        } else if (type === 'warp') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(90, now);
-          osc.frequency.exponentialRampToValueAtTime(1600, now + 0.65);
-          gain.gain.setValueAtTime(0.22, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
-          osc.connect(gain);
-          gain.connect(sfxGain);
-          osc.start(now);
-          osc.stop(now + 0.7);
-        }
-      } catch(e) {}
-    }
-
-    // Procedural PBR Texture Generation (Triple-A Metal Panels & Planetary Shaders)
-    function generatePBRMetalTexture() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
-      const ctx = canvas.getContext('2d');
-
-      // Base armor plate color
-      ctx.fillStyle = '#1e293b';
+    // Lush Emerald Meadow with Clover & Wildflowers
+    function generateGrassTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#568239';
       ctx.fillRect(0, 0, 512, 512);
 
-      // Panel grids & seams
-      ctx.strokeStyle = '#0f172a';
-      ctx.lineWidth = 3;
-      for (let x = 64; x < 512; x += 128) {
+      // Grass blade noise
+      for (let i = 0; i < 1200; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.strokeStyle = Math.random() > 0.5 ? '#679b44' : '#456a2c';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, 512);
-        ctx.stroke();
-      }
-      for (let y = 64; y < 512; y += 128) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(512, y);
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + (Math.random() - 0.5) * 6, y - 4 - Math.random() * 6);
         ctx.stroke();
       }
 
-      // Rivets & micro-details
-      ctx.fillStyle = '#64748b';
-      for (let x = 60; x < 512; x += 128) {
-        for (let y = 16; y < 512; y += 32) {
+      // Wildflowers (Buttercups & Daisies)
+      for (let i = 0; i < 90; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.fillStyle = Math.random() > 0.4 ? '#fef08a' : '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y, 2 + Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(16, 16);
+      return tex;
+    }
+
+    // Cobblestone Paving for Roads & Foundations
+    function generateCobbleTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#6b6357';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const step = 32;
+      for (let x = 0; x < 512; x += step) {
+        for (let y = 0; y < 512; y += step) {
+          ctx.fillStyle = (x + y) % 64 === 0 ? '#8a8070' : '#7a7061';
           ctx.beginPath();
-          ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+          ctx.roundRect(x + 2, y + 2, step - 4, step - 4, 6);
           ctx.fill();
         }
       }
-
-      const tex = new THREE.CanvasTexture(canvas);
+      const tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
       return tex;
     }
 
-    function generateAsteroidBumpTexture() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 256;
-      canvas.height = 256;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#808080';
-      ctx.fillRect(0, 0, 256, 256);
+    // Aged Oak Wood Beam Grain
+    function generateWoodTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#6e4722';
+      ctx.fillRect(0, 0, 512, 512);
 
-      // Crater noise
-      for (let i = 0; i < 70; i++) {
-        const x = Math.random() * 256;
-        const y = Math.random() * 256;
-        const rad = Math.random() * 18 + 4;
-        const grad = ctx.createRadialGradient(x, y, 1, x, y, rad);
-        grad.addColorStop(0, '#404040');
-        grad.addColorStop(0.7, '#909090');
-        grad.addColorStop(1, '#808080');
-        ctx.fillStyle = grad;
+      for (let y = 0; y < 512; y += 48) {
+        ctx.strokeStyle = '#422810';
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(x, y, rad, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(0, y);
+        ctx.lineTo(512, y);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#85562a';
+        ctx.lineWidth = 1;
+        for (let j = 0; j < 6; j++) {
+          ctx.beginPath();
+          ctx.moveTo(0, y + j * 8);
+          ctx.lineTo(512, y + j * 8 + Math.sin(j) * 4);
+          ctx.stroke();
+        }
       }
-      return new THREE.CanvasTexture(canvas);
+      return new THREE.CanvasTexture(c);
     }
 
-    // Storytelling & 5 Campaign Sectors
-    const SECTORS = [
-      {
-        id: 1,
-        name: 'Proxima Centauri Outpost',
-        badge: 'SECTOR 1: PROXIMA CENTAURI',
-        fogColor: 0x050c1e,
-        planetColor: 0x38bdf8,
-        planetRings: true,
-        targetEnemies: 5,
-        enemyType: 'renegade_jet',
-        speaker: 'FLEET ADMIRAL VANCE // VANGUARD COMMAND',
-        startMessage: '"Commander Unknown, hostile renegade interceptors have breached our orbital perimeter at Proxima Centauri! You have full 360-degree free flight clearance. Intercept and destroy all hostiles!"',
-        victoryMessage: '"Outstanding flight combat, Commander! Perimeter secured. Comm satellites are online. The jump coordinates to Kepler-186f are now active."',
-        objectiveText: 'Eliminate Renegade Interceptor Jets'
-      },
-      {
-        id: 2,
-        name: 'Kepler-186f Comet Corridor',
-        badge: 'SECTOR 2: KEPLER-186F',
-        fogColor: 0x06141d,
-        planetColor: 0x10b981,
-        planetRings: false,
-        targetEnemies: 7,
-        enemyType: 'rocket_ship',
-        speaker: 'OPERATIONS CHIEF TARA // DEEP SPACE OPS',
-        startMessage: '"Caution, Commander! Kepler-186f is active with hyper-velocity comets and hostile rocket gunships. Free-fly through the debris field and neutralize the rocket gunships!"',
-        victoryMessage: '"Rocket gunships neutralized! Comet trajectories mapped. The warp route to the Sirius Belt is unlocked."',
-        objectiveText: 'Destroy Heavy Rocket Gunships'
-      },
-      {
-        id: 3,
-        name: 'Sirius Asteroid Graveyard',
-        badge: 'SECTOR 3: SIRIUS ORBITAL BELT',
-        fogColor: 0x100822,
-        planetColor: 0xc084fc,
-        planetRings: true,
-        targetEnemies: 8,
-        enemyType: 'alien_swarm',
-        speaker: 'SCIENCE OFFICER KRYLL // BIO-RECON',
-        startMessage: '"Commander, an ancient satellite array went dark. Scanners detect biosignatures... The Alien Swarm has breached the sector! Prepare for non-linear dogfights!"',
-        victoryMessage: '"Alien vanguard broken! Satellite telemetry recovered. Prepare for deep atmospheric insertion into the Orion Nebula."',
-        objectiveText: 'Exterminate Alien Swarm Bioships'
-      },
-      {
-        id: 4,
-        name: 'The Orion Shroud (Nebula Fog)',
-        badge: 'SECTOR 4: ORION NEBULA',
-        fogColor: 0x1b051f,
-        planetColor: 0xf43f5e,
-        planetRings: true,
-        targetEnemies: 10,
-        enemyType: 'mixed',
-        speaker: 'FLEET ADMIRAL VANCE // VANGUARD COMMAND',
-        startMessage: '"Heavy ion nebula fog is blinding long-range radar. Alien bio-cruisers and renegade jets have formed a joint defensive perimeter. Clear the sector!"',
-        victoryMessage: '"Nebula cleared! We have localized the Alien Command Flagship at the Andromeda Core Gate! This is the final stand."',
-        objectiveText: 'Clear Hostiles in Ion Fog'
-      },
-      {
-        id: 5,
-        name: 'Andromeda Frontier Core',
-        badge: 'SECTOR 5: ANDROMEDA CORE',
-        fogColor: 0x161003,
-        planetColor: 0xf59e0b,
-        planetRings: true,
-        targetEnemies: 12,
-        enemyType: 'boss',
-        speaker: 'SUPREME HIGH COMMAND // NOVA FLEET',
-        startMessage: '"All Vanguard units! The Supreme Alien Dreadnought is drawing dark energy from the core. Destroy its shield spires and obliterate the flagship to liberate the Nova Galaxy!"',
-        victoryMessage: '"THE ALIEN DREADNOUGHT IS DESTROYED! The Nova Galaxy is free. Commander Unknown, you are hailed across all human colonies as the Vanguard Hero!"',
-        objectiveText: 'Defeat the Supreme Alien Dreadnought'
+    // Golden Straw Thatch Roof
+    function generateThatchTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#bfa052';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let y = 0; y < 512; y += 24) {
+        for (let x = 0; x < 512; x += 12) {
+          ctx.strokeStyle = Math.random() > 0.5 ? '#d9b764' : '#9e8139';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + (Math.random() - 0.5) * 4, y + 22);
+          ctx.stroke();
+        }
       }
-    ];
-    // Initialize 3D Triple-A Engine
-    function init3D() {
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Terracotta Clay Tiles
+    function generateClayTileTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#a84e31';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let y = 0; y < 512; y += 28) {
+        const offset = (y / 28) % 2 === 0 ? 0 : 16;
+        for (let x = -16; x < 528; x += 32) {
+          ctx.fillStyle = '#ba5736';
+          ctx.beginPath();
+          ctx.arc(x + offset + 16, y + 14, 14, 0, Math.PI);
+          ctx.fill();
+          ctx.strokeStyle = '#7c3520';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Striped Medieval Market Stall Canopy
+    function generateCanopyTexture() {
+      const c = createProceduralCanvas(256, 256);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.fillStyle = '#b91c1c'; // Crimson red stripes
+      for (let x = 0; x < 256; x += 64) {
+        ctx.fillRect(x, 0, 32, 256);
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Water Surface with Gentle Wave Ripples
+    function generateWaterTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 512, 512);
+      g.addColorStop(0, '#0284c7');
+      g.addColorStop(0.5, '#38bdf8');
+      g.addColorStop(1, '#0369a1');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 40; i++) {
+        const y = Math.random() * 512;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(150, y + 20, 350, y - 20, 512, y);
+        ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(8, 8);
+      return tex;
+    }
+
+    // =========================================================================
+    // PROCEDURAL WEB AUDIO SYNTHESIZER (ZERO EXTERNAL MP3 DEPENDENCIES)
+    // =========================================================================
+    let audioCtx = null;
+    let masterVolume = 0.75;
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioClass();
+        startPastoralAmbiance();
+      } catch (e) {
+        console.warn('AudioContext unavailable:', e);
+      }
+    }
+
+    // Peaceful Countryside Ambiance (Soft Wind & Bird Song)
+    function startPastoralAmbiance() {
+      if (!audioCtx) return;
+      try {
+        // Continuous soft wind noise
+        const bufSize = audioCtx.sampleRate * 2;
+        const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.08;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buf;
+        noise.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(320, audioCtx.currentTime);
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.04 * masterVolume, audioCtx.currentTime);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+
+        // Periodic bird chirps
+        setInterval(() => {
+          if (audioCtx && Math.random() > 0.4) playBirdChirp();
+        }, 3800);
+      } catch (e) {}
+    }
+
+    function playBirdChirp() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      const baseFreq = 2200 + Math.random() * 800;
+      osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq + 600, audioCtx.currentTime + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq - 200, audioCtx.currentTime + 0.16);
+
+      gain.gain.setValueAtTime(0.02 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.18);
+    }
+
+    // Construction Hammer Strike
+    function playBuildHammerSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.1);
+
+      gain.gain.setValueAtTime(0.25 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.11);
+    }
+
+    // Woodcutter Axe Thud
+    function playWoodChopSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.2 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.13);
+    }
+
+    // Stone Quarry Pickaxe Clink
+    function playStoneChiselSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(450, audioCtx.currentTime + 0.08);
+
+      gain.gain.setValueAtTime(0.18 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    // Resonant Church Belfry Bell
+    function playChurchBellSound() {
+      if (!audioCtx) return;
+      [440, 880, 1320].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime((0.15 / (i + 1)) * masterVolume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2.5);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 2.6);
+      });
+    }
+
+    // Gold Coins Clink
+    function playCoinSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(987, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(1318, audioCtx.currentTime + 0.06);
+
+      gain.gain.setValueAtTime(0.12 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.19);
+    }
+
+    // Quest Complete Royal Horn Fanfare
+    function playQuestCompleteSound() {
+      if (!audioCtx) return;
+      const notes = [392, 523, 659, 784]; // G4, C5, E5, G5
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.12);
+
+        gain.gain.setValueAtTime(0.0, audioCtx.currentTime + idx * 0.12);
+        gain.gain.linearRampToValueAtTime(0.15 * masterVolume, audioCtx.currentTime + idx * 0.12 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.12 + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.12);
+        osc.stop(audioCtx.currentTime + idx * 0.12 + 0.38);
+      });
+    }
+
+    // =========================================================================
+    // 3D LANDSCAPE, ROLLING HILLS, RIVER, FOLIAGE & DESIRE PATH SYSTEM
+    // =========================================================================
+    let scene, camera, renderer;
+    let ambientLight, sunLight;
+    let terrainMesh, riverMesh;
+    let pathCanvas, pathCtx, pathTexture;
+
+    const trees = [];
+    const stoneRocks = [];
+    const clouds = [];
+
+    // Camera Orbit & Pan State
+    let camTarget = new THREE.Vector3(0, 0, 0);
+    let camDistance = 75; // Mouse scroll wheel scales 8m to 260m
+    let camPitch = 0.75;
+    let camYaw = 0.5;
+    let isRightDragging = false;
+    let prevMouseX = 0, prevMouseY = 0;
+
+    function init3DEnvironment() {
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x050c1e, 0.0025);
 
-      camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 8000);
-      camera.position.set(0, 4.5, 14);
+      // BRIGHT DAYLIGHT SKY (Lush pastoral summer afternoon)
+      scene.background = new THREE.Color(0x93c5fd);
+      scene.fog = new THREE.FogExp2(0xbae6fd, 0.0022);
+
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+      updateCameraPosition();
 
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1506,1460 +940,1068 @@
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
-      // Cinematic Multi-Point Lighting
-      const ambient = new THREE.AmbientLight(0xffffff, 0.55);
-      scene.add(ambient);
+      // SUNLIGHT & SKY LIGHTING (Vibrant & Warm)
+      ambientLight = new THREE.AmbientLight(0xfffbeb, 1.4);
+      scene.add(ambientLight);
 
-      const sunKeyLight = new THREE.DirectionalLight(0x00f0ff, 2.2);
-      sunKeyLight.position.set(200, 350, 200);
-      sunKeyLight.castShadow = true;
-      scene.add(sunKeyLight);
+      const hemi = new THREE.HemisphereLight(0xbae6fd, 0x4d7c0f, 1.25);
+      scene.add(hemi);
 
-      const rimLight = new THREE.DirectionalLight(0x9333ea, 1.4);
-      rimLight.position.set(-200, -100, -200);
-      scene.add(rimLight);
+      sunLight = new THREE.DirectionalLight(0xfff6db, 2.8);
+      sunLight.position.set(120, 180, 80);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.near = 10;
+      sunLight.shadow.camera.far = 450;
+      sunLight.shadow.camera.left = -160;
+      sunLight.shadow.camera.right = 160;
+      sunLight.shadow.camera.top = 160;
+      sunLight.shadow.camera.bottom = -160;
+      scene.add(sunLight);
 
-      // Celestial Backgrounds
-      buildDeepSpaceStarfield();
-      buildRotatingSpiralGalaxy();
-      buildSectorCelestialPlanet(SECTORS[0]);
-      buildComets();
-      buildSatellites();
-      populateDestructibleAsteroidBelt();
-
-      // Build 3D Player Starfighter
-      buildPlayerShip();
-
-      // Setup Inputs (Mouse Tilt, Keyboard 6-DoF, Gyroscope)
-      setupInputHandlers();
-
-      // Start 60 FPS Engine Loop
-      animate();
-    }
-
-    // High-Density Deep Space Starfield
-    function buildDeepSpaceStarfield() {
-      const starGeo = new THREE.BufferGeometry();
-      const count = 5000;
-      const positions = new Float32Array(count * 3);
-      const colors = new Float32Array(count * 3);
-
-      for (let i = 0; i < count; i++) {
-        positions[i*3] = (Math.random() - 0.5) * 6000;
-        positions[i*3+1] = (Math.random() - 0.5) * 6000;
-        positions[i*3+2] = (Math.random() - 0.5) * 6000;
-
-        const p = Math.random();
-        if (p > 0.75) { colors[i*3] = 0.0; colors[i*3+1] = 0.94; colors[i*3+2] = 1.0; } // Cyan
-        else if (p > 0.5) { colors[i*3] = 0.75; colors[i*3+1] = 0.5; colors[i*3+2] = 1.0; } // Purple
-        else if (p > 0.3) { colors[i*3] = 1.0; colors[i*3+1] = 0.85; colors[i*3+2] = 0.4; } // Golden
-        else { colors[i*3] = 1.0; colors[i*3+1] = 1.0; colors[i*3+2] = 1.0; } // White
-      }
-      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-      const starMat = new THREE.PointsMaterial({ size: 2.4, vertexColors: true, transparent: true, opacity: 0.9 });
-      const starPoints = new THREE.Points(starGeo, starMat);
-      scene.add(starPoints);
-    }
-
-    // Rotating 3D Spiral Galaxy Backdrop
-    function buildRotatingSpiralGalaxy() {
-      const count = 4500;
-      const geo = new THREE.BufferGeometry();
-      const pos = new Float32Array(count * 3);
-      const col = new Float32Array(count * 3);
-
-      for (let i = 0; i < count; i++) {
-        const i3 = i * 3;
-        const radius = Math.random() * 650 + 50;
-        const spinAngle = radius * 0.025;
-        const branchAngle = ((i % 3) * 2 * Math.PI) / 3;
-
-        const randomX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 35;
-        const randomY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 35;
-        const randomZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 35;
-
-        pos[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX - 600;
-        pos[i3+1] = randomY + 300;
-        pos[i3+2] = Math.sin(branchAngle + spinAngle) * radius + randomZ - 1800;
-
-        const mixRatio = radius / 700;
-        col[i3] = 1.0 * (1 - mixRatio) + 0.1 * mixRatio;
-        col[i3+1] = 0.8 * (1 - mixRatio) + 0.8 * mixRatio;
-        col[i3+2] = 0.3 * (1 - mixRatio) + 1.0 * mixRatio;
-      }
-      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-
-      const mat = new THREE.PointsMaterial({
-        size: 3.8,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.85,
-        blending: THREE.AdditiveBlending
-      });
-      backgroundGalaxyPoints = new THREE.Points(geo, mat);
-      scene.add(backgroundGalaxyPoints);
-    }
-
-    // Sector Celestial Planet with PBR Atmosphere
-    function buildSectorCelestialPlanet(sector) {
-      if (planetaryBody) scene.remove(planetaryBody);
-
-      planetaryBody = new THREE.Group();
-      const sphereGeo = new THREE.SphereGeometry(240, 64, 64);
-      const sphereMat = new THREE.MeshStandardMaterial({
-        color: sector.planetColor,
-        roughness: 0.35,
-        metalness: 0.15,
-        emissive: sector.planetColor,
-        emissiveIntensity: 0.12
-      });
-      const planetMesh = new THREE.Mesh(sphereGeo, sphereMat);
-      planetaryBody.add(planetMesh);
-
-      // Atmospheric Glow Ring
-      const atmoGeo = new THREE.SphereGeometry(250, 48, 48);
-      const atmoMat = new THREE.MeshBasicMaterial({
-        color: sector.planetColor,
-        transparent: true,
-        opacity: 0.22,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending
-      });
-      const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
-      planetaryBody.add(atmoMesh);
-
-      if (sector.planetRings) {
-        const ringGeo = new THREE.RingGeometry(280, 420, 64);
-        const ringMat = new THREE.MeshBasicMaterial({
-          color: 0x94a3b8,
-          side: THREE.DoubleSide,
-          transparent: true,
-          opacity: 0.4
-        });
-        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-        ringMesh.rotation.x = Math.PI / 2.2;
-        ringMesh.rotation.y = Math.PI / 5;
-        planetaryBody.add(ringMesh);
-      }
-
-      planetaryBody.position.set(650, 250, -1400);
-      scene.add(planetaryBody);
-    }
-
-    // Destructible Procedural Comets
-    function buildComets() {
-      for (let i = 0; i < 4; i++) spawnComet();
-    }
-
-    function spawnComet() {
-      const cometGroup = new THREE.Group();
-
-      const nucleusGeo = new THREE.DodecahedronGeometry(3.5, 1);
-      const nucleusMat = new THREE.MeshStandardMaterial({
-        color: 0xdff9fb,
-        emissive: 0x00f0ff,
-        emissiveIntensity: 1.6,
-        roughness: 0.2
-      });
-      const nucleus = new THREE.Mesh(nucleusGeo, nucleusMat);
-      cometGroup.add(nucleus);
-
-      // Trailing dust particles
-      const tailCount = 200;
-      const tailGeo = new THREE.BufferGeometry();
-      const tailPos = new Float32Array(tailCount * 3);
-      const tailCols = new Float32Array(tailCount * 3);
-
-      for (let t = 0; t < tailCount; t++) {
-        tailPos[t*3] = (Math.random() - 0.5) * 2;
-        tailPos[t*3+1] = (Math.random() - 0.5) * 2;
-        tailPos[t*3+2] = t * 1.2 + Math.random() * 3;
-
-        tailCols[t*3] = 0.0;
-        tailCols[t*3+1] = 0.94;
-        tailCols[t*3+2] = 1.0;
-      }
-      tailGeo.setAttribute('position', new THREE.BufferAttribute(tailPos, 3));
-      tailGeo.setAttribute('color', new THREE.BufferAttribute(tailCols, 3));
-
-      const tailMat = new THREE.PointsMaterial({
-        size: 3.0,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.75,
-        blending: THREE.AdditiveBlending
-      });
-      const tail = new THREE.Points(tailGeo, tailMat);
-      cometGroup.add(tail);
-
-      cometGroup.position.set(
-        (Math.random() - 0.5) * 800,
-        Math.random() * 200 + 40,
-        (Math.random() - 0.5) * 800
-      );
-
-      cometGroup.userData = {
-        type: 'comet',
-        hp: 3,
-        name: 'HYPER-VELOCITY COMET',
-        vx: (Math.random() - 0.5) * 1.2,
-        vy: -0.2 - Math.random() * 0.4,
-        vz: (Math.random() - 0.5) * 1.2,
-        rotSpeed: 0.02
-      };
-
-      scene.add(cometGroup);
-      comets.push(cometGroup);
-    }
-
-    // Destructible 3D Orbital Satellites
-    function buildSatellites() {
-      for (let s = 0; s < 5; s++) spawnSatellite(s);
-    }
-
-    function spawnSatellite(index) {
-      const sat = new THREE.Group();
-
-      const busGeo = new THREE.BoxGeometry(3.5, 4.5, 3.5);
-      const busMat = new THREE.MeshStandardMaterial({
-        color: 0xf59e0b,
-        metalness: 0.85,
-        roughness: 0.25,
-        emissive: 0xd97706,
-        emissiveIntensity: 0.2
-      });
-      const bus = new THREE.Mesh(busGeo, busMat);
-      sat.add(bus);
-
-      // Solar Panels
-      const panelGeo = new THREE.BoxGeometry(12, 2.8, 0.25);
-      const panelMat = new THREE.MeshStandardMaterial({
-        color: 0x1d4ed8,
-        metalness: 0.5,
-        roughness: 0.3,
-        emissive: 0x1e40af,
-        emissiveIntensity: 0.3
-      });
-      const leftPanel = new THREE.Mesh(panelGeo, panelMat);
-      leftPanel.position.set(-8.5, 0, 0);
-      sat.add(leftPanel);
-
-      const rightPanel = new THREE.Mesh(panelGeo, panelMat);
-      rightPanel.position.set(8.5, 0, 0);
-      sat.add(rightPanel);
-
-      // Parabolic Dish
-      const dishGeo = new THREE.ConeGeometry(2.4, 1.2, 16, 1, true);
-      const dishMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.7, roughness: 0.3 });
-      const dish = new THREE.Mesh(dishGeo, dishMat);
-      dish.rotation.x = Math.PI / 2;
-      dish.position.set(0, 0, 2.5);
-      sat.add(dish);
-
-      // Beacon LED
-      const beaconGeo = new THREE.SphereGeometry(0.4, 8, 8);
-      const beaconMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-      const beacon = new THREE.Mesh(beaconGeo, beaconMat);
-      beacon.position.set(0, 2.8, 0);
-      sat.add(beacon);
-
-      sat.position.set(
-        (index % 2 === 0 ? 1 : -1) * (140 + index * 50),
-        30 + Math.random() * 60,
-        (Math.random() - 0.5) * 600
-      );
-
-      sat.userData = {
-        type: 'satellite',
-        hp: 6,
-        name: 'ORBITAL RELAY BUOY',
-        rotY: 0.006,
-        rotZ: 0.003,
-        beacon: beacon
-      };
-
-      scene.add(sat);
-      satellites.push(sat);
-    }
-
-    // Populate Destructible Asteroid Field across Sector
-    function populateDestructibleAsteroidBelt() {
-      const bumpTex = generateAsteroidBumpTexture();
-      const mat = new THREE.MeshStandardMaterial({
-        color: 0x64748b,
-        roughness: 0.8,
-        metalness: 0.2,
-        bumpMap: bumpTex,
-        bumpScale: 0.25
-      });
-
-      for (let i = 0; i < 50; i++) {
-        const rad = Math.random() * 5 + 3;
-        const geo = new THREE.DodecahedronGeometry(rad, 1);
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(
-          (Math.random() - 0.5) * 1200,
-          (Math.random() - 0.5) * 400,
-          (Math.random() - 0.5) * 1200
-        );
-        mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
-        mesh.userData = {
-          type: 'asteroid',
-          hp: 4,
-          name: 'DESTRUCTIBLE ASTEROID',
-          rotX: (Math.random() - 0.5) * 0.015,
-          rotY: (Math.random() - 0.5) * 0.015,
-          radius: rad
-        };
-        scene.add(mesh);
-        asteroids.push(mesh);
-      }
-    }
-    // High-Fidelity 3D Player Starfighter
-    function buildPlayerShip() {
-      player = new THREE.Group();
-      const metalTex = generatePBRMetalTexture();
-
-      // Fuselage Hull
-      const bodyGeo = new THREE.ConeGeometry(1.8, 7.5, 6);
-      const bodyMat = new THREE.MeshStandardMaterial({
-        color: 0x0f172a,
-        map: metalTex,
-        metalness: 0.85,
-        roughness: 0.25
-      });
-      const body = new THREE.Mesh(bodyGeo, bodyMat);
-      body.rotation.x = Math.PI / 2;
-      player.add(body);
-
-      // Glass Canopy
-      const cockpitGeo = new THREE.SphereGeometry(0.9, 16, 16);
-      cockpitGeo.scale(1, 0.6, 2.4);
-      const cockpitMat = new THREE.MeshStandardMaterial({
-        color: 0x00f0ff,
-        emissive: 0x00f0ff,
-        emissiveIntensity: 0.6,
-        roughness: 0.1,
-        metalness: 0.95
-      });
-      const cockpit = new THREE.Mesh(cockpitGeo, cockpitMat);
-      cockpit.position.set(0, 0.55, 0.3);
-      player.add(cockpit);
-
-      // Swept Delta Wings
-      const wingShape = new THREE.Shape();
-      wingShape.moveTo(0, 0);
-      wingShape.lineTo(5.2, -2.8);
-      wingShape.lineTo(4.8, -4.6);
-      wingShape.lineTo(0, -3.2);
-      wingShape.closePath();
-
-      const extrudeSettings = { depth: 0.28, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06 };
-      const wingGeo = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
-      const wingMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, map: metalTex, metalness: 0.8, roughness: 0.3 });
-
-      const rightWing = new THREE.Mesh(wingGeo, wingMat);
-      rightWing.rotation.x = Math.PI / 2;
-      rightWing.position.set(0.65, -0.2, 1.4);
-      player.add(rightWing);
-
-      const leftWing = rightWing.clone();
-      leftWing.scale.set(-1, 1, 1);
-      leftWing.position.set(-0.65, -0.2, 1.4);
-      player.add(leftWing);
-
-      // Wingtip Plasma Cannons
-      const cannonGeo = new THREE.CylinderGeometry(0.14, 0.14, 2.8, 8);
-      const cannonMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x00f0ff, emissiveIntensity: 0.5 });
-      const rightCannon = new THREE.Mesh(cannonGeo, cannonMat);
-      rightCannon.rotation.x = Math.PI / 2;
-      rightCannon.position.set(5.1, -0.2, 0.9);
-      player.add(rightCannon);
-
-      const leftCannon = rightCannon.clone();
-      leftCannon.position.set(-5.1, -0.2, 0.9);
-      player.add(leftCannon);
-
-      // Dual Ion Thruster Exhausts
-      const thrusterGeo = new THREE.ConeGeometry(0.6, 2.6, 12);
-      const thrusterMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.85 });
-      const rightThruster = new THREE.Mesh(thrusterGeo, thrusterMat);
-      rightThruster.rotation.x = -Math.PI / 2;
-      rightThruster.position.set(0.85, 0, 4.2);
-      player.add(rightThruster);
-
-      const leftThruster = rightThruster.clone();
-      leftThruster.position.set(-0.85, 0, 4.2);
-      player.add(leftThruster);
-
-      player.position.set(0, 0, 0);
-      scene.add(player);
-    }
-
-    // Input & Flight Dynamic Controls
-    const keys = {};
-    let mouseTiltX = 0, mouseTiltY = 0;
-    let targetPitch = 0, targetYaw = 0, targetRoll = 0;
-
-    function setupInputHandlers() {
-      window.addEventListener('keydown', (e) => {
-        initAudio();
-        keys[e.code] = true;
-
-        if (e.code === 'Escape') {
-          togglePauseSettings();
-        } else if (e.code === 'KeyM') {
-          if (!isPaused) toggleGalaxyMap();
-        } else if (e.code === 'Space') {
-          e.preventDefault();
-          firePlayerWeapons();
-        } else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-          executePhaseWarp();
-        }
-      });
-
-      window.addEventListener('keyup', (e) => {
-        keys[e.code] = false;
-      });
-
-      // Mouse Tilt Flight Yoke
-      window.addEventListener('mousemove', (e) => {
-        if (isPaused || inGalaxyMap) return;
-        const normX = (e.clientX / window.innerWidth) * 2 - 1;
-        const normY = -(e.clientY / window.innerHeight) * 2 + 1;
-        mouseTiltX = normX * mouseSensitivity;
-        mouseTiltY = normY * mouseSensitivity * (invertPitch ? -1 : 1);
-      });
-
-      window.addEventListener('mousedown', (e) => {
-        if (e.target.closest('#hud') || e.target.closest('.modal-card')) return;
-        if (!isPaused && !inGalaxyMap && e.button === 0) {
-          firePlayerWeapons();
-        }
-      });
-
-      // Gyroscope / DeviceOrientation Support (Mobile / VR / Tablets)
-      window.addEventListener('deviceorientation', (e) => {
-        if (!gyroEnabled || isPaused) return;
-        if (e.beta !== null && e.gamma !== null) {
-          gyroBeta = Math.max(-45, Math.min(45, e.beta - 45)) / 45; // Front-to-back tilt
-          gyroGamma = Math.max(-45, Math.min(45, e.gamma)) / 45;      // Left-to-right tilt
-        }
-      });
+      setupDesirePathCanvas();
+      setupRollingTerrain();
+      setupWindingRiver();
+      setupFoliageAndRocks();
+      setupSkyClouds();
 
       window.addEventListener('resize', onWindowResize);
     }
 
     function onWindowResize() {
+      if (!camera || !renderer) return;
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    // Gyroscope Toggle Option
-    window.toggleGyroControls = function() {
-      if (!gyroEnabled) {
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-          DeviceOrientationEvent.requestPermission().then(res => {
-            if (res === 'granted') {
-              gyroEnabled = true;
-              document.getElementById('btn-gyro').innerText = '[GYRO TILT: ON]';
-              document.getElementById('select-gyro').value = 'on';
-            }
-          }).catch(() => {});
+    // Emergent Footpath Texture System (Villagers footsteps carve dynamic dirt paths)
+    function setupDesirePathCanvas() {
+      pathCanvas = createProceduralCanvas(512, 512);
+      pathCtx = pathCanvas.getContext('2d');
+      // Transparent base
+      pathCtx.clearRect(0, 0, 512, 512);
+
+      pathTexture = new THREE.CanvasTexture(pathCanvas);
+    }
+
+    function stampVillagerFootstep(worldX, worldZ) {
+      // Map world coords (-200 to +200) into canvas pixels (0 to 512)
+      const u = ((worldX + 200) / 400) * 512;
+      const v = ((worldZ + 200) / 400) * 512;
+
+      pathCtx.fillStyle = 'rgba(107, 71, 34, 0.06)';
+      pathCtx.beginPath();
+      pathCtx.arc(u, v, 4.5, 0, Math.PI * 2);
+      pathCtx.fill();
+
+      pathTexture.needsUpdate = true;
+    }
+
+    // Procedural Elevation for Rolling Hills
+    function getTerrainHeight(x, z) {
+      // Flatter village center, gentle hills outward
+      const distFromCenter = Math.hypot(x, z);
+      const centerDamp = Math.min(1.0, distFromCenter / 50);
+
+      const h1 = Math.sin(x * 0.02) * Math.cos(z * 0.02) * 8;
+      const h2 = Math.sin(x * 0.045 + 1.2) * Math.sin(z * 0.035) * 4;
+      const h3 = Math.cos(x * 0.01 - z * 0.015) * 6;
+
+      // River valley cut (-35 < x < -10)
+      let riverDepth = 0;
+      const riverCenter = -22 + Math.sin(z * 0.03) * 14;
+      const distToRiver = Math.abs(x - riverCenter);
+      if (distToRiver < 16) {
+        riverDepth = (1 - distToRiver / 16) * 5.5;
+      }
+
+      return (h1 + h2 + h3) * centerDamp - riverDepth;
+    }
+
+    // 400x400 Organic Meadow Terrain Mesh
+    function setupRollingTerrain() {
+      const geo = new THREE.PlaneGeometry(400, 400, 96, 96);
+      geo.rotateX(-Math.PI * 0.5);
+
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const z = pos.getZ(i);
+        pos.setY(i, getTerrainHeight(x, z));
+      }
+      geo.computeVertexNormals();
+
+      const grassTex = generateGrassTexture();
+      const mat = new THREE.MeshStandardMaterial({
+        map: grassTex,
+        roughness: 0.85,
+        metalness: 0.05
+      });
+
+      terrainMesh = new THREE.Mesh(geo, mat);
+      terrainMesh.receiveShadow = true;
+      scene.add(terrainMesh);
+
+      // Overlay Desire Path Mesh
+      const pathMat = new THREE.MeshStandardMaterial({
+        map: pathTexture,
+        transparent: true,
+        opacity: 0.9,
+        roughness: 0.95,
+        polygonOffset: true,
+        polygonOffsetFactor: -1
+      });
+      const pathMesh = new THREE.Mesh(geo.clone(), pathMat);
+      scene.add(pathMesh);
+    }
+
+    // Winding Sparkling Blue River
+    function setupWindingRiver() {
+      const riverGeo = new THREE.PlaneGeometry(28, 400, 16, 64);
+      riverGeo.rotateX(-Math.PI * 0.5);
+
+      const pos = riverGeo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const z = pos.getZ(i);
+        const riverCenter = -22 + Math.sin(z * 0.03) * 14;
+        const x = pos.getX(i);
+        pos.setX(i, x + riverCenter);
+        pos.setY(i, -2.4);
+      }
+      riverGeo.computeVertexNormals();
+
+      const waterTex = generateWaterTexture();
+      const riverMat = new THREE.MeshStandardMaterial({
+        map: waterTex,
+        roughness: 0.15,
+        metalness: 0.2,
+        transparent: true,
+        opacity: 0.88
+      });
+      riverMesh = new THREE.Mesh(riverGeo, riverMat);
+      scene.add(riverMesh);
+    }
+
+    // Harvestable Oak Trees, Pines & Granite Boulders
+    function setupFoliageAndRocks() {
+      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c3818, roughness: 0.9 });
+      const pineLeavesMat = new THREE.MeshStandardMaterial({ color: 0x22542a, roughness: 0.8 });
+      const oakLeavesMat = new THREE.MeshStandardMaterial({ color: 0x4d7c0f, roughness: 0.8 });
+      const stoneMat = new THREE.MeshStandardMaterial({ map: generateCobbleTexture(), roughness: 0.85 });
+
+      // Spawn 140 Trees across the countryside
+      for (let i = 0; i < 140; i++) {
+        const x = (Math.random() - 0.5) * 340;
+        const z = (Math.random() - 0.5) * 340;
+        if (Math.hypot(x, z) < 30 || Math.abs(x - (-22)) < 24) continue; // Keep village center & river clear
+
+        const y = getTerrainHeight(x, z);
+        const treeGroup = new THREE.Group();
+
+        // Trunk
+        const trunkGeo = new THREE.CylinderGeometry(0.35, 0.5, 3.5, 6);
+        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+        trunk.position.y = 1.75;
+        trunk.castShadow = true;
+        treeGroup.add(trunk);
+
+        // Canopy (Oak or Pine)
+        const isPine = Math.random() > 0.4;
+        if (isPine) {
+          for (let l = 0; l < 3; l++) {
+            const coneGeo = new THREE.ConeGeometry(2.4 - l * 0.5, 2.5, 7);
+            const cone = new THREE.Mesh(coneGeo, pineLeavesMat);
+            cone.position.y = 3.2 + l * 1.5;
+            cone.castShadow = true;
+            treeGroup.add(cone);
+          }
         } else {
-          gyroEnabled = true;
-          document.getElementById('btn-gyro').innerText = '[GYRO TILT: ON]';
-          document.getElementById('select-gyro').value = 'on';
+          const sphereGeo = new THREE.SphereGeometry(2.2, 8, 8);
+          const sphere = new THREE.Mesh(sphereGeo, oakLeavesMat);
+          sphere.position.y = 4.2;
+          sphere.scale.set(1.1, 1.3, 1.1);
+          sphere.castShadow = true;
+          treeGroup.add(sphere);
         }
-      } else {
-        gyroEnabled = false;
-        document.getElementById('btn-gyro').innerText = '[GYRO TILT: OFF]';
-        document.getElementById('select-gyro').value = 'off';
-      }
-    };
 
-    window.setGyroOption = function(val) {
-      if (val === 'on' && !gyroEnabled) toggleGyroControls();
-      else if (val === 'off' && gyroEnabled) toggleGyroControls();
-    };
-    // Spawn 3D Sector Enemies
-    function spawnSectorEnemy() {
-      const currentSector = SECTORS[currentSectorId - 1];
-      let type = currentSector.enemyType;
-      if (type === 'mixed') type = Math.random() < 0.5 ? 'renegade_jet' : 'alien_swarm';
-      if (type === 'boss') type = 'alien_swarm';
-
-      const enemyGroup = new THREE.Group();
-
-      if (type === 'renegade_jet') {
-        // Terran Renegade Interceptor Jet
-        const fuseGeo = new THREE.ConeGeometry(1.3, 6.2, 4);
-        const fuseMat = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.8, roughness: 0.25 });
-        const fuse = new THREE.Mesh(fuseGeo, fuseMat);
-        fuse.rotation.x = -Math.PI / 2;
-        enemyGroup.add(fuse);
-
-        // Swept Delta Wings
-        const wingGeo = new THREE.BoxGeometry(6.2, 0.18, 2.6);
-        const wingMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, metalness: 0.7, roughness: 0.3 });
-        const wings = new THREE.Mesh(wingGeo, wingMat);
-        wings.position.set(0, 0, 0.6);
-        enemyGroup.add(wings);
-
-        // Afterburning Jet Thrusters
-        const jetGeo = new THREE.CylinderGeometry(0.35, 0.35, 1.4, 8);
-        const jetMat = new THREE.MeshBasicMaterial({ color: 0xff3b30 });
-        const leftJet = new THREE.Mesh(jetGeo, jetMat);
-        leftJet.rotation.x = Math.PI / 2;
-        leftJet.position.set(-0.7, 0, -2.8);
-        enemyGroup.add(leftJet);
-
-        const rightJet = leftJet.clone();
-        rightJet.position.set(0.7, 0, -2.8);
-        enemyGroup.add(rightJet);
-
-        enemyGroup.userData = {
-          type: 'renegade_jet',
-          hp: 3,
-          maxHp: 3,
-          name: 'RENEGADE INTERCEPTOR JET',
-          speed: 2.2,
-          shootCooldown: 80 + Math.random() * 50
-        };
-      } else if (type === 'rocket_ship') {
-        // Armored Rocket Gunship
-        const rocketGeo = new THREE.CylinderGeometry(1.6, 1.6, 7, 8);
-        const rocketMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.85, roughness: 0.3 });
-        const rocket = new THREE.Mesh(rocketGeo, rocketMat);
-        rocket.rotation.x = Math.PI / 2;
-        enemyGroup.add(rocket);
-
-        const noseGeo = new THREE.ConeGeometry(1.6, 2.6, 8);
-        const noseMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 });
-        const nose = new THREE.Mesh(noseGeo, noseMat);
-        nose.rotation.x = -Math.PI / 2;
-        nose.position.set(0, 0, 4.2);
-        enemyGroup.add(nose);
-
-        const podGeo = new THREE.CylinderGeometry(0.7, 0.7, 4.5, 8);
-        const podMat = new THREE.MeshStandardMaterial({ color: 0x64748b });
-        const leftPod = new THREE.Mesh(podGeo, podMat);
-        leftPod.rotation.x = Math.PI / 2;
-        leftPod.position.set(-2.4, 0, 0);
-        enemyGroup.add(leftPod);
-
-        const rightPod = leftPod.clone();
-        rightPod.position.set(2.4, 0, 0);
-        enemyGroup.add(rightPod);
-
-        enemyGroup.userData = {
-          type: 'rocket_ship',
-          hp: 5,
-          maxHp: 5,
-          name: 'HEAVY ROCKET GUNSHIP',
-          speed: 1.6,
-          shootCooldown: 100 + Math.random() * 50
-        };
-      } else {
-        // Alien Swarm Bioship (Insectoid Chitin)
-        const chitinGeo = new THREE.OctahedronGeometry(2.0, 1);
-        const chitinMat = new THREE.MeshStandardMaterial({
-          color: 0x14532d,
-          emissive: 0x22c55e,
-          emissiveIntensity: 0.6,
-          metalness: 0.4,
-          roughness: 0.4
-        });
-        const chitin = new THREE.Mesh(chitinGeo, chitinMat);
-        enemyGroup.add(chitin);
-
-        const coreGeo = new THREE.SphereGeometry(0.9, 12, 12);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0xa855f7 });
-        const core = new THREE.Mesh(coreGeo, coreMat);
-        enemyGroup.add(core);
-
-        const scytheGeo = new THREE.ConeGeometry(0.45, 5.0, 4);
-        const scytheMat = new THREE.MeshStandardMaterial({ color: 0x86efac });
-        const leftScythe = new THREE.Mesh(scytheGeo, scytheMat);
-        leftScythe.rotation.z = Math.PI / 3;
-        leftScythe.position.set(-2.4, 0, 0);
-        enemyGroup.add(leftScythe);
-
-        const rightScythe = leftScythe.clone();
-        rightScythe.rotation.z = -Math.PI / 3;
-        rightScythe.position.set(2.4, 0, 0);
-        enemyGroup.add(rightScythe);
-
-        enemyGroup.userData = {
-          type: 'alien_swarm',
-          hp: 4,
-          maxHp: 4,
-          name: 'ALIEN SWARM BIOSHIP',
-          speed: 2.5,
-          shootCooldown: 70 + Math.random() * 40,
-          oscOffset: Math.random() * Math.PI * 2
-        };
+        treeGroup.position.set(x, y, z);
+        scene.add(treeGroup);
+        trees.push({ mesh: treeGroup, x: x, z: z, hp: 4 });
       }
 
-      // Spawn in open 3D space around player
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 350 + Math.random() * 200;
-      enemyGroup.position.set(
-        player.position.x + Math.cos(angle) * dist,
-        player.position.y + (Math.random() - 0.5) * 120,
-        player.position.z + Math.sin(angle) * dist
-      );
+      // Spawn 35 Granite Boulders
+      for (let i = 0; i < 35; i++) {
+        const x = (Math.random() - 0.5) * 320;
+        const z = (Math.random() - 0.5) * 320;
+        if (Math.hypot(x, z) < 25) continue;
+        const y = getTerrainHeight(x, z);
 
-      scene.add(enemyGroup);
-      enemies.push(enemyGroup);
-      document.getElementById('enemies-val').innerText = enemies.length;
+        const rockRad = 1.8 + Math.random() * 2.2;
+        const rockGeo = new THREE.DodecahedronGeometry(rockRad, 1);
+        const rock = new THREE.Mesh(rockGeo, stoneMat);
+        rock.position.set(x, y + rockRad * 0.6, z);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.castShadow = true;
+        scene.add(rock);
+        stoneRocks.push({ mesh: rock, x: x, z: z, hp: 6 });
+      }
     }
 
-    // Spawn Supreme Alien Dreadnought Boss (Sector 5)
-    function spawnSupremeBoss() {
-      if (bossActive) return;
-      bossActive = true;
-
-      boss = new THREE.Group();
-
-      const citadelGeo = new THREE.DodecahedronGeometry(15, 1);
-      const citadelMat = new THREE.MeshStandardMaterial({
-        color: 0x1e1b4b,
-        emissive: 0x7c3aed,
-        emissiveIntensity: 0.8,
-        roughness: 0.3,
-        metalness: 0.9
+    // Fluffy Drifting Cumulus Clouds
+    function setupSkyClouds() {
+      const cloudMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.95,
+        transparent: true,
+        opacity: 0.85
       });
-      const citadel = new THREE.Mesh(citadelGeo, citadelMat);
-      boss.add(citadel);
 
-      // Rotating Energy Shield Ring
-      const ringGeo = new THREE.TorusGeometry(24, 1.4, 16, 64);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      boss.add(ring);
-
-      // Heavy Weapon Spires
-      for (let s = 0; s < 4; s++) {
-        const spireGeo = new THREE.ConeGeometry(3, 16, 6);
-        const spireMat = new THREE.MeshStandardMaterial({ color: 0xec4899, emissive: 0xdb2777, emissiveIntensity: 0.6 });
-        const spire = new THREE.Mesh(spireGeo, spireMat);
-        const ang = (s * Math.PI) / 2;
-        spire.position.set(Math.cos(ang) * 22, Math.sin(ang) * 22, 0);
-        spire.rotation.z = ang - Math.PI / 2;
-        boss.add(spire);
+      for (let i = 0; i < 18; i++) {
+        const cloudGroup = new THREE.Group();
+        const pCount = 5 + Math.floor(Math.random() * 5);
+        for (let p = 0; p < pCount; p++) {
+          const rad = 12 + Math.random() * 15;
+          const puff = new THREE.Mesh(new THREE.SphereGeometry(rad, 7, 7), cloudMat);
+          puff.position.set((Math.random() - 0.5) * 35, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 25);
+          cloudGroup.add(puff);
+        }
+        cloudGroup.position.set(
+          (Math.random() - 0.5) * 600,
+          90 + Math.random() * 40,
+          (Math.random() - 0.5) * 600
+        );
+        scene.add(cloudGroup);
+        clouds.push({ mesh: cloudGroup, speed: 1.5 + Math.random() * 2.5 });
       }
-
-      boss.position.set(player.position.x, player.position.y, player.position.z - 300);
-      boss.userData = {
-        type: 'boss',
-        hp: 50,
-        maxHp: 50,
-        name: 'SUPREME ALIEN DREADNOUGHT',
-        shootTimer: 45
-      };
-      scene.add(boss);
-
-      updateStoryTransmission(
-        'SUPREME HIGH COMMAND // EMERGENCY FLASH',
-        '"ALERT: Supreme Alien Dreadnought emerged from hyperspace! Focus all firepower on its core spires!"',
-        'Destroy Supreme Alien Dreadnought (HP: 50 / 50)'
-      );
     }
 
-    // Fire Player Weapons (Dual Plasma Lasers)
-    function firePlayerWeapons() {
-      if (isPaused || inGalaxyMap) return;
-      if (laserHeat >= 100) return;
+    function updateCameraPosition() {
+      const x = camTarget.x + camDistance * Math.sin(camYaw) * Math.cos(camPitch);
+      const y = camTarget.y + camDistance * Math.sin(camPitch);
+      const z = camTarget.z + camDistance * Math.cos(camYaw) * Math.cos(camPitch);
+      camera.position.set(x, Math.max(4, y), z);
+      camera.lookAt(camTarget);
+    }
 
+    // =========================================================================
+    // 3D BUILDINGS & ORGANIC GRID-LESS PLACEMENT SYSTEM
+    // =========================================================================
+    const buildings = [];
+    let activeBuildType = null;
+    let ghostBuilding = null;
+    let ghostRotation = 0;
+
+    const buildingCosts = {
+      center:   { gold: 0,   wood: 0,  stone: 0 },
+      lumber:   { gold: 0,   wood: 15, stone: 0 },
+      quarry:   { gold: 0,   wood: 20, stone: 0 },
+      well:     { gold: 0,   wood: 0,  stone: 10 },
+      cottage:  { gold: 0,   wood: 12, stone: 5 },
+      market:   { gold: 5,   wood: 15, stone: 0 },
+      windmill: { gold: 0,   wood: 25, stone: 10 },
+      church:   { gold: 0,   wood: 20, stone: 40 },
+      keep:     { gold: 20,  wood: 40, stone: 60 }
+    };
+
+    function selectBuildType(type) {
       initAudio();
-      playSound('laser');
-
-      laserHeat = Math.min(100, laserHeat + 12);
-      document.getElementById('heat-bar').style.width = `${laserHeat}%`;
-      document.getElementById('heat-val').innerText = `${Math.round(laserHeat)}%`;
-
-      const pGeo = new THREE.CylinderGeometry(0.16, 0.16, 5.0, 6);
-      const pMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-
-      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
-
-      // Left Cannon
-      const pLeft = new THREE.Mesh(pGeo, pMat);
-      pLeft.quaternion.copy(player.quaternion);
-      pLeft.rotateX(Math.PI / 2);
-      const leftOffset = new THREE.Vector3(-5.1, -0.2, 0.9).applyQuaternion(player.quaternion);
-      pLeft.position.copy(player.position).add(leftOffset);
-      pLeft.userData = { vel: forward.clone().multiplyScalar(10.5), damage: 1, life: 70 };
-      scene.add(pLeft);
-      playerProjectiles.push(pLeft);
-
-      // Right Cannon
-      const pRight = new THREE.Mesh(pGeo, pMat);
-      pRight.quaternion.copy(player.quaternion);
-      pRight.rotateX(Math.PI / 2);
-      const rightOffset = new THREE.Vector3(5.1, -0.2, 0.9).applyQuaternion(player.quaternion);
-      pRight.position.copy(player.position).add(rightOffset);
-      pRight.userData = { vel: forward.clone().multiplyScalar(10.5), damage: 1, life: 70 };
-      scene.add(pRight);
-      playerProjectiles.push(pRight);
-    }
-
-    // Fire Enemy Projectiles toward Player
-    function fireEnemyWeapon(enemy) {
-      if (isPaused || inGalaxyMap) return;
-      const type = enemy.userData.type;
-      const dir = new THREE.Vector3().subVectors(player.position, enemy.position).normalize();
-
-      if (type === 'alien_swarm') {
-        playSound('alien_plasma');
-        const geo = new THREE.SphereGeometry(0.5, 8, 8);
-        const mat = new THREE.MeshBasicMaterial({ color: 0x22c55e });
-        const bolt = new THREE.Mesh(geo, mat);
-        bolt.position.copy(enemy.position);
-        bolt.userData = { vel: dir.multiplyScalar(4.2), damage: 12, life: 80 };
-        scene.add(bolt);
-        enemyProjectiles.push(bolt);
-      } else {
-        playSound('enemy_laser');
-        const geo = new THREE.CylinderGeometry(0.14, 0.14, 4.0, 6);
-        const mat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-        const bolt = new THREE.Mesh(geo, mat);
-        bolt.quaternion.copy(enemy.quaternion);
-        bolt.rotateX(Math.PI / 2);
-        bolt.position.copy(enemy.position);
-        bolt.userData = { vel: dir.multiplyScalar(5.0), damage: 10, life: 80 };
-        scene.add(bolt);
-        enemyProjectiles.push(bolt);
-      }
-    }
-
-    // Multi-Stage Particle Explosion & Debris Fracturing
-    function createExplosion(pos, color = 0x00f0ff, isHeavy = false) {
-      playSound('explosion');
-
-      // Shockwave ring
-      const ringGeo = new THREE.RingGeometry(1, 2.5, 32);
-      const ringMat = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.position.copy(pos);
-      ring.lookAt(camera.position);
-      ring.userData = { scale: 1, maxScale: isHeavy ? 45 : 25 };
-      scene.add(ring);
-      particles.push(ring);
-
-      // Tumbling Debris Chunks
-      const chunkCount = isHeavy ? 35 : 18;
-      for (let i = 0; i < chunkCount; i++) {
-        const size = Math.random() * 0.8 + 0.2;
-        const chunkGeo = new THREE.DodecahedronGeometry(size, 0);
-        const chunkMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.4, metalness: 0.7 });
-        const chunk = new THREE.Mesh(chunkGeo, chunkMat);
-        chunk.position.copy(pos);
-        chunk.userData = {
-          vel: new THREE.Vector3((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4),
-          rotVel: new THREE.Vector3(Math.random() * 0.1, Math.random() * 0.1, Math.random() * 0.1),
-          life: 45
-        };
-        scene.add(chunk);
-        debrisChunks.push(chunk);
-      }
-    }
-    // Warp Boost Action
-    window.executePhaseWarp = function() {
-      if (isPaused) return;
-      initAudio();
-      playSound('warp');
-
-      const flash = document.getElementById('warp-flash');
-      flash.style.opacity = '1';
-      setTimeout(() => { flash.style.opacity = '0'; }, 300);
-
-      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
-      player.position.add(forward.multiplyScalar(220));
-      createExplosion(player.position, 0x00f0ff, true);
-    };
-
-    // Story Transmission Updates
-    function updateStoryTransmission(sender, text, objective) {
-      playSound('comms_beep');
-      document.getElementById('comms-sender').innerText = sender;
-      document.getElementById('comms-text').innerText = text;
-      if (objective) {
-        document.getElementById('comms-mission-task').innerText = objective;
-      }
-    }
-
-    // Settings Navigation Tabs
-    window.switchSettingsTab = function(tabName) {
-      document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.settings-tab-pane').forEach(pane => pane.style.display = 'none');
-
-      document.getElementById(`tab-btn-${tabName}`).classList.add('active');
-      document.getElementById(`tab-content-${tabName}`).style.display = 'block';
-    };
-
-    // Settings Interactive Controls
-    window.updateBrightness = function(val) {
-      brightnessMultiplier = val / 100;
-      document.getElementById('brightness-val').innerText = `${val}%`;
-      document.getElementById('canvas-container').style.filter = `brightness(${val}%)`;
-      if (renderer) renderer.toneMappingExposure = 1.35 * brightnessMultiplier;
-    };
-
-    window.updateResolution = function(val) {
-      if (val === '4k') renderer.setSize(3840, 2160);
-      else if (val === '1440p') renderer.setSize(2560, 1440);
-      else if (val === '1080p') renderer.setSize(1920, 1080);
-      else if (val === '720p') renderer.setSize(1280, 720);
-      else renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-    };
-
-    window.updateMonitor = function(val) {
-      alert(`Display target set to: ${val.toUpperCase()}. Ready for multi-screen & VR streaming.`);
-    };
-
-    window.updateGPUProfile = function(val) {
-      if (val === 'ultra') {
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
-      } else if (val === 'balanced') {
-        renderer.setPixelRatio(1.25);
-      } else {
-        renderer.setPixelRatio(1.0);
-      }
-    };
-
-    window.updateFogDensity = function(val) {
-      if (!scene || !scene.fog) return;
-      if (val === 'off') scene.fog.density = 0.0001;
-      else if (val === 'low') scene.fog.density = 0.0012;
-      else if (val === 'normal') scene.fog.density = 0.0025;
-      else if (val === 'dense') scene.fog.density = 0.006;
-      document.getElementById('fog-val').innerText = val.toUpperCase();
-    };
-
-    window.toggleFullscreen = function() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen();
-      }
-    };
-
-    window.updateMasterVol = function(val) {
-      soundMasterVol = val / 100;
-      document.getElementById('vol-master-val').innerText = `${val}%`;
-      if (masterGainNode) masterGainNode.gain.value = soundMasterVol;
-    };
-
-    window.updateSfxVol = function(val) {
-      soundSfxVol = val / 100;
-      document.getElementById('vol-sfx-val').innerText = `${val}%`;
-    };
-
-    window.updateBgmVol = function(val) {
-      soundBgmVol = val / 100;
-      document.getElementById('vol-bgm-val').innerText = `${val}%`;
-      if (bgmGain) bgmGain.gain.value = 0.03 * soundBgmVol;
-    };
-
-    window.toggleMute = function() {
-      isMuted = !isMuted;
-      const btn = document.getElementById('btn-mute-toggle');
-      if (isMuted) {
-        if (masterGainNode) masterGainNode.gain.value = 0;
-        btn.innerText = '[AUDIO MUTE: ON]';
-      } else {
-        if (masterGainNode) masterGainNode.gain.value = soundMasterVol;
-        btn.innerText = '[AUDIO MUTE: OFF]';
-      }
-    };
-
-    window.updateSensitivity = function(val) {
-      mouseSensitivity = val / 10;
-      document.getElementById('sens-val').innerText = `${mouseSensitivity.toFixed(1)}x`;
-    };
-
-    window.updateFOV = function(val) {
-      camera.fov = Number(val);
-      camera.updateProjectionMatrix();
-      document.getElementById('fov-val').innerText = `${val}°`;
-    };
-
-    window.updateInvertY = function(val) {
-      invertPitch = (val === 'inverted');
-    };
-
-    // ESC Pause & Settings Toggling
-    window.togglePauseSettings = function() {
-      isPaused = !isPaused;
-      const modal = document.getElementById('settings-modal');
-      modal.style.display = isPaused ? 'flex' : 'none';
-      if (isPaused) {
-        document.exitPointerLock?.();
-      }
-    };
-
-    window.resumeGame = function() {
-      isPaused = false;
-      document.getElementById('settings-modal').style.display = 'none';
-    };
-
-    // Full Galaxy Map Modal Controls
-    let galaxyScene, galaxyCamera, galaxyRenderer, galaxyPivot;
-    let isDraggingMap = false, prevMouseMapX = 0, prevMouseMapY = 0;
-    let selectedSectorMapId = 1;
-
-    window.openGalaxyMap = function() {
-      inGalaxyMap = true;
-      document.getElementById('galaxy-map-modal').style.display = 'block';
-      if (!galaxyRenderer) initGalaxyMap3D();
-      renderGalaxyMapInfo(selectedSectorMapId);
-    };
-
-    window.closeGalaxyMap = function() {
-      inGalaxyMap = false;
-      document.getElementById('galaxy-map-modal').style.display = 'none';
-    };
-
-    function toggleGalaxyMap() {
-      if (inGalaxyMap) closeGalaxyMap();
-      else openGalaxyMap();
-    }
-
-    function initGalaxyMap3D() {
-      const container = document.getElementById('galaxy-canvas-container');
-      galaxyScene = new THREE.Scene();
-      galaxyCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
-      galaxyCamera.position.set(0, 140, 260);
-      galaxyCamera.lookAt(0, 0, 0);
-
-      galaxyRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      galaxyRenderer.setSize(window.innerWidth, window.innerHeight);
-      galaxyRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      container.appendChild(galaxyRenderer.domElement);
-
-      galaxyPivot = new THREE.Group();
-      galaxyScene.add(galaxyPivot);
-
-      const sunGeo = new THREE.SphereGeometry(18, 32, 32);
-      const sunMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-      const sun = new THREE.Mesh(sunGeo, sunMat);
-      galaxyPivot.add(sun);
-
-      const angles = [0, 1.25, 2.5, 3.8, 5.0];
-      const radii = [45, 75, 105, 135, 165];
-
-      SECTORS.forEach((sec, idx) => {
-        const ang = angles[idx];
-        const rad = radii[idx];
-
-        const orbitGeo = new THREE.RingGeometry(rad - 0.4, rad + 0.4, 64);
-        const orbitMat = new THREE.MeshBasicMaterial({ color: 0x334155, side: THREE.DoubleSide });
-        const orbit = new THREE.Mesh(orbitGeo, orbitMat);
-        orbit.rotation.x = Math.PI / 2;
-        galaxyPivot.add(orbit);
-
-        const pGeo = new THREE.SphereGeometry(6, 24, 24);
-        const pMat = new THREE.MeshStandardMaterial({
-          color: sec.planetColor,
-          emissive: sec.planetColor,
-          emissiveIntensity: 0.4
-        });
-        const pMesh = new THREE.Mesh(pGeo, pMat);
-        pMesh.position.set(Math.cos(ang) * rad, 0, Math.sin(ang) * rad);
-        pMesh.userData = { sectorId: sec.id };
-        galaxyPivot.add(pMesh);
-      });
-
-      const light = new THREE.PointLight(0x00f0ff, 2, 400);
-      galaxyScene.add(light);
-      const amb = new THREE.AmbientLight(0xffffff, 0.4);
-      galaxyScene.add(amb);
-
-      container.addEventListener('mousedown', (e) => {
-        isDraggingMap = true;
-        prevMouseMapX = e.clientX;
-        prevMouseMapY = e.clientY;
-      });
-
-      window.addEventListener('mouseup', () => { isDraggingMap = false; });
-
-      container.addEventListener('mousemove', (e) => {
-        if (!isDraggingMap) return;
-        const dx = e.clientX - prevMouseMapX;
-        const dy = e.clientY - prevMouseMapY;
-        galaxyPivot.rotation.y += dx * 0.008;
-        galaxyPivot.rotation.x = Math.max(-0.6, Math.min(0.6, galaxyPivot.rotation.x + dy * 0.008));
-        prevMouseMapX = e.clientX;
-        prevMouseMapY = e.clientY;
-      });
-    }
-
-    function renderGalaxyMapInfo(id) {
-      selectedSectorMapId = id;
-      const sec = SECTORS[id - 1];
-      document.getElementById('map-sector-title').innerText = sec.badge;
-      const isUnlocked = (id <= unlockedSectors);
-      const statusEl = document.getElementById('map-sector-status');
-      statusEl.innerText = isUnlocked ? (id === currentSectorId ? 'STATUS: CURRENT MISSION LOCATION' : 'STATUS: UNLOCKED FOR JUMP') : 'STATUS: LOCKED (COMPLETE PREVIOUS SECTOR FIRST)';
-      statusEl.style.color = isUnlocked ? '#10b981' : '#f43f5e';
-
-      document.getElementById('map-sector-desc').innerText = sec.startMessage;
-      const warpBtn = document.getElementById('btn-warp-to-sector');
-      warpBtn.disabled = !isUnlocked;
-      warpBtn.style.opacity = isUnlocked ? '1' : '0.5';
-    }
-
-    window.warpToSelectedSector = function() {
-      if (selectedSectorMapId > unlockedSectors) {
-        alert('Complete current sector mission first to unlock jump coordinates!');
+      if (activeBuildType === type) {
+        cancelBuildingPlacement();
         return;
       }
-      currentSectorId = selectedSectorMapId;
-      const sec = SECTORS[currentSectorId - 1];
-      document.getElementById('sector-badge').innerText = sec.badge;
+      activeBuildType = type;
+      if (ghostBuilding) scene.remove(ghostBuilding);
 
-      scene.fog.color.setHex(sec.fogColor);
-      buildSectorCelestialPlanet(sec);
+      ghostBuilding = createBuildingMesh(type, true);
+      scene.add(ghostBuilding);
 
-      enemies.forEach(e => scene.remove(e));
-      enemies = [];
-      enemiesEliminatedInSector = 0;
-      bossActive = false;
-      if (boss) { scene.remove(boss); boss = null; }
+      // Highlight dock button
+      document.querySelectorAll('.b-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.b-btn')).find(b => b.onclick && b.onclick.toString().includes(`'${type}'`));
+      if (activeBtn) activeBtn.classList.add('active');
+    }
 
-      closeGalaxyMap();
-      executePhaseWarp();
+    function cancelBuildingPlacement() {
+      activeBuildType = null;
+      if (ghostBuilding) {
+        scene.remove(ghostBuilding);
+        ghostBuilding = null;
+      }
+      document.querySelectorAll('.b-btn').forEach(btn => btn.classList.remove('active'));
+    }
 
-      updateStoryTransmission(
-        sec.speaker,
-        sec.startMessage,
-        `${sec.objectiveText} (0 / ${sec.targetEnemies})`
-      );
+    // Procedural 3D Modular Architecture Construction
+    function createBuildingMesh(type, isGhost = false) {
+      const group = new THREE.Group();
+
+      const stoneMat = new THREE.MeshStandardMaterial({
+        map: generateCobbleTexture(),
+        roughness: 0.85,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const woodMat = new THREE.MeshStandardMaterial({
+        map: generateWoodTexture(),
+        roughness: 0.75,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const thatchMat = new THREE.MeshStandardMaterial({
+        map: generateThatchTexture(),
+        roughness: 0.9,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const tileMat = new THREE.MeshStandardMaterial({
+        map: generateClayTileTexture(),
+        roughness: 0.7,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const canopyMat = new THREE.MeshStandardMaterial({
+        map: generateCanopyTexture(),
+        roughness: 0.5,
+        side: THREE.DoubleSide,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      if (type === 'center') {
+        // Town Hall / Manor
+        const base = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 8), stoneMat);
+        base.position.y = 2; base.castShadow = !isGhost; base.receiveShadow = !isGhost;
+        group.add(base);
+
+        const upper = new THREE.Mesh(new THREE.BoxGeometry(9.6, 3.5, 7.6), woodMat);
+        upper.position.y = 5.75; upper.castShadow = !isGhost;
+        group.add(upper);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(7, 4, 4), tileMat);
+        roof.position.y = 9.5; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost;
+        group.add(roof);
+
+        // Banner Flagpole
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 6, 6), woodMat);
+        pole.position.set(0, 12, 0); group.add(pole);
+        const banner = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), canopyMat);
+        banner.position.set(0.9, 13.5, 0); group.add(banner);
+
+      } else if (type === 'lumber') {
+        // Lumber Camp
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(7, 3.2, 5), woodMat);
+        cabin.position.y = 1.6; cabin.castShadow = !isGhost; group.add(cabin);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(5, 2.5, 4), thatchMat);
+        roof.position.y = 4.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        // Stacked Logs
+        for (let l = 0; l < 5; l++) {
+          const log = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 6), woodMat);
+          log.rotation.z = Math.PI * 0.5;
+          log.position.set(4.5, 0.3 + (l % 2) * 0.5, (l - 2) * 0.6);
+          group.add(log);
+        }
+
+      } else if (type === 'quarry') {
+        // Stonecutter Quarry
+        const yard = new THREE.Mesh(new THREE.BoxGeometry(8, 0.6, 8), stoneMat);
+        yard.position.y = 0.3; group.add(yard);
+
+        // Wooden Hoist Crane
+        const cranePost = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 6, 6), woodMat);
+        cranePost.position.set(-2.5, 3, -2.5); group.add(cranePost);
+        const craneArm = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 5, 6), woodMat);
+        craneArm.position.set(-1, 5.8, -1); craneArm.rotation.z = Math.PI * 0.35; group.add(craneArm);
+
+        // Chiseled Blocks
+        for (let b = 0; b < 4; b++) {
+          const block = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), stoneMat);
+          block.position.set(1.5 + (b % 2) * 1.5, 0.6, -1 + Math.floor(b / 2) * 1.5);
+          group.add(block);
+        }
+
+      } else if (type === 'well') {
+        // Town Well
+        const ring = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.9, 1.5, 12, 1, true), stoneMat);
+        ring.position.y = 0.75; group.add(ring);
+
+        [-1.2, 1.2].forEach(x => {
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.2, 6), woodMat);
+          post.position.set(x, 1.6, 0); group.add(post);
+        });
+
+        const canopy = new THREE.Mesh(new THREE.ConeGeometry(2.4, 1.6, 4), tileMat);
+        canopy.position.y = 3.6; canopy.rotation.y = Math.PI * 0.25; group.add(canopy);
+
+      } else if (type === 'cottage') {
+        // Thatched Serf Cottage
+        const walls = new THREE.Mesh(new THREE.BoxGeometry(5.5, 3.2, 4.5), stoneMat);
+        walls.position.y = 1.6; walls.castShadow = !isGhost; group.add(walls);
+
+        const thatch = new THREE.Mesh(new THREE.ConeGeometry(4.6, 3.2, 4), thatchMat);
+        thatch.position.y = 4.4; thatch.rotation.y = Math.PI * 0.25; thatch.castShadow = !isGhost; group.add(thatch);
+
+        // Chimney
+        const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.9, 4.5, 0.9), stoneMat);
+        chimney.position.set(1.8, 3.5, 1.2); group.add(chimney);
+
+      } else if (type === 'market') {
+        // Market Stall with Striped Canopy
+        const table = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.2, 2.5), woodMat);
+        table.position.y = 0.6; group.add(table);
+
+        const awning = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 3.5), canopyMat);
+        awning.position.y = 3.2; awning.rotation.x = Math.PI * 0.35; group.add(awning);
+
+        // Crates of Food
+        const crateMat = new THREE.MeshStandardMaterial({ color: 0xb45309 });
+        const crate1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.0), crateMat);
+        crate1.position.set(-1.2, 1.4, 0); group.add(crate1);
+        const crate2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.0), crateMat);
+        crate2.position.set(1.2, 1.4, 0); group.add(crate2);
+
+      } else if (type === 'windmill') {
+        // Windmill
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 3.5, 9, 8), stoneMat);
+        tower.position.y = 4.5; tower.castShadow = !isGhost; group.add(tower);
+
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(2.8, 2.2, 8), thatchMat);
+        cap.position.y = 9.8; group.add(cap);
+
+        // 4 Rotating Canvas Sails
+        const sailsGroup = new THREE.Group();
+        sailsGroup.position.set(0, 8.5, 2.4);
+        for (let s = 0; s < 4; s++) {
+          const sail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 7.5, 0.8), woodMat);
+          sail.rotation.z = (s * Math.PI) / 2;
+          sailsGroup.add(sail);
+        }
+        group.add(sailsGroup);
+        group.sails = sailsGroup;
+
+      } else if (type === 'church') {
+        // Rustic Church
+        const nave = new THREE.Mesh(new THREE.BoxGeometry(14, 6.5, 8), stoneMat);
+        nave.position.y = 3.25; nave.castShadow = !isGhost; group.add(nave);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(8.5, 4.5, 4), tileMat);
+        roof.position.y = 8.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        // Belfry Spire Tower
+        const belfry = new THREE.Mesh(new THREE.BoxGeometry(5, 14, 5), stoneMat);
+        belfry.position.set(-8, 7, 0); belfry.castShadow = !isGhost; group.add(belfry);
+
+        const spire = new THREE.Mesh(new THREE.ConeGeometry(3.6, 7, 8), tileMat);
+        spire.position.set(-8, 17.5, 0); spire.castShadow = !isGhost; group.add(spire);
+
+      } else if (type === 'keep') {
+        // Lord's Keep Citadel
+        const citadel = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 14), stoneMat);
+        citadel.position.y = 5; citadel.castShadow = !isGhost; group.add(citadel);
+
+        // 4 Corner Towers with Crenellations
+        [[-8, -7], [8, -7], [-8, 7], [8, 7]].forEach(([tx, tz]) => {
+          const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 14, 8), stoneMat);
+          tower.position.set(tx, 7, tz); tower.castShadow = !isGhost; group.add(tower);
+          const roof = new THREE.Mesh(new THREE.ConeGeometry(3.2, 3.5, 8), tileMat);
+          roof.position.set(tx, 15.5, tz); group.add(roof);
+        });
+      }
+
+      return group;
+    }
+
+    // Place building on terrain
+    function tryPlaceBuilding(worldX, worldZ) {
+      if (!activeBuildType) return;
+      const cost = buildingCosts[activeBuildType];
+
+      // Check costs
+      if (gameState.gold < cost.gold || gameState.wood < cost.wood || gameState.stone < cost.stone) {
+        alert(`[INSUFFICIENT RESOURCES] Requires ${cost.gold} Gold, ${cost.wood} Wood, ${cost.stone} Stone.`);
+        return;
+      }
+
+      // Deduct resources
+      gameState.gold -= cost.gold;
+      gameState.wood -= cost.wood;
+      gameState.stone -= cost.stone;
+      updateResourceLedger();
+
+      const building = createBuildingMesh(activeBuildType, false);
+      const groundY = getTerrainHeight(worldX, worldZ);
+      building.position.set(worldX, groundY, worldZ);
+      building.rotation.y = ghostRotation;
+      scene.add(building);
+
+      playBuildHammerSound();
+
+      buildings.push({
+        type: activeBuildType,
+        mesh: building,
+        x: worldX,
+        z: worldZ,
+        workers: []
+      });
+
+      checkQuestMilestone(activeBuildType);
+      cancelBuildingPlacement();
+    }
+
+    // =========================================================================
+    // AUTONOMOUS VILLAGER SIMULATION, NEEDS & DESIRE FOOTPATHS
+    // =========================================================================
+    const villagers = [];
+    const villagerNames = [
+      'Godwin', 'Elsbeth', 'Cedric', 'Rosalind', 'Wulfric', 'Morwenna',
+      'Aldous', 'Beatrice', 'Osric', 'Gisela', 'Dunstan', 'Rowena'
+    ];
+
+    function createVillagerMesh(color = 0x3b82f6) {
+      const group = new THREE.Group();
+
+      // Body / Tunic
+      const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.2, 8), bodyMat);
+      body.position.y = 1.0; body.castShadow = true;
+      group.add(body);
+
+      // Head
+      const headMat = new THREE.MeshStandardMaterial({ color: 0xfbd2a9, roughness: 0.6 });
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), headMat);
+      head.position.y = 1.85; head.castShadow = true;
+      group.add(head);
+
+      // Limbs for walking animation
+      const limbMat = new THREE.MeshStandardMaterial({ color: 0x422810 });
+      const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.65, 0.18), limbMat);
+      leftLeg.position.set(-0.2, 0.35, 0); group.add(leftLeg);
+
+      const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.65, 0.18), limbMat);
+      rightLeg.position.set(0.2, 0.35, 0); group.add(rightLeg);
+
+      group.leftLeg = leftLeg;
+      group.rightLeg = rightLeg;
+
+      return group;
+    }
+
+    function spawnVillager(profession = 'Laborer', startPos = null) {
+      const name = villagerNames[villagers.length % villagerNames.length];
+      const colors = [0x3b82f6, 0xb45309, 0x15803d, 0xca8a04, 0xb91c1c];
+      const col = colors[villagers.length % colors.length];
+
+      const mesh = createVillagerMesh(col);
+      const pos = startPos || new THREE.Vector3((Math.random() - 0.5) * 15, 0, (Math.random() - 0.5) * 15);
+      pos.y = getTerrainHeight(pos.x, pos.z);
+      mesh.position.copy(pos);
+      scene.add(mesh);
+
+      const villager = {
+        name: name,
+        mesh: mesh,
+        x: pos.x,
+        z: pos.z,
+        profession: profession,
+        state: 'idle',
+        targetPos: null,
+        targetObj: null,
+        workTimer: 0,
+        hunger: 100,
+        thirst: 100,
+        faith: 100,
+        walkAnim: 0
+      };
+
+      villagers.push(villager);
+      updatePopulationHUD();
+      return villager;
+    }
+
+    // Villager Autonomous Autonomous Decision & Navigation Loop
+    function updateVillagers(delta) {
+      villagers.forEach((v) => {
+        // Needs depletion
+        v.hunger = Math.max(0, v.hunger - delta * 0.4);
+        v.thirst = Math.max(0, v.thirst - delta * 0.6);
+
+        // State Machine Decision
+        if (!v.targetPos || v.state === 'idle') {
+          decideVillagerAction(v);
+        }
+
+        // Move towards target
+        if (v.targetPos) {
+          const dx = v.targetPos.x - v.x;
+          const dz = v.targetPos.z - v.z;
+          const dist = Math.hypot(dx, dz);
+
+          if (dist > 1.2) {
+            const speed = 4.2;
+            v.x += (dx / dist) * speed * delta;
+            v.z += (dz / dist) * speed * delta;
+            const y = getTerrainHeight(v.x, v.z);
+            v.mesh.position.set(v.x, y, v.z);
+
+            // Orient towards motion
+            v.mesh.rotation.y = Math.atan2(dx, dz);
+
+            // Walking limb swing animation
+            v.walkAnim += delta * 12;
+            v.mesh.leftLeg.rotation.x = Math.sin(v.walkAnim) * 0.6;
+            v.mesh.rightLeg.rotation.x = -Math.sin(v.walkAnim) * 0.6;
+
+            // STAMP DESIRE PATH FOOTSTEP
+            stampVillagerFootstep(v.x, v.z);
+
+          } else {
+            // Reached Destination
+            v.mesh.leftLeg.rotation.x = 0;
+            v.mesh.rightLeg.rotation.x = 0;
+            handleDestinationArrival(v, delta);
+          }
+        }
+      });
+    }
+
+    function decideVillagerAction(v) {
+      // 1. Thirst Check -> Find Well
+      if (v.thirst < 40) {
+        const well = buildings.find(b => b.type === 'well');
+        if (well) {
+          v.state = 'drinking';
+          v.targetPos = new THREE.Vector3(well.x, 0, well.z);
+          return;
+        }
+      }
+
+      // 2. Hunger Check -> Find Market
+      if (v.hunger < 40) {
+        const market = buildings.find(b => b.type === 'market');
+        if (market) {
+          v.state = 'eating';
+          v.targetPos = new THREE.Vector3(market.x, 0, market.z);
+          return;
+        }
+      }
+
+      // 3. Work Duty
+      const lumberCamp = buildings.find(b => b.type === 'lumber');
+      if (lumberCamp && trees.length > 0) {
+        // Find closest tree
+        let closestTree = trees[0];
+        let minDist = 9999;
+        trees.forEach(t => {
+          const d = Math.hypot(t.x - lumberCamp.x, t.z - lumberCamp.z);
+          if (d < minDist) { minDist = d; closestTree = t; }
+        });
+
+        v.state = 'chopping';
+        v.targetObj = closestTree;
+        v.targetPos = new THREE.Vector3(closestTree.x, 0, closestTree.z);
+        return;
+      }
+
+      const quarry = buildings.find(b => b.type === 'quarry');
+      if (quarry && stoneRocks.length > 0) {
+        const closestRock = stoneRocks[0];
+        v.state = 'quarrying';
+        v.targetObj = closestRock;
+        v.targetPos = new THREE.Vector3(closestRock.x, 0, closestRock.z);
+        return;
+      }
+
+      // 4. Stroll Village Center
+      v.state = 'strolling';
+      v.targetPos = new THREE.Vector3((Math.random() - 0.5) * 30, 0, (Math.random() - 0.5) * 30);
+    }
+
+    function handleDestinationArrival(v, delta) {
+      v.workTimer += delta;
+
+      if (v.state === 'chopping' && v.targetObj) {
+        if (v.workTimer > 3.0) {
+          playWoodChopSound();
+          v.workTimer = 0;
+          v.targetObj.hp--;
+          gameState.wood += 2;
+          updateResourceLedger();
+
+          if (v.targetObj.hp <= 0) {
+            scene.remove(v.targetObj.mesh);
+            const idx = trees.indexOf(v.targetObj);
+            if (idx !== -1) trees.splice(idx, 1);
+          }
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+      } else if (v.state === 'quarrying' && v.targetObj) {
+        if (v.workTimer > 3.5) {
+          playStoneChiselSound();
+          v.workTimer = 0;
+          v.targetObj.hp--;
+          gameState.stone += 2;
+          updateResourceLedger();
+
+          if (v.targetObj.hp <= 0) {
+            scene.remove(v.targetObj.mesh);
+            const idx = stoneRocks.indexOf(v.targetObj);
+            if (idx !== -1) stoneRocks.splice(idx, 1);
+          }
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+      } else if (v.state === 'drinking') {
+        v.thirst = 100;
+        v.state = 'idle';
+        v.targetPos = null;
+      } else if (v.state === 'eating') {
+        v.hunger = 100;
+        if (gameState.berries > 0) gameState.berries--;
+        else if (gameState.bread > 0) gameState.bread--;
+        updateResourceLedger();
+        v.state = 'idle';
+        v.targetPos = null;
+      } else {
+        if (v.workTimer > 2.0) {
+          v.workTimer = 0;
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+      }
+    }
+
+    // Villager & Building Inspector Click
+    function inspectVillager(v) {
+      const card = document.getElementById('inspector-card');
+      if (!card) return;
+      document.getElementById('insp-title').innerText = `${v.name} the ${v.profession}`;
+      document.getElementById('insp-status').innerText = 'Serf';
+      document.getElementById('insp-job').innerText = v.profession;
+      document.getElementById('insp-task').innerText = v.state.toUpperCase();
+      document.getElementById('insp-hunger').innerText = v.hunger > 50 ? 'Satisfied' : 'Hungry';
+      document.getElementById('insp-thirst').innerText = v.thirst > 50 ? 'Quenched' : 'Thirsty';
+      card.style.display = 'block';
+    }
+
+    window.closeInspector = function() {
+      const card = document.getElementById('inspector-card');
+      if (card) card.style.display = 'none';
     };
-    // Main 60 FPS AAA Simulation Loop
-    function animate() {
+
+    // =========================================================================
+    // ECONOMY, ESTATE QUESTS, CAMERA CONTROLS, SETTINGS & 60 FPS LOOP
+    // =========================================================================
+    const gameState = {
+      gold: 250,
+      wood: 40,
+      stone: 20,
+      berries: 30,
+      bread: 15,
+      happiness: 100
+    };
+
+    let currentQuestIdx = 1;
+    const quests = [
+      {
+        id: 1,
+        title: '1. Lay the Foundation',
+        desc: 'Construct a Lumber Camp and a Town Well to secure vital supplies for your serfs.',
+        check: () => buildings.some(b => b.type === 'lumber') && buildings.some(b => b.type === 'well'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'lumber' || b.type === 'well').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 100; gameState.bread += 20; spawnVillager('Woodcutter'); spawnVillager('Laborer'); }
+      },
+      {
+        id: 2,
+        title: '2. Feed the Hamlet',
+        desc: 'Construct a Market Stall and Thatched Cottages to house your growing population.',
+        check: () => buildings.some(b => b.type === 'market') && buildings.filter(b => b.type === 'cottage').length >= 2,
+        progressText: () => `[PROGRESS: Market ${buildings.filter(b => b.type === 'market').length}/1, Cottages ${buildings.filter(b => b.type === 'cottage').length}/2]`,
+        reward: () => { gameState.gold += 150; spawnVillager('Market Tender'); spawnVillager('Farmer'); }
+      },
+      {
+        id: 3,
+        title: '3. Grain & Masonry',
+        desc: 'Construct a Stonecutter Quarry and a Windmill to produce bread and stone blocks.',
+        check: () => buildings.some(b => b.type === 'quarry') && buildings.some(b => b.type === 'windmill'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'quarry' || b.type === 'windmill').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 200; spawnVillager('Stone Mason'); spawnVillager('Miller'); }
+      },
+      {
+        id: 4,
+        title: '4. Spiritual Devotion',
+        desc: 'Erect a Rustic Church to inspire your serfs and satisfy their need for Faith.',
+        check: () => buildings.some(b => b.type === 'church'),
+        progressText: () => `[PROGRESS: Church ${buildings.filter(b => b.type === 'church').length}/1]`,
+        reward: () => { gameState.gold += 300; playChurchBellSound(); spawnVillager('Priest'); }
+      },
+      {
+        id: 5,
+        title: '5. Seat of the Sovereign',
+        desc: 'Erect the fortified Lord\'s Keep citadel to establish your realm\'s military authority!',
+        check: () => buildings.some(b => b.type === 'keep'),
+        progressText: () => `[PROGRESS: Lord's Keep ${buildings.filter(b => b.type === 'keep').length}/1]`,
+        reward: () => { alert('CONGRATULATIONS, MY LORD! You have forged a grand medieval civilization in Foundation!'); }
+      }
+    ];
+
+    function checkQuestMilestone(newBuildingType) {
+      const q = quests[currentQuestIdx - 1];
+      if (q && q.check()) {
+        playQuestCompleteSound();
+        q.reward();
+        currentQuestIdx++;
+        if (currentQuestIdx <= quests.length) {
+          updateQuestUI();
+        } else {
+          document.getElementById('quest-title').innerText = 'VICTORY: Realm Established';
+          document.getElementById('quest-desc').innerText = 'Your kingdom stands proud upon the rolling hills.';
+          document.getElementById('quest-progress').innerText = '[ALL QUESTS COMPLETE]';
+        }
+      } else {
+        updateQuestUI();
+      }
+    }
+
+    function updateQuestUI() {
+      if (currentQuestIdx > quests.length) return;
+      const q = quests[currentQuestIdx - 1];
+      document.getElementById('quest-title').innerText = q.title;
+      document.getElementById('quest-desc').innerText = q.desc;
+      document.getElementById('quest-progress').innerText = q.progressText();
+    }
+
+    function updateResourceLedger() {
+      document.getElementById('res-gold').innerText = gameState.gold;
+      document.getElementById('res-wood').innerText = gameState.wood;
+      document.getElementById('res-stone').innerText = gameState.stone;
+      document.getElementById('res-berries').innerText = gameState.berries;
+      document.getElementById('res-bread').innerText = gameState.bread;
+    }
+
+    function updatePopulationHUD() {
+      const popEl = document.getElementById('pop-count');
+      if (popEl) popEl.innerText = villagers.length;
+    }
+
+    // Raycaster for Terrain Intersection
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function setupControlsAndInput() {
+      window.addEventListener('keydown', (e) => {
+        initAudio();
+        if (e.code === 'Escape') {
+          if (activeBuildType) cancelBuildingPlacement();
+          else togglePauseSettings();
+        }
+        if (e.code === 'KeyR' && ghostBuilding) {
+          ghostRotation += Math.PI * 0.25;
+          ghostBuilding.rotation.y = ghostRotation;
+        }
+      });
+
+      // Right Mouse Drag to Orbit Horizon
+      window.addEventListener('mousedown', (e) => {
+        initAudio();
+        if (e.button === 2) {
+          isRightDragging = true;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+        } else if (e.button === 0) {
+          // Left Click: Place building or inspect
+          handleLeftClick(e);
+        }
+      });
+
+      window.addEventListener('mouseup', (e) => {
+        if (e.button === 2) isRightDragging = false;
+      });
+
+      window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        if (isRightDragging) {
+          const deltaX = e.clientX - prevMouseX;
+          const deltaY = e.clientY - prevMouseY;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+
+          camYaw -= deltaX * 0.005;
+          camPitch = Math.max(0.15, Math.min(1.4, camPitch - deltaY * 0.005));
+          updateCameraPosition();
+        }
+
+        // Update Ghost Building Position on Terrain
+        if (activeBuildType && ghostBuilding && terrainMesh) {
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObject(terrainMesh);
+          if (intersects.length > 0) {
+            const p = intersects[0].point;
+            ghostBuilding.position.set(p.x, getTerrainHeight(p.x, p.z), p.z);
+          }
+        }
+      });
+
+      // CONTINUOUS MOUSE SCROLL WHEEL OPTICAL ZOOM (8m to 260m)
+      window.addEventListener('wheel', (e) => {
+        camDistance = Math.max(8.0, Math.min(260.0, camDistance + e.deltaY * 0.08));
+        updateCameraPosition();
+      }, { passive: true });
+
+      // Settings DOM Events
+      const btnSettings = document.getElementById('btn-settings-hud');
+      if (btnSettings) btnSettings.addEventListener('click', () => togglePauseSettings());
+
+      const sBright = document.getElementById('slider-brightness');
+      if (sBright) {
+        sBright.addEventListener('input', (e) => {
+          const v = parseFloat(e.target.value);
+          if (renderer) renderer.toneMappingExposure = v;
+          document.getElementById('val-brightness').innerText = `${Math.round(v * 100)}%`;
+        });
+      }
+
+      const sVol = document.getElementById('slider-volume');
+      if (sVol) {
+        sVol.addEventListener('input', (e) => {
+          masterVolume = parseFloat(e.target.value);
+          document.getElementById('val-volume').innerText = `${Math.round(masterVolume * 100)}%`;
+        });
+      }
+
+      const selGPU = document.getElementById('select-gpu');
+      if (selGPU) {
+        selGPU.addEventListener('change', (e) => {
+          if (!renderer) return;
+          const mode = e.target.value;
+          if (mode === 'ultra') renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          else if (mode === 'high') renderer.setPixelRatio(1.25);
+          else renderer.setPixelRatio(1.0);
+        });
+      }
+    }
+
+    function handleLeftClick(e) {
+      if (e.target.closest('#hud') || e.target.closest('#settings-modal') || e.target.closest('#inspector-card')) return;
+
+      if (activeBuildType && ghostBuilding) {
+        tryPlaceBuilding(ghostBuilding.position.x, ghostBuilding.position.z);
+        return;
+      }
+
+      // Check click on Villager
+      raycaster.setFromCamera(mouse, camera);
+      for (const v of villagers) {
+        const intersects = raycaster.intersectObjects(v.mesh.children);
+        if (intersects.length > 0) {
+          inspectVillager(v);
+          return;
+        }
+      }
+    }
+
+    // Keyboard Pan (WASD / Arrows)
+    const keys = {};
+    window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+    function updateCameraPan(delta) {
+      let dx = 0, dz = 0;
+      if (keys['KeyW'] || keys['ArrowUp']) dz -= 1;
+      if (keys['KeyS'] || keys['ArrowDown']) dz += 1;
+      if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+      if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+
+      if (dx !== 0 || dz !== 0) {
+        const panSpeed = (camDistance * 0.8) * delta;
+        const sinYaw = Math.sin(camYaw);
+        const cosYaw = Math.cos(camYaw);
+
+        camTarget.x += (dx * cosYaw - dz * sinYaw) * panSpeed;
+        camTarget.z += (dx * sinYaw + dz * cosYaw) * panSpeed;
+        camTarget.x = Math.max(-180, Math.min(180, camTarget.x));
+        camTarget.z = Math.max(-180, Math.min(180, camTarget.z));
+        updateCameraPosition();
+      }
+    }
+
+    // Settings Modal Toggle
+    window.togglePauseSettings = function() {
+      const modal = document.getElementById('settings-modal');
+      if (!modal) return;
+      const isOpen = modal.style.display === 'flex';
+      modal.style.display = isOpen ? 'none' : 'flex';
+    };
+
+    // Zoning Toggle
+    window.toggleZoningTool = function() {
+      initAudio();
+      alert('[ZONING SYSTEM ACTIVE] Paint Residential zones (Green) on rolling hills. Serfs will autonomously construct their thatched cottages near wells and workplaces!');
+    };
+
+    // MAIN 60 FPS SIMULATION ANIMATION LOOP
+    let lastTime = performance.now();
+
+    function animate(currentTime) {
       requestAnimationFrame(animate);
 
-      if (inGalaxyMap && galaxyRenderer && galaxyScene) {
-        galaxyPivot.rotation.y += 0.003;
-        galaxyRenderer.render(galaxyScene, galaxyCamera);
-        return;
-      }
+      const delta = Math.min((currentTime - lastTime) * 0.001, 0.05);
+      lastTime = currentTime;
 
-      if (isPaused) return;
+      // 1. Camera Pan
+      updateCameraPan(delta);
 
-      // 1. Flight Dynamics (360-Degree Free Exploration & Yoke Tilt)
-      let pitchInput = 0, yawInput = 0, rollInput = 0;
+      // 2. Autonomous Villagers & Desire Footpaths
+      updateVillagers(delta);
 
-      // Mouse Tilt Flight Yoke
-      pitchInput -= mouseTiltY * 0.035;
-      yawInput -= mouseTiltX * 0.035;
-      rollInput -= mouseTiltX * 0.045; // Automatic banking on turn
-
-      // Gyroscope Tilt (Mobile / Tablet)
-      if (gyroEnabled) {
-        pitchInput += gyroBeta * 0.03;
-        rollInput += gyroGamma * 0.04;
-        yawInput += gyroGamma * 0.025;
-      }
-
-      // Keyboard 6-DoF Controls
-      if (keys['KeyQ']) rollInput += 0.04;
-      if (keys['KeyE']) rollInput -= 0.04;
-      if (keys['KeyA'] || keys['ArrowLeft']) yawInput += 0.03;
-      if (keys['KeyD'] || keys['ArrowRight']) yawInput -= 0.03;
-
-      // Throttle Control (W / S)
-      if (keys['KeyW'] || keys['ArrowUp']) {
-        currentSpeed = Math.min(maxSpeed, currentSpeed + 6);
-      } else if (keys['KeyS'] || keys['ArrowDown']) {
-        currentSpeed = Math.max(minSpeed, currentSpeed - 6);
-      }
-      throttlePercent = Math.round((currentSpeed / maxSpeed) * 100);
-      document.getElementById('throttle-bar').style.width = `${throttlePercent}%`;
-      document.getElementById('throttle-val').innerText = `${throttlePercent}%`;
-      document.getElementById('speed-val').innerText = Math.round(currentSpeed);
-
-      // Apply Rotations to Player Starfighter (Pitch, Yaw, Roll)
-      const rotDelta = new THREE.Quaternion();
-      const euler = new THREE.Euler(pitchInput, yawInput, rollInput, 'YXZ');
-      rotDelta.setFromEuler(euler);
-      player.quaternion.multiply(rotDelta);
-
-      // Forward Flight Propulsion
-      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
-      const moveStep = forward.clone().multiplyScalar(currentSpeed * 0.0035);
-      player.position.add(moveStep);
-
-      // Smooth Third-Person Chase Camera with Dynamic Inertia
-      const camOffset = new THREE.Vector3(0, 4.2, 14).applyQuaternion(player.quaternion);
-      const targetCamPos = player.position.clone().add(camOffset);
-      camera.position.lerp(targetCamPos, 0.12);
-
-      const lookTarget = player.position.clone().add(forward.clone().multiplyScalar(25));
-      camera.lookAt(lookTarget);
-
-      // Laser Heat Dissipation
-      if (laserHeat > 0) {
-        laserHeat = Math.max(0, laserHeat - 0.22);
-        document.getElementById('heat-bar').style.width = `${laserHeat}%`;
-        document.getElementById('heat-val').innerText = `${Math.round(laserHeat)}%`;
-      }
-
-      // Rotate Background Galaxy & Celestial Planet
-      if (backgroundGalaxyPoints) backgroundGalaxyPoints.rotation.y += 0.0005;
-      if (planetaryBody) planetaryBody.rotation.y += 0.0008;
-
-      // 2. Animate Comets
-      comets.forEach(c => {
-        c.position.x += c.userData.vx;
-        c.position.y += c.userData.vy;
-        c.position.z += c.userData.vz;
-        c.rotation.x += c.userData.rotSpeed;
-        c.rotation.y += c.userData.rotSpeed;
-
-        // Wrap around exploration bounds
-        if (player.position.distanceTo(c.position) > 1200) {
-          c.position.copy(player.position).add(
-            new THREE.Vector3((Math.random() - 0.5) * 800, Math.random() * 200 + 40, (Math.random() - 0.5) * 800)
-          );
+      // 3. Windmill Sail Rotation
+      buildings.forEach((b) => {
+        if (b.type === 'windmill' && b.mesh.sails) {
+          b.mesh.sails.rotation.z += delta * 1.2;
         }
       });
 
-      // 3. Animate Satellites
-      satellites.forEach(s => {
-        s.rotation.y += s.userData.rotY;
-        s.rotation.z += s.userData.rotZ;
-        if (s.userData.beacon) {
-          const t = Date.now() * 0.005;
-          s.userData.beacon.material.opacity = Math.sin(t) > 0 ? 1 : 0.2;
-        }
+      // 4. Drifting Fluffy Clouds
+      clouds.forEach((c) => {
+        c.mesh.position.x += c.speed * delta;
+        if (c.mesh.position.x > 320) c.mesh.position.x = -320;
       });
-
-      // 4. Update Player Projectiles & Collision Physics
-      for (let i = playerProjectiles.length - 1; i >= 0; i--) {
-        const p = playerProjectiles[i];
-        p.position.add(p.userData.vel);
-        p.userData.life--;
-        let hit = false;
-
-        // Hit vs Enemies
-        for (let j = enemies.length - 1; j >= 0; j--) {
-          const e = enemies[j];
-          if (p.position.distanceTo(e.position) < 4.2) {
-            e.userData.hp -= p.userData.damage;
-            hit = true;
-            createExplosion(p.position, 0xef4444, false);
-
-            if (e.userData.hp <= 0) {
-              createExplosion(e.position, 0xff3b30, true);
-              scene.remove(e);
-              enemies.splice(j, 1);
-              shards += 2;
-              score += 250;
-              enemiesEliminatedInSector += 1;
-              document.getElementById('shards-val').innerText = shards;
-              document.getElementById('score-val').innerText = score;
-              document.getElementById('enemies-val').innerText = enemies.length;
-
-              const curSec = SECTORS[currentSectorId - 1];
-              document.getElementById('comms-mission-task').innerText = `${curSec.objectiveText} (${enemiesEliminatedInSector} / ${curSec.targetEnemies})`;
-
-              if (enemiesEliminatedInSector >= curSec.targetEnemies) {
-                if (currentSectorId === 5 && !bossActive) {
-                  spawnSupremeBoss();
-                } else if (currentSectorId < 5) {
-                  unlockedSectors = Math.max(unlockedSectors, currentSectorId + 1);
-                  updateStoryTransmission(
-                    curSec.speaker,
-                    curSec.victoryMessage,
-                    '[MISSION COMPLETE] Open Galaxy Map [M] to Jump'
-                  );
-                }
-              }
-            }
-            break;
-          }
-        }
-
-        // Hit vs Destructible Asteroids
-        if (!hit) {
-          for (let k = asteroids.length - 1; k >= 0; k--) {
-            const a = asteroids[k];
-            if (p.position.distanceTo(a.position) < a.userData.radius + 1.2) {
-              a.userData.hp -= p.userData.damage;
-              hit = true;
-              createExplosion(p.position, 0x94a3b8, false);
-
-              if (a.userData.hp <= 0) {
-                createExplosion(a.position, 0x64748b, true);
-                scene.remove(a);
-                asteroids.splice(k, 1);
-                shards += 1;
-                score += 50;
-                document.getElementById('shards-val').innerText = shards;
-                document.getElementById('score-val').innerText = score;
-              }
-              break;
-            }
-          }
-        }
-
-        // Hit vs Destructible Comets
-        if (!hit) {
-          for (let m = comets.length - 1; m >= 0; m--) {
-            const c = comets[m];
-            if (p.position.distanceTo(c.position) < 5.0) {
-              c.userData.hp -= p.userData.damage;
-              hit = true;
-              createExplosion(p.position, 0x00f0ff, false);
-
-              if (c.userData.hp <= 0) {
-                createExplosion(c.position, 0xdff9fb, true);
-                scene.remove(c);
-                comets.splice(m, 1);
-                shards += 3;
-                score += 150;
-                document.getElementById('shards-val').innerText = shards;
-                document.getElementById('score-val').innerText = score;
-              }
-              break;
-            }
-          }
-        }
-
-        // Hit vs Destructible Satellites
-        if (!hit) {
-          for (let n = satellites.length - 1; n >= 0; n--) {
-            const s = satellites[n];
-            if (p.position.distanceTo(s.position) < 5.5) {
-              s.userData.hp -= p.userData.damage;
-              hit = true;
-              createExplosion(p.position, 0xf59e0b, false);
-
-              if (s.userData.hp <= 0) {
-                createExplosion(s.position, 0xf59e0b, true);
-                scene.remove(s);
-                satellites.splice(n, 1);
-                score += 100;
-                document.getElementById('score-val').innerText = score;
-              }
-              break;
-            }
-          }
-        }
-
-        // Hit vs Supreme Boss
-        if (!hit && bossActive && boss) {
-          if (p.position.distanceTo(boss.position) < 22) {
-            boss.userData.hp -= p.userData.damage;
-            hit = true;
-            createExplosion(p.position, 0xec4899, false);
-
-            updateStoryTransmission(
-              'FLEET ADMIRAL VANCE // COMBAT TELEMETRY',
-              '"Direct hit on the Dreadnought citadel! Maintain firing sequence!"',
-              `Destroy Supreme Alien Dreadnought (HP: ${Math.max(0, boss.userData.hp)} / ${boss.userData.maxHp})`
-            );
-
-            if (boss.userData.hp <= 0) {
-              createExplosion(boss.position, 0x00f0ff, true);
-              scene.remove(boss);
-              boss = null;
-              bossActive = false;
-              score += 10000;
-              document.getElementById('score-val').innerText = score;
-
-              updateStoryTransmission(
-                'SUPREME HIGH COMMAND // NOVA FLEET VICTORY',
-                '"THE ALIEN DREADNOUGHT IS DESTROYED! The Nova Galaxy is free. Commander Unknown, you have achieved galactic liberation!"',
-                '[CAMPAIGN COMPLETED] ALL SECTORS LIBERATED!'
-              );
-            }
-          }
-        }
-
-        if (hit || p.userData.life <= 0) {
-          scene.remove(p);
-          playerProjectiles.splice(i, 1);
-        }
-      }
-
-      // 5. Update Enemy Projectiles
-      for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
-        const ep = enemyProjectiles[i];
-        ep.position.add(ep.userData.vel);
-        ep.userData.life--;
-
-        if (ep.position.distanceTo(player.position) < 3.2) {
-          playerShield = Math.max(0, playerShield - ep.userData.damage);
-          const flash = document.getElementById('damage-flash');
-          flash.style.opacity = '0.85';
-          setTimeout(() => { flash.style.opacity = '0'; }, 85);
-
-          if (playerShield <= 0) playerHull = Math.max(0, playerHull - 12);
-          document.getElementById('shield-bar').style.width = `${playerShield}%`;
-          document.getElementById('shield-val').innerText = `${playerShield}%`;
-          document.getElementById('hull-bar').style.width = `${playerHull}%`;
-          document.getElementById('hull-val').innerText = `${playerHull}%`;
-
-          createExplosion(ep.position, 0xef4444, false);
-          scene.remove(ep);
-          enemyProjectiles.splice(i, 1);
-          continue;
-        }
-
-        if (ep.userData.life <= 0) {
-          scene.remove(ep);
-          enemyProjectiles.splice(i, 1);
-        }
-      }
-
-      // 6. Active Autonomous Enemy Pursuit & Dogfighting
-      if (enemies.length < 5 && Math.random() < 0.03 && !bossActive) {
-        spawnSectorEnemy();
-      }
-
-      let closestEnemy = null;
-      let closestDist = Infinity;
-
-      for (let i = enemies.length - 1; i >= 0; i--) {
-        const e = enemies[i];
-        const dist = e.position.distanceTo(player.position);
-
-        if (dist < closestDist) {
-          closestDist = dist;
-          closestEnemy = e;
-        }
-
-        // Active 3D Pursuit: Orient toward Player
-        const lookQuat = new THREE.Quaternion();
-        const dirToPlayer = new THREE.Vector3().subVectors(player.position, e.position).normalize();
-        
-        // Smooth rotation toward player
-        e.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dirToPlayer), 0.05);
-
-        // Sinusoidal weaving for Alien Swarm
-        if (e.userData.type === 'alien_swarm') {
-          const sideVector = new THREE.Vector3(1, 0, 0).applyQuaternion(e.quaternion);
-          e.position.add(sideVector.multiplyScalar(Math.sin(Date.now() * 0.005 + e.userData.oscOffset) * 0.6));
-        }
-
-        // Forward Pursuit Velocity
-        const enemyForward = new THREE.Vector3(0, 0, 1).applyQuaternion(e.quaternion);
-        e.position.add(enemyForward.multiplyScalar(e.userData.speed));
-
-        // Attack & Firing Logic
-        e.userData.shootCooldown--;
-        if (e.userData.shootCooldown <= 0 && dist < 420) {
-          fireEnemyWeapon(e);
-          e.userData.shootCooldown = 75 + Math.random() * 50;
-        }
-
-        // Ramming Collision vs Player
-        if (dist < 3.8) {
-          playerShield = Math.max(0, playerShield - 25);
-          createExplosion(e.position, 0xff3b30, true);
-          scene.remove(e);
-          enemies.splice(i, 1);
-          continue;
-        }
-      }
-
-      // 7. Update Dynamic 3D Target Lock Reticle
-      const lockBox = document.getElementById('target-lock-box');
-      if (closestEnemy && closestDist < 600) {
-        const screenPos = closestEnemy.position.clone().project(camera);
-        if (screenPos.z < 1) { // In front of camera
-          const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-          const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
-          lockBox.style.display = 'block';
-          lockBox.style.left = `${x}px`;
-          lockBox.style.top = `${y}px`;
-          document.getElementById('target-lock-info').innerText = `[${closestEnemy.userData.name}] ${Math.round(closestDist)}M`;
-          const hpPct = Math.round((closestEnemy.userData.hp / closestEnemy.userData.maxHp) * 100);
-          document.getElementById('target-lock-hp').style.width = `${hpPct}%`;
-        } else {
-          lockBox.style.display = 'none';
-        }
-      } else {
-        lockBox.style.display = 'none';
-      }
-
-      // 8. Update 360-Degree Tactical Sensor Radar
-      const blipsContainer = document.getElementById('radar-blips');
-      blipsContainer.innerHTML = '';
-      const radarRange = 600;
-
-      enemies.forEach(e => {
-        const rel = e.position.clone().sub(player.position);
-        if (rel.length() < radarRange) {
-          const rx = 60 + (rel.x / radarRange) * 50;
-          const ry = 60 + (rel.z / radarRange) * 50;
-          const blip = document.createElement('div');
-          blip.className = 'radar-blip blip-enemy';
-          blip.style.left = `${rx}px`;
-          blip.style.top = `${ry}px`;
-          blipsContainer.appendChild(blip);
-        }
-      });
-
-      satellites.forEach(s => {
-        const rel = s.position.clone().sub(player.position);
-        if (rel.length() < radarRange) {
-          const rx = 60 + (rel.x / radarRange) * 50;
-          const ry = 60 + (rel.z / radarRange) * 50;
-          const blip = document.createElement('div');
-          blip.className = 'radar-blip blip-satellite';
-          blip.style.left = `${rx}px`;
-          blip.style.top = `${ry}px`;
-          blipsContainer.appendChild(blip);
-        }
-      });
-
-      // 9. Boss Rotation Behavior
-      if (bossActive && boss) {
-        boss.children[1].rotation.z += 0.02; // Rotate shield ring
-      }
-
-      // 10. Particle Physics & Debris Chunks
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const pt = particles[i];
-        if (pt.userData.scale) {
-          pt.userData.scale += 0.45;
-          pt.scale.set(pt.userData.scale, pt.userData.scale, 1);
-          pt.material.opacity *= 0.92;
-          if (pt.userData.scale >= pt.userData.maxScale || pt.material.opacity < 0.05) {
-            scene.remove(pt);
-            particles.splice(i, 1);
-          }
-        }
-      }
-
-      for (let i = debrisChunks.length - 1; i >= 0; i--) {
-        const d = debrisChunks[i];
-        d.position.add(d.userData.vel);
-        d.rotation.x += d.userData.rotVel.x;
-        d.rotation.y += d.userData.rotVel.y;
-        d.userData.life--;
-        if (d.userData.life <= 0) {
-          scene.remove(d);
-          debrisChunks.splice(i, 1);
-        }
-      }
 
       renderer.render(scene, camera);
     }
 
-    init3D();
+    // BOOTSTRAP REALM (Spawn Town Center & First 6 Serfs)
+    window.addEventListener('DOMContentLoaded', () => {
+      init3DEnvironment();
+      setupControlsAndInput();
+
+      // Default Town Center Manor at (0, 0)
+      const centerBuilding = createBuildingMesh('center', false);
+      centerBuilding.position.set(0, getTerrainHeight(0, 0), 0);
+      scene.add(centerBuilding);
+      buildings.push({ type: 'center', mesh: centerBuilding, x: 0, z: 0 });
+
+      // Spawn First 6 Autonomous Serfs
+      for (let i = 0; i < 6; i++) {
+        const offset = new THREE.Vector3((Math.random() - 0.5) * 16, 0, (Math.random() - 0.5) * 16);
+        spawnVillager(i < 3 ? 'Woodcutter' : 'Laborer', offset);
+      }
+
+      updateResourceLedger();
+      updateQuestUI();
+      requestAnimationFrame(animate);
+    });
+
   </script>
 </body>
 </html>

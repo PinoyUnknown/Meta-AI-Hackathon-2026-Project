@@ -152,13 +152,17 @@ def main():
     parser.add_argument("--web", action="store_true", help="Launch FastAPI Web server & 3D WebGL Studio")
     parser.add_argument("--cli", "--forge", action="store_true", help="Run Meta AI Game Forge CLI pipeline")
     parser.add_argument("--export", action="store_true", help="Export Meta Horizon Worlds & Steam manifests")
+    parser.add_argument("--wonder", action="store_true", help="Stream tactical briefings from Meta muse-wonder-1.0 API")
     parser.add_argument("--security", action="store_true", help="Run Meta CyberSecEval security audit")
     parser.add_argument("--benchmark", action="store_true", help="Run automated test and benchmark suite")
     parser.add_argument("--port", type=int, default=8000, help="Port for web server (default: 8000)")
 
     args = parser.parse_args()
 
-    if args.game_2d:
+    if args.wonder:
+        from meta_wonder_client import run_cli_wonder_demo
+        run_cli_wonder_demo()
+    elif args.game_2d:
         run_2d_game()
     elif args.studio:
         run_studio_gui()
