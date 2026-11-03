@@ -12,6 +12,8 @@ downloads/
 eggs/
 .eggs/
 lib/
+!game_3d/lib/
+!game_3d/lib/**
 lib64/
 parts/
 sdist/
@@ -58,3 +60,4 @@ Thumbs.db
 # Logs & Archives
 *.log
 *.zip
+Meta-AI-Hackathon-2026-Project/

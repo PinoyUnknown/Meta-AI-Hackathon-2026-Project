@@ -68,13 +68,13 @@ class GameUI:
         lbl_shards = self.font_main.render(shards_text, True, COLOR_GOLD)
         surface.blit(lbl_shards, (info_box.x + 20, info_box.y + 16))
 
-        # 3. Top-Right Meta AI Studio Button Prompt
+        # 3. Top-Right Frontier Terminal Button Prompt
         btn_box = pygame.Rect(SCREEN_WIDTH - 240, 16, 224, 40)
         pygame.draw.rect(surface, (30, 27, 75) if self.show_ai_drawer else (15, 23, 42), btn_box, border_radius=8)
         pygame.draw.rect(surface, COLOR_PURPLE, btn_box, 1, border_radius=8)
-        btn_text = "[TAB] META AI STUDIO"
+        btn_text = "[TAB] FRONTIER TERMINAL"
         lbl_btn = self.font_badge.render(btn_text, True, COLOR_PURPLE)
-        surface.blit(lbl_btn, (btn_box.x + 24, btn_box.y + 12))
+        surface.blit(lbl_btn, (btn_box.x + 18, btn_box.y + 12))
 
         # 4. Boss Health Bar (if active)
         if boss and boss.alive:
@@ -88,7 +88,7 @@ class GameUI:
             lbl_boss = self.font_badge.render(f"BOSS: {boss.archetype.upper()} ({int(boss.hp)}/{int(boss.max_hp)})", True, COLOR_GOLD)
             surface.blit(lbl_boss, (boss_box.x + 12, boss_box.y + 3))
 
-        # 5. Draw AI Drawer if toggled
+        # 5. Draw Invariant Drawer if toggled
         if self.show_ai_drawer:
             self._draw_ai_drawer(surface, player)
 
@@ -98,7 +98,7 @@ class GameUI:
         pygame.draw.rect(surface, COLOR_PURPLE, drawer, 2, border_radius=10)
 
         # Drawer Title
-        title_surf = self.font_main.render("META AI GAME DEV STUDIO", True, COLOR_CYAN)
+        title_surf = self.font_main.render("FRONTIER INVARIANT TERMINAL", True, COLOR_CYAN)
         surface.blit(title_surf, (drawer.x + 20, drawer.y + 16))
 
         sub_surf = self.font_sm.render("Autonomous In-Game Level & Asset Forge", True, COLOR_TEXT_DIM)

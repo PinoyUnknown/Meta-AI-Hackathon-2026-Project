@@ -62,7 +62,7 @@ class Enemy:
         self.shoot_cooldown = random.randint(20, self.shoot_cooldown_max) if self.shoot_cooldown_max > 0 else 0
 
     def update(self, player_x, player_y):
-        # AI Vector toward player
+        # Tracking Vector toward player
         dx = player_x - self.x
         dy = player_y - self.y
         dist = math.hypot(dx, dy)

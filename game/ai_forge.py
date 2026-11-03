@@ -124,7 +124,7 @@ def spawn_tier_{tier}_wave(player_level):
             },
             4: {
                 "npc": "The Architect (Core Superintelligence)",
-                "dialogue": "You stand before the Superintelligence Core. Nexus-Prime has rewritten reality's invariants. Only a true Master of the Horizon can overcome the Rogue AI!",
+                "dialogue": "You stand before the Superintelligence Core. Nexus-Prime has rewritten reality's invariants. Only a true Master of the Horizon can overcome the Rogue Supermind!",
                 "quest": "Defeat Nexus-Prime and achieve Omni-Forge Mastery."
             }
         }
@@ -171,7 +171,7 @@ def spawn_tier_{tier}_wave(player_level):
             "Version": "2.0.0",
             "Executable": "main.py",
             "Engine": "Python Pygame Hardware Accelerated 60FPS",
-            "StoreCategories": ["Action", "Adventure", "RPG", "AI-Generated"]
+            "StoreCategories": ["Action", "Adventure", "RPG", "Procedural", "Sci-Fi"]
         }
         steam_path = os.path.join(output_dir, "steam_app_manifest.json")
         with open(steam_path, "w", encoding="utf-8") as f:

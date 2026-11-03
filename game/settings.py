@@ -8,7 +8,7 @@ import pygame
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 FPS = 60
-TITLE = "MetaHorizon Odyssey: The AI-Forged Multi-Tier RPG"
+TITLE = "MetaHorizon Odyssey: Frontier Voyager"
 
 # Cybernetic Theme Colors
 COLOR_BG = (11, 15, 23)
