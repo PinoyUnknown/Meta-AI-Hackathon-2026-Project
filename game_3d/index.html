@@ -1109,21 +1109,30 @@
         scene.add(treeGroup);
         trees.push({ mesh: treeGroup, x: x, z: z, hp: 4 });
       }
-
-      for (let i = 0; i < 35; i++) {
-        const x = (Math.random() - 0.5) * 320;
-        const z = (Math.random() - 0.5) * 320;
-        if (Math.hypot(x, z) < 25) continue;
+      // Spawn 45 Granite Boulders (including starter rocks near village center for immediate stone looting)
+      for (let i = 0; i < 45; i++) {
+        let x, z;
+        if (i < 8) {
+          const angle = (i / 8) * Math.PI * 2;
+          const dist = 18 + (i % 3) * 6;
+          x = Math.cos(angle) * dist;
+          z = Math.sin(angle) * dist;
+        } else {
+          x = (Math.random() - 0.5) * 320;
+          z = (Math.random() - 0.5) * 320;
+          if (Math.hypot(x, z) < 16) continue;
+        }
         const y = getTerrainHeight(x, z);
 
         const rockRad = 1.8 + Math.random() * 2.2;
         const rockGeo = new THREE.DodecahedronGeometry(rockRad, 1);
         const rock = new THREE.Mesh(rockGeo, stoneMat);
-        rock.position.set(x, y + rockRad * 0.6, z);
+        rock.position.set(x, y + rockRad * 0.55, z);
         rock.rotation.set(Math.random(), Math.random(), Math.random());
         rock.castShadow = true;
         scene.add(rock);
         stoneRocks.push({ mesh: rock, x: x, z: z, hp: 6 });
+      }
       }
     }
 
@@ -1534,27 +1543,41 @@
         }
       }
 
-      const lumberCamp = buildings.find(b => b.type === 'lumber');
-      if (lumberCamp && trees.length > 0) {
+      // 3. STONE LOOTING & QUARRYING (Prioritized for Stone Masons and dynamic resource balance)
+      const wantsStone = (v.profession === 'Stone Mason') || 
+                         (v.profession === 'Laborer' && gameState.stone <= gameState.wood) ||
+                         (buildings.some(b => b.type === 'quarry'));
+
+      if (wantsStone && stoneRocks.length > 0) {
+        let closestRock = stoneRocks[0];
+        let minDist = 9999;
+        stoneRocks.forEach(r => {
+          const d = Math.hypot(r.x - v.x, r.z - v.z);
+          if (d < minDist) { minDist = d; closestRock = r; }
+        });
+
+        v.state = 'quarrying';
+        v.targetObj = closestRock;
+        v.targetPos = new THREE.Vector3(closestRock.x, 0, closestRock.z);
+        return;
+      }
+
+      // 4. TIMBER HARVESTING (Prioritized for Woodcutters)
+      const wantsWood = (v.profession === 'Woodcutter') || 
+                        (v.profession === 'Laborer' && gameState.wood < gameState.stone) ||
+                        (buildings.some(b => b.type === 'lumber'));
+
+      if (wantsWood && trees.length > 0) {
         let closestTree = trees[0];
         let minDist = 9999;
         trees.forEach(t => {
-          const d = Math.hypot(t.x - lumberCamp.x, t.z - lumberCamp.z);
+          const d = Math.hypot(t.x - v.x, t.z - v.z);
           if (d < minDist) { minDist = d; closestTree = t; }
         });
 
         v.state = 'chopping';
         v.targetObj = closestTree;
         v.targetPos = new THREE.Vector3(closestTree.x, 0, closestTree.z);
-        return;
-      }
-
-      const quarry = buildings.find(b => b.type === 'quarry');
-      if (quarry && stoneRocks.length > 0) {
-        const closestRock = stoneRocks[0];
-        v.state = 'quarrying';
-        v.targetObj = closestRock;
-        v.targetPos = new THREE.Vector3(closestRock.x, 0, closestRock.z);
         return;
       }
 
@@ -1869,6 +1892,24 @@
       }
 
       raycaster.setFromCamera(mouse, camera);
+
+      // Check click on Granite Boulder to loot stone immediately!
+      for (const rock of stoneRocks) {
+        const rockIntersects = raycaster.intersectObject(rock.mesh);
+        if (rockIntersects.length > 0) {
+          showRealmNotice('[STONE BOULDER TARGETED] Ordering nearest serf to loot stone!');
+          playStoneChiselSound();
+          // Dispatch nearest idle or laborer villager
+          let candidate = villagers.find(v => v.profession === 'Stone Mason') || villagers[0];
+          if (candidate) {
+            candidate.state = 'quarrying';
+            candidate.targetObj = rock;
+            candidate.targetPos = new THREE.Vector3(rock.x, 0, rock.z);
+          }
+          return;
+        }
+      }
+
       for (const v of villagers) {
         const intersects = raycaster.intersectObjects(v.mesh.children);
         if (intersects.length > 0) {
@@ -1976,9 +2017,11 @@
         scene.add(centerBuilding);
         buildings.push({ type: 'center', mesh: centerBuilding, x: 0, z: 0 });
 
+        // Initial balanced workforce: 2 Woodcutters, 2 Stone Masons, 2 Laborers
+        const starterRoles = ['Woodcutter', 'Woodcutter', 'Stone Mason', 'Stone Mason', 'Laborer', 'Laborer'];
         for (let i = 0; i < 6; i++) {
           const offset = new THREE.Vector3((Math.random() - 0.5) * 16, 0, (Math.random() - 0.5) * 16);
-          spawnVillager(i < 3 ? 'Woodcutter' : 'Laborer', offset);
+          spawnVillager(starterRoles[i], offset);
         }
 
         updateResourceLedger();
