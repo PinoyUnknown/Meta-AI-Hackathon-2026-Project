@@ -1,0 +1,13 @@
+{
+  "AppId": "4206900",
+  "GameTitle": "MetaHorizon Odyssey",
+  "Version": "2.0.0",
+  "Executable": "main.py",
+  "Engine": "Python Pygame Hardware Accelerated 60FPS",
+  "StoreCategories": [
+    "Action",
+    "Adventure",
+    "RPG",
+    "AI-Generated"
+  ]
+}

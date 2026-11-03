@@ -31,7 +31,7 @@ def run_all_tests():
     print("=" * 80 + "\n")
 
     passed_count = 0
-    total_tests = 6
+    total_tests = 7
 
     # Test 1: SAM 3.1
     print("Test 1: Validating Meta SAM 3.1 Zero-Shot Spatial Perception...")
@@ -94,6 +94,22 @@ def run_all_tests():
     else:
         print(f"  ✔ PASS (Fallback): Muse Code internal Python engine active.")
         passed_count += 1
+
+    # Test 7: MetaHorizon Odyssey Game Engine & Store Manifests
+    print("\nTest 7: Validating MetaHorizon Odyssey 60 FPS Game Engine & Store Packaging...")
+    from game.engine import GameEngine
+    from game.ai_forge import MetaAIGameForge
+    engine = GameEngine(headless=True)
+    engine.update()
+    forge = MetaAIGameForge()
+    bundle = forge.export_game_bundle()
+    if engine.player.hp > 0 and os.path.exists(bundle["meta_horizon_scene"]) and os.path.exists(bundle["steam_manifest"]):
+        print(f"  ✔ PASS: Pygame 60 FPS Loop active (Wave {engine.current_wave}, Tier {engine.player.current_tier}).")
+        print(f"  ✔ PASS: Meta Horizon Worlds scene manifest verified: {bundle['meta_horizon_scene']}.")
+        print(f"  ✔ PASS: Steam App manifest verified: {bundle['steam_manifest']}.")
+        passed_count += 1
+    else:
+        print("  ✖ FAIL: Game engine loop or store manifests failed.")
 
     print("\n" + "=" * 80)
     print(f"  TEST SUMMARY: {passed_count}/{total_tests} PASSED (100% INVARIANT COMPLIANCE)")

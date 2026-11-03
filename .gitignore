@@ -55,5 +55,6 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Logs
+# Logs & Archives
 *.log
+*.zip
