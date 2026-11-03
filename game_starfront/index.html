@@ -867,6 +867,58 @@
       margin-top: 4px;
       line-height: 1.5;
     }
+    #boot-loader {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      background: #02040a;
+      color: #a5f3fc;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 3px;
+    }
+    #boot-loader .boot-bar {
+      width: 220px;
+      height: 4px;
+      background: #0e2a3a;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #boot-loader .boot-bar > div {
+      width: 40%;
+      height: 100%;
+      background: #00f0ff;
+      animation: bootSlide 1.1s ease-in-out infinite alternate;
+    }
+    @keyframes bootSlide {
+      from { margin-left: 0; }
+      to { margin-left: 60%; }
+    }
+    #boot-error {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 210;
+      display: none;
+      max-width: 640px;
+      background: rgba(40, 4, 10, 0.94);
+      border: 1px solid #f43f5e;
+      border-radius: 6px;
+      color: #fecdd3;
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 10px 16px;
+      white-space: pre-wrap;
+    }
     #cockpit-frame {
       position: absolute;
       top: 0;
@@ -885,6 +937,24 @@
 </head>
 <body>
   <div id="canvas-container"></div>
+  <div id="boot-loader"><div>INITIALIZING STARFRONT</div><div class="boot-bar"><div></div></div></div>
+  <div id="boot-error"></div>
+  <script>
+    window.addEventListener('error', function (e) {
+      var el = document.getElementById('boot-error');
+      if (el && !window.__booted) {
+        el.style.display = 'block';
+        el.innerText = 'Startup problem: ' + (e.message || 'a file failed to load') +
+          '\nKeep the launcher running and hard-refresh (Ctrl+F5). If it repeats, press F12, open Console, and send the red text.';
+      }
+    }, true);
+    setTimeout(function () {
+      var loader = document.getElementById('boot-loader');
+      if (loader && !window.__booted) {
+        loader.firstElementChild.innerText = 'STILL LOADING — CHECK THE LAUNCHER WINDOW';
+      }
+    }, 15000);
+  </script>
   <div class="cockpit-vignette"></div>
   <div id="damage-flash" class="damage-flash"></div>
   <div id="warp-flash" class="warp-flash"></div>
@@ -1741,30 +1811,40 @@
     function init3D() {
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x050c1e, 0.0011);
+      scene.background = new THREE.Color(0x040913);
+      scene.fog = new THREE.FogExp2(0x0a1430, 0.0011);
 
       camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 8000);
       camera.position.set(0, 4.5, 14);
 
-      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      try {
+        renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      } catch (err) {
+        var bootEl = document.getElementById('boot-error');
+        if (bootEl) {
+          bootEl.style.display = 'block';
+          bootEl.innerText = '3D unavailable: ' + err.message + '\nTry Chrome or Edge with hardware acceleration turned on.';
+        }
+        return;
+      }
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.2;
+      renderer.toneMappingExposure = 1.4;
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
       // Cinematic Multi-Point Lighting (cool space fill, cyan key, violet rim)
-      const ambient = new THREE.AmbientLight(0x8fa3c7, 0.5);
+      const ambient = new THREE.AmbientLight(0x9db4dd, 0.85);
       scene.add(ambient);
 
-      const sunKeyLight = new THREE.DirectionalLight(0x9df3ff, 2.4);
+      const sunKeyLight = new THREE.DirectionalLight(0xc8f4ff, 2.8);
       sunKeyLight.position.set(200, 350, 200);
       sunKeyLight.castShadow = true;
       scene.add(sunKeyLight);
 
-      const rimLight = new THREE.DirectionalLight(0x9333ea, 1.0);
+      const rimLight = new THREE.DirectionalLight(0xa855f7, 1.3);
       rimLight.position.set(-200, -100, -200);
       scene.add(rimLight);
 
@@ -1811,7 +1891,7 @@
       env.add(rimBall);
       const pmrem = new THREE.PMREMGenerator(renderer);
       scene.environment = pmrem.fromScene(env, 0.05).texture;
-      scene.environmentIntensity = 0.55;
+      scene.environmentIntensity = 0.7;
       pmrem.dispose();
     }
 
@@ -1849,7 +1929,7 @@
       starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-      const starMat = new THREE.PointsMaterial({ size: 2.2, vertexColors: true, transparent: true, opacity: 0.95, map: generateGlowSprite(), depthWrite: false });
+      const starMat = new THREE.PointsMaterial({ size: 2.7, vertexColors: true, transparent: true, opacity: 1.0, map: generateGlowSprite(), depthWrite: false });
       const starPoints = new THREE.Points(starGeo, starMat);
       scene.add(starPoints);
     }
@@ -1935,7 +2015,7 @@
         roughness: 0.55,
         metalness: 0.05,
         emissive: sector.planetColor,
-        emissiveIntensity: 0.14,
+        emissiveIntensity: 0.22,
         envMapIntensity: 0.4
       });
       const planetMesh = new THREE.Mesh(sphereGeo, sphereMat);
@@ -2219,6 +2299,10 @@
       leftThruster.position.set(-0.85, 0, 4.2);
       player.add(leftThruster);
 
+      const chaseLamp = new THREE.PointLight(0x9fc4ff, 60, 90, 2);
+      chaseLamp.position.set(0, 5, 12);
+      player.add(chaseLamp);
+
       player.position.set(0, 0, 0);
       scene.add(player);
     }
@@ -2330,7 +2414,7 @@
       if (type === 'renegade_jet') {
         // Terran Renegade Interceptor Jet
         const fuseGeo = new THREE.ConeGeometry(1.3, 6.2, 4);
-        const fuseMat = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.8, roughness: 0.25 });
+        const fuseMat = new THREE.MeshStandardMaterial({ color: 0xf87171, emissive: 0x7f1d1d, emissiveIntensity: 0.6, metalness: 0.7, roughness: 0.3 });
         const fuse = new THREE.Mesh(fuseGeo, fuseMat);
         fuse.rotation.x = -Math.PI / 2;
         enemyGroup.add(fuse);
@@ -3655,6 +3739,10 @@
         }
       }
 
+      if (!window.__booted) {
+        window.__booted = true;
+        document.getElementById('boot-loader').style.display = 'none';
+      }
       renderer.render(scene, camera);
     }
 

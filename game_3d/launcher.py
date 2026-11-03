@@ -20,18 +20,19 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass  # Suppress HTTP request logs for clean console
 
 def start_local_game_server(port: int = 8088):
-    """Starts a lightweight daemon HTTP server for 3D game assets."""
+    """Starts a lightweight daemon HTTP server for 3D game assets with robust port negotiation."""
     socketserver.TCPServer.allow_reuse_address = True
-    try:
-        httpd = socketserver.TCPServer(("127.0.0.1", port), QuietHandler)
-    except OSError:
-        # Fallback to alternative port
-        port = 8090
-        httpd = socketserver.TCPServer(("127.0.0.1", port), QuietHandler)
-        
-    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
-    thread.start()
-    return port
+    candidate_ports = [port, 8089, 8091, 8092, 8093, 0]
+    for p in candidate_ports:
+        try:
+            httpd = socketserver.TCPServer(("127.0.0.1", p), QuietHandler)
+            actual_port = httpd.server_address[1]
+            thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+            thread.start()
+            return actual_port
+        except OSError:
+            continue
+    raise RuntimeError("Could not bind local game HTTP server on any port.")
 
 def launch_3d_game(port: int = 8088, use_window: bool = True):
     """

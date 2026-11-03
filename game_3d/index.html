@@ -1380,7 +1380,7 @@
       const cost = buildingCosts[activeBuildType];
 
       if (gameState.gold < cost.gold || gameState.wood < cost.wood || gameState.stone < cost.stone) {
-        alert(`[INSUFFICIENT RESOURCES] Requires ${cost.gold} Gold, ${cost.wood} Wood, ${cost.stone} Stone.`);
+        showRealmNotice(`[INSUFFICIENT RESOURCES] Requires ${cost.gold} Gold, ${cost.wood} Wood, ${cost.stone} Stone.`);
         return;
       }
 
@@ -1686,7 +1686,7 @@
         desc: 'Erect the fortified Lord\'s Keep citadel to establish your realm\'s military authority!',
         check: () => buildings.some(b => b.type === 'keep'),
         progressText: () => `[PROGRESS: Lord's Keep ${buildings.filter(b => b.type === 'keep').length}/1]`,
-        reward: () => { alert('CONGRATULATIONS, MY LORD! You have forged a grand medieval civilization in Foundation!'); }
+        reward: () => { showRealmNotice('[VICTORY] You have forged a grand medieval civilization in Foundation!'); }
       }
     ];
 
@@ -1745,6 +1745,10 @@
         }
       });
 
+      let isLeftDragging = false;
+      let leftDragStartX = 0, leftDragStartY = 0;
+      let hasDraggedSignificantly = false;
+
       window.addEventListener('mousedown', (e) => {
         initAudio();
         if (e.button === 2) {
@@ -1752,12 +1756,27 @@
           prevMouseX = e.clientX;
           prevMouseY = e.clientY;
         } else if (e.button === 0) {
-          handleLeftClick(e);
+          isLeftDragging = true;
+          leftDragStartX = e.clientX;
+          leftDragStartY = e.clientY;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+          hasDraggedSignificantly = false;
+        } else if (e.button === 1) {
+          isRightDragging = true;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
         }
       });
 
       window.addEventListener('mouseup', (e) => {
-        if (e.button === 2) isRightDragging = false;
+        if (e.button === 2 || e.button === 1) isRightDragging = false;
+        if (e.button === 0) {
+          isLeftDragging = false;
+          if (!hasDraggedSignificantly) {
+            handleLeftClick(e);
+          }
+        }
       });
 
       window.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -1774,6 +1793,22 @@
 
           camYaw -= deltaX * 0.005;
           camPitch = Math.max(0.15, Math.min(1.4, camPitch - deltaY * 0.005));
+          updateCameraPosition();
+        } else if (isLeftDragging && !activeBuildType) {
+          const deltaX = e.clientX - prevMouseX;
+          const deltaY = e.clientY - prevMouseY;
+          if (Math.hypot(e.clientX - leftDragStartX, e.clientY - leftDragStartY) > 5) {
+            hasDraggedSignificantly = true;
+          }
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+
+          const panSpeed = (camDistance * 0.0022);
+          const sinYaw = Math.sin(camYaw);
+          const cosYaw = Math.cos(camYaw);
+
+          camTarget.x -= (deltaX * cosYaw + deltaY * sinYaw) * panSpeed;
+          camTarget.z -= (-deltaX * sinYaw + deltaY * cosYaw) * panSpeed;
           updateCameraPosition();
         }
 
@@ -1876,7 +1911,7 @@
 
     window.toggleZoningTool = function() {
       initAudio();
-      alert('[ZONING SYSTEM ACTIVE] Paint Residential zones on sunny rolling hills. Serfs will autonomously construct their thatched cottages near wells and workplaces!');
+      showRealmNotice('[ZONING ACTIVE] Serfs autonomously construct thatched cottages near wells and workplaces.');
     };
 
     // MAIN 60 FPS SIMULATION ANIMATION LOOP
@@ -1905,25 +1940,61 @@
       renderer.render(scene, camera);
     }
 
-    // BOOTSTRAP REALM (Daylight Foundation World)
-    window.addEventListener('DOMContentLoaded', () => {
-      init3DEnvironment();
-      setupControlsAndInput();
-
-      const centerBuilding = createBuildingMesh('center', false);
-      centerBuilding.position.set(0, getTerrainHeight(0, 0), 0);
-      scene.add(centerBuilding);
-      buildings.push({ type: 'center', mesh: centerBuilding, x: 0, z: 0 });
-
-      for (let i = 0; i < 6; i++) {
-        const offset = new THREE.Vector3((Math.random() - 0.5) * 16, 0, (Math.random() - 0.5) * 16);
-        spawnVillager(i < 3 ? 'Woodcutter' : 'Laborer', offset);
+    function showRealmNotice(text) {
+      let notice = document.getElementById('realm-notice');
+      if (!notice) {
+        notice = document.createElement('div');
+        notice.id = 'realm-notice';
+        notice.style.position = 'fixed';
+        notice.style.top = '75px';
+        notice.style.left = '50%';
+        notice.style.transform = 'translateX(-50%)';
+        notice.style.background = '#fef2f2';
+        notice.style.border = '2px solid #ef4444';
+        notice.style.borderRadius = '8px';
+        notice.style.padding = '8px 18px';
+        notice.style.color = '#991b1b';
+        notice.style.fontWeight = '800';
+        notice.style.fontSize = '12px';
+        notice.style.zIndex = '999';
+        notice.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+        document.body.appendChild(notice);
       }
+      notice.innerText = text;
+      notice.style.display = 'block';
+      setTimeout(() => { if (notice) notice.style.display = 'none'; }, 3200);
+    }
 
-      updateResourceLedger();
-      updateQuestUI();
-      requestAnimationFrame(animate);
-    });
+    // BOOTSTRAP REALM (Daylight Foundation World - Reliable Multi-Stage Initialization)
+    function bootstrapRealm() {
+      try {
+        init3DEnvironment();
+        setupControlsAndInput();
+
+        const centerBuilding = createBuildingMesh('center', false);
+        centerBuilding.position.set(0, getTerrainHeight(0, 0), 0);
+        scene.add(centerBuilding);
+        buildings.push({ type: 'center', mesh: centerBuilding, x: 0, z: 0 });
+
+        for (let i = 0; i < 6; i++) {
+          const offset = new THREE.Vector3((Math.random() - 0.5) * 16, 0, (Math.random() - 0.5) * 16);
+          spawnVillager(i < 3 ? 'Woodcutter' : 'Laborer', offset);
+        }
+
+        updateResourceLedger();
+        updateQuestUI();
+        requestAnimationFrame(animate);
+        console.log('[FOUNDATION ENGINE] 3D Realm Bootstrapped Successfully.');
+      } catch (err) {
+        console.error('[FOUNDATION ENGINE ERROR]', err);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', bootstrapRealm);
+    } else {
+      bootstrapRealm();
+    }
 
   </script>
 </body>
