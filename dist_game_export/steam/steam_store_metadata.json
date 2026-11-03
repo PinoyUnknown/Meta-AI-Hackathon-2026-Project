@@ -1,0 +1,32 @@
+{
+  "app_id": 4206900,
+  "game_title": "MetaHorizon Odyssey 3D: NOVA Galaxy",
+  "developer": "PinoyUnknown",
+  "publisher": "PinoyUnknown Studios",
+  "genre": [
+    "Action",
+    "Sci-Fi",
+    "Space Simulation",
+    "Indie"
+  ],
+  "tags": [
+    "Space",
+    "Combat",
+    "Sci-Fi",
+    "3D",
+    "Procedural",
+    "Galaxy",
+    "Action RPG"
+  ],
+  "supported_languages": [
+    "English"
+  ],
+  "minimum_requirements": {
+    "os": "Windows 10 64-bit",
+    "processor": "Intel Core i3 / AMD Ryzen 3 or higher",
+    "memory": "4 GB RAM",
+    "graphics": "DirectX 11 / OpenGL 3.3 / WebGL 2.0 compatible GPU",
+    "storage": "500 MB available space"
+  },
+  "steam_controller_support": "Full Controller Support"
+}

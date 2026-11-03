@@ -1,0 +1,73 @@
+{
+  "world_title": "MetaHorizon Odyssey 3D",
+  "target_platform": "Meta Horizon Worlds & Meta Quest VR",
+  "team_id": "1716967459402469",
+  "project_id": "1042883398799623",
+  "developer_portal_workspace": "https://dev.meta.ai/?team_id=1716967459402469&project_id=1042883398799623",
+  "sectors": [
+    {
+      "id": 1,
+      "name": "Neo-Veridia",
+      "theme": "Build for Your World",
+      "unlocked_by_default": true
+    },
+    {
+      "id": 2,
+      "name": "Pyros Caldera",
+      "theme": "Push the Frontier - Energy",
+      "req": "Sector 1 Clear"
+    },
+    {
+      "id": 3,
+      "name": "Cryo-Glacier Prime",
+      "theme": "Build for Your World - Extreme",
+      "req": "Sector 2 Clear"
+    },
+    {
+      "id": 4,
+      "name": "Quantum Rift Nebula",
+      "theme": "Push the Frontier - Quantum",
+      "req": "Sector 3 Clear"
+    },
+    {
+      "id": 5,
+      "name": "Mech-Orbital Megacity",
+      "theme": "Build for Your World - Mesh",
+      "req": "Sector 4 Clear"
+    },
+    {
+      "id": 6,
+      "name": "Dark Matter Belt",
+      "theme": "Push the Frontier - Gravity",
+      "req": "Sector 5 Clear"
+    },
+    {
+      "id": 7,
+      "name": "Singularity Supercore",
+      "theme": "The Ultimate Frontier",
+      "req": "Sector 6 Clear"
+    }
+  ],
+  "horizon_components": [
+    {
+      "type": "SpaceFlightController",
+      "script": "CyberGuardianMovement.ts"
+    },
+    {
+      "type": "InteractiveGalaxyMap",
+      "script": "NovaGalaxyNavigator.ts"
+    },
+    {
+      "type": "ProceduralMeshSynthesizer",
+      "script": "MuseMeshGenerator.ts"
+    },
+    {
+      "type": "WatertightColliderMesh",
+      "script": "SAM3CollisionMesh.ts"
+    },
+    {
+      "type": "SafeChatFilter",
+      "script": "LlamaGuardSafetyHook.ts"
+    }
+  ]
+}

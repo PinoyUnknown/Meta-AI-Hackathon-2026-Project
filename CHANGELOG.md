@@ -25,7 +25,7 @@ This project evolved through three major iterations during the Meta Global AI Ha
 
 ```
 +-------------------------------------------------------------------------------------------------------+
-|  [v1.0.0: Physical AI Studio]  ──>  [v2.0.0: 2D Multi-Tier RPG]  ──>  [v3.0.0: 3D Frontier Voyager]   |
+|  [v1.0.0: Physical AI Studio] ──> [v4.0.0: NOVA Galaxy Map] ──> [v6.0.0: Story Campaign & 3D Galaxy]  |
 |  - Meta SAM 3.1 & Llama 3.2          - 60 FPS Pygame Engine             - Hardware-Accelerated 3D     |
 |  - Muse Code 1.4 Simulations         - 4 Leveling Tiers                 - Web Audio Synthesizer       |
 |  - CyberSecEval A+ Audit             - Meta Horizon/Steam Export        - Chromatic Glitch Shaders    |
@@ -39,7 +39,46 @@ This project evolved through three major iterations during the Meta Global AI Ha
 
 ## 📦 Version-by-Version Breakdown
 
-### **v3.0.0 — The 3D Frontier Voyager & Procedural Audio Engine (Current Version)**
+### **v6.0.0 — The Story Campaign, Space Flight Settings & Galaxy Odyssey (Current Version)**
+- **Release Date:** November 3, 2026 (19:15 local)
+- **Key Deliverables:**
+  1. **ESC Key Pause & Tactical Configuration Overlay**: Pressing ESC instantly pauses simulation flight physics and opens the multi-tab Settings Modal. Pressing ESC again or clicking 'Resume Flight' smoothly unpauses without loss of momentum.
+  2. **Comprehensive In-Game Flight Settings Matrix**:
+     - **Graphics & Display**: Dynamic Brightness / Exposure slider (50% to 200%), Multi-Resolution selector (4K UHD 3840x2160, 1440p QHD, 1080p FHD, 720p HD, and Fullscreen toggle), Monitor selector (Primary Display 0, Secondary Display 1, Meta Quest 3 / Horizon WebXR VR Headset), GPU Profile (Ultra RTX Quality with full shadows & 2000 particles, Balanced 60 FPS, Performance mode), and Cosmic Nebular Fog Density (Disabled, Low, Normal, Dense).
+     - **Audio & Comms**: Master Volume slider, SFX Weapon & Explosion volume slider, BGM Ion Thruster Hum volume slider, and one-click Mute All Audio toggle.
+     - **Flight Controls**: Mouse Sensitivity slider (0.5x to 2.5x), Field of View (FOV) slider (50° to 90°), and Invert Pitch (Y-Axis) flight stick toggle.
+  3. **Dedicated 'About & Intel' Section**: Full developer attribution crediting solo indie creator **PinoyUnknown**, direct clickable links to **github.com/pinoyUnknown** and **instagram.com/pinoyunknown**, complete game synopsis, and Meta Global AI Developer Hackathon 2026 credentials (Project ID 1042883398799623, Team ID 1716967459402469).
+  4. **Rich 3D Cosmic Environment & Celestial Elements**:
+     - **Volumetric Cosmic Fogs**: THREE.FogExp2 dynamic sector atmospheric fog with custom color shifts across all 5 sectors (Proxima Deep Blue, Kepler Cyan, Sirius Violet, Orion Crimson, Andromeda Golden).
+     - **Procedural 3D Comets**: Icy crystalline faceted nucleus (THREE.DodecahedronGeometry with cyan/white emissive glow) and dynamic particle dust tails (THREE.Points) traversing galactic space.
+     - **3D Orbital Satellites**: Gold-foil payload chassis, dual rectangular solar array wings, parabolic dish antennas, and pulsing red/green LED beacon lights.
+     - **3D Rotating Spiral Galaxy**: Celestial backdrop featuring 4,000 multi-colored star particles arranged in 3 spiral arms rotating at 60 FPS.
+  5. **3D Combat Enemies (Aliens, Supersonic Jets & Rocket Gunships)**:
+     - **Alien Swarm Fighters**: Insectoid chitin hull, glowing bioluminescent venom core, scythe bio-wings, and erratic sinusoidal weaving flight pattern.
+     - **Terran Renegade Interceptor Jets**: Supersonic delta-wing fighter jets with forward cockpit canopy, twin afterburners, and rapid red laser cannons.
+     - **Heavy Armored Rocket Gunships**: Cylindrical rocket chassis, heavy booster pods, and dual cannon mounts.
+     - **Supreme Alien Dreadnought Boss**: Colossal citadel core with rotating shield rings and plasma spires.
+  6. **Interactive Storytelling & Mission Transmission Comms**:
+     - Real-time sci-fi hologram comms box with animated audio wave bars and sound beeps.
+     - 5 Campaign Missions with Fleet Command transmissions (Admiral Vance, Chief Tara, Officer Kryll):
+       - *Sector 1: Proxima Centauri* — Intercept renegade jets and defend communication satellites.
+       - *Sector 2: Kepler-186f* — Evade hyper-velocity comets and destroy heavy rocket gunships.
+       - *Sector 3: Sirius Belt* — Investigate dark satellites and eliminate alien bio-swarm fighters.
+       - *Sector 4: Orion Nebula* — Penetrate dense ion fog and defeat joint alien/renegade fleets.
+       - *Sector 5: Andromeda Core* — Destroy the Supreme Alien Dreadnought and free the Nova Galaxy!
+  7. **Strict Zero 'AI' Word Invariant**: 0 matches for \bAI\b inside game_3d/index.html.
+  8. **Full Test Suite & Security Validation**: 8/8 benchmark tests passed (100% compliance); CyberSecEval score 100/100 (Grade A+).
+
+### **v4.0.0 — The NOVA Galaxy Star Map & 3D Polygon Engine (Current Version)**
+- **Release Date:** November 3, 2026 (18:50 local)
+- **Key Deliverables:**
+  1. **NOVA-Style Interactive Galaxy Map**: Draggable 3D star chart featuring 7 progressive planetary systems arranged across galactic arms with orbital celestial bodies and hyperlane jump gates.
+  2. **Stage Progression Gating**: Players cannot skip to subsequent stages without conquering the current sector's guardian boss and purging the required corrupted anomalies.
+  3. **3D Polygon Models**: Replaced abstract shapes with faceted stylized 3D polygon fighters, swept wings, glass canopies, animated thrusters, tumbling cratered asteroids, and spiked proximity space mines.
+  4. **Multi-Store Publishing Packages**: Complete deployment manifests and guides for **Steam** (`appmanifest_4206900.vdf`, SteamPipe upload scripts) and **Meta Horizon Worlds** (`meta_horizon_scene_graph.json` with component scripts).
+  5. **100% In-Game Zero 'AI' Compliance**: Maintained strict sci-fi worldbuilding without the word "AI" inside the game.
+
+### **v3.0.0 — The 3D Frontier Voyager & Procedural Audio Engine**
 - **Release Date:** November 3, 2026 (17:35 local)
 - **Key Deliverables:**
   1. **Full 3D WebGL Engine**: Created `game_3d/index.html` powered by Three.js (with an offline 691KB bundle in `game_3d/lib/three.module.min.js`), rendering 3D space flight, faceted ship geometry, dynamic lighting, and rotating 3D polyhedra.
@@ -189,8 +228,11 @@ Select-String -Path "game_3d\index.html" -Pattern "\bAI\b"
 | :--- | :--- | :--- | :--- |
 | **v1.0.0 Physical AI Backup** | `backup_metasentinel_project.zip` | 16.19 MB | Preserved locally |
 | **v2.0.0 2D RPG Backup** | `backup_metahorizon_v2_1793697941.zip` | 18.85 MB | Preserved locally |
+| **v3.0.0 3D Voyager Backup** | `backup_metahorizon_v3_1793700196.zip` | 20.33 MB | Preserved locally |
 | **3D Offline Three.js Bundle** | `game_3d/lib/three.module.min.js` | 691 KB | Verified offline |
 | **8-Point Benchmark Suite** | `python test_suite.py` | 8/8 Passed | 100% Compliance |
 | **CyberSecEval Security Audit** | `python security_audit.py` | 100/100 | Grade A+ (Zero leaks) |
-| **Meta Horizon Scene Manifest**| `dist_game_export/meta_horizon_world_manifest.json` | 1.8 KB | Valid JSON |
-| **Steam Store App Manifest** | `dist_game_export/steam_app_manifest.json` | 240 B | AppId 4206900 |
+| **Steam VDF App Manifest** | `dist_game_export/steam/appmanifest_4206900.vdf` | 512 B | AppId 4206900 |
+| **Steam Publishing Guide** | `dist_game_export/steam/steam_publishing_guide.md` | 1.1 KB | SteamPipe Guide |
+| **Horizon Scene Graph** | `dist_game_export/meta_horizon/meta_horizon_scene_graph.json` | 1.5 KB | 7-Sector Graph |
+| **Horizon Publishing Guide**| `dist_game_export/meta_horizon/meta_horizon_publishing_guide.md` | 1.2 KB | Meta Quest & VR |

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>METAHORIZON ODYSSEY 3D: FRONTIER VOYAGER</title>
+  <title>METAHORIZON ODYSSEY: NOVA GALAXY 3D</title>
   <style>
     * {
       box-sizing: border-box;
@@ -16,9 +16,9 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #02040a;
+      background: #020510;
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      color: #e2e8f0;
+      color: #f1f5f9;
     }
     #canvas-container {
       position: absolute;
@@ -27,21 +27,10 @@
       width: 100%;
       height: 100%;
       z-index: 1;
+      transition: filter 0.2s ease;
     }
 
-    /* Scanline & Glitch Post-Processing Overlays */
-    .scanlines {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 5;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-      background-size: 100% 4px;
-      opacity: 0.6;
-    }
+    /* Screen Overlays & Visual FX */
     .vignette {
       position: absolute;
       top: 0;
@@ -49,8 +38,8 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 6;
-      box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+      z-index: 5;
+      box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.8);
     }
     .glitch-flash {
       position: absolute;
@@ -59,9 +48,9 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 7;
+      z-index: 6;
       opacity: 0;
-      background: rgba(255, 0, 85, 0.25);
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.5) 0%, rgba(255, 0, 85, 0) 70%);
       transition: opacity 0.08s ease-out;
     }
     .warp-flash {
@@ -71,13 +60,42 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 7;
+      z-index: 6;
       opacity: 0;
-      background: radial-gradient(circle, rgba(0, 240, 255, 0.4) 0%, rgba(139, 92, 246, 0) 70%);
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.6) 0%, rgba(168, 85, 247, 0) 70%);
       transition: opacity 0.15s ease-out;
     }
 
-    /* HUD System */
+    /* Reticle */
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      pointer-events: none;
+      z-index: 8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .crosshair-ring {
+      width: 28px;
+      height: 28px;
+      border: 2px solid rgba(0, 240, 255, 0.7);
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+    }
+    .crosshair-dot {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #00f0ff;
+      border-radius: 50%;
+    }
+
+    /* HUD Layout */
     #hud {
       position: absolute;
       top: 0;
@@ -86,29 +104,30 @@
       height: 100%;
       pointer-events: none;
       z-index: 10;
-      padding: 24px;
+      padding: 18px 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
-    .hud-header {
+    .hud-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
     }
-    .brand-box {
-      background: rgba(5, 10, 25, 0.82);
+    .brand-card {
+      background: rgba(8, 14, 28, 0.85);
       border: 1px solid rgba(0, 240, 255, 0.4);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 12px 20px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.15);
+      pointer-events: auto;
     }
     .brand-title {
-      font-size: 20px;
-      font-weight: 800;
+      font-size: 18px;
+      font-weight: 900;
       letter-spacing: 2px;
-      background: linear-gradient(90deg, #00f0ff, #3b82f6, #a855f7);
+      background: linear-gradient(90deg, #00f0ff, #38bdf8, #c084fc);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       text-transform: uppercase;
@@ -118,1112 +137,1781 @@
       color: #94a3b8;
       letter-spacing: 1px;
       margin-top: 2px;
+      font-weight: 600;
     }
     .sector-badge {
       display: inline-block;
       margin-top: 6px;
       font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
+      font-weight: 800;
+      padding: 3px 8px;
       border-radius: 4px;
       background: rgba(0, 240, 255, 0.15);
       color: #00f0ff;
-      border: 1px solid rgba(0, 240, 255, 0.3);
+      border: 1px solid rgba(0, 240, 255, 0.4);
       text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    /* Stats & Gauges */
+    /* Gauges */
     .stat-cluster {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      min-width: 260px;
+      gap: 8px;
+      min-width: 250px;
+      pointer-events: auto;
     }
-    .gauge-card {
-      background: rgba(5, 10, 25, 0.82);
-      border: 1px solid rgba(148, 163, 184, 0.2);
+    .gauge-box {
+      background: rgba(8, 14, 28, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 8px;
-      padding: 10px 14px;
-      backdrop-filter: blur(8px);
+      padding: 7px 12px;
+      backdrop-filter: blur(10px);
     }
-    .gauge-label {
+    .gauge-row {
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: #cbd5e1;
-      margin-bottom: 6px;
+      font-size: 10px;
+      font-weight: 800;
       text-transform: uppercase;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
     }
     .gauge-track {
       width: 100%;
-      height: 8px;
-      background: rgba(15, 23, 42, 0.8);
-      border-radius: 4px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .gauge-fill {
       height: 100%;
       width: 100%;
+      border-radius: 3px;
       transition: width 0.15s ease-out;
     }
-    .fill-shield {
-      background: linear-gradient(90deg, #00f0ff, #38bdf8);
-      box-shadow: 0 0 10px #00f0ff;
-    }
-    .fill-hull {
-      background: linear-gradient(90deg, #10b981, #34d399);
-      box-shadow: 0 0 10px #10b981;
-    }
-    .fill-xp {
-      background: linear-gradient(90deg, #8b5cf6, #ec4899);
-      box-shadow: 0 0 10px #ec4899;
-    }
-    .fill-warp {
-      background: linear-gradient(90deg, #f59e0b, #fbbf24);
-      box-shadow: 0 0 10px #fbbf24;
-    }
+    .fill-shield { background: linear-gradient(90deg, #00f0ff, #38bdf8); box-shadow: 0 0 10px #00f0ff; }
+    .fill-hull { background: linear-gradient(90deg, #10b981, #34d399); box-shadow: 0 0 10px #10b981; }
+    .fill-temp { background: linear-gradient(90deg, #f59e0b, #ef4444); box-shadow: 0 0 10px #ef4444; }
 
-    /* Stage Telemetry */
-    .telemetry-card {
-      background: rgba(5, 10, 25, 0.82);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 8px;
-      padding: 12px 18px;
-      backdrop-filter: blur(8px);
-      text-align: right;
-    }
-    .telemetry-val {
-      font-size: 26px;
-      font-weight: 800;
-      color: #f8fafc;
-      font-family: monospace;
-      letter-spacing: 1px;
-    }
-    .telemetry-tag {
-      font-size: 10px;
-      font-weight: 700;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    /* Boss Health Bar */
-    #boss-container {
+    /* Mission Transmission Comms Box */
+    .comms-container {
       position: absolute;
-      top: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 50%;
-      max-width: 600px;
-      display: none;
-      flex-direction: column;
+      bottom: 90px;
+      left: 24px;
+      max-width: 440px;
+      background: rgba(8, 15, 30, 0.92);
+      border-left: 4px solid #00f0ff;
+      border-top: 1px solid rgba(0, 240, 255, 0.3);
+      border-right: 1px solid rgba(0, 240, 255, 0.2);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+      pointer-events: auto;
+      animation: commsPulse 3s infinite ease-in-out;
+    }
+    @keyframes commsPulse {
+      0%, 100% { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.2); }
+      50% { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 240, 255, 0.4); }
+    }
+    .comms-header {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      z-index: 12;
+      gap: 8px;
+      margin-bottom: 6px;
     }
-    .boss-name {
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      color: #ff0055;
-      text-transform: uppercase;
-      text-shadow: 0 0 12px rgba(255, 0, 85, 0.8);
-    }
-    .boss-track {
-      width: 100%;
+    .comms-wave {
+      display: flex;
+      align-items: center;
+      gap: 2px;
       height: 12px;
-      background: rgba(15, 5, 10, 0.85);
-      border: 1px solid #ff0055;
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 0 18px rgba(255, 0, 85, 0.4);
     }
-    .boss-fill {
-      height: 100%;
-      width: 100%;
-      background: linear-gradient(90deg, #ff0055, #f59e0b);
-      transition: width 0.1s linear;
+    .comms-bar {
+      width: 2px;
+      height: 8px;
+      background: #00f0ff;
+      animation: wavePulse 1s infinite alternate ease-in-out;
+    }
+    .comms-bar:nth-child(2) { animation-delay: 0.2s; height: 12px; }
+    .comms-bar:nth-child(3) { animation-delay: 0.4s; height: 6px; }
+    .comms-bar:nth-child(4) { animation-delay: 0.1s; height: 10px; }
+    @keyframes wavePulse {
+      0% { transform: scaleY(0.4); }
+      100% { transform: scaleY(1.3); }
+    }
+    .comms-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #38bdf8;
+      text-transform: uppercase;
+    }
+    .comms-sender {
+      font-size: 9px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .comms-text {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+    .comms-objective {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      font-size: 10px;
+      color: #facc15;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    /* Bottom HUD */
+    /* HUD Bottom Controls */
     .hud-bottom {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
     }
-    .controls-hint {
-      background: rgba(5, 10, 25, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
-      padding: 8px 14px;
-      font-size: 11px;
-      color: #94a3b8;
-      letter-spacing: 0.5px;
-      backdrop-filter: blur(6px);
-      line-height: 1.6;
-    }
-    .controls-hint kbd {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: #00f0ff;
-      font-family: monospace;
-      font-size: 10px;
-    }
-    .stage-selector {
+    .dock-bar {
       display: flex;
-      gap: 6px;
+      gap: 10px;
       pointer-events: auto;
     }
-    .stage-btn {
+    .dock-btn {
       background: rgba(15, 23, 42, 0.85);
       border: 1px solid rgba(0, 240, 255, 0.3);
-      color: #cbd5e1;
-      padding: 6px 12px;
-      font-size: 10px;
+      color: #f1f5f9;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1px;
+      padding: 9px 16px;
       border-radius: 6px;
       cursor: pointer;
-      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
       text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    .stage-btn:hover {
+    .dock-btn:hover {
       background: rgba(0, 240, 255, 0.2);
       border-color: #00f0ff;
-      color: #fff;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
       transform: translateY(-2px);
     }
-    .stage-btn.active {
-      background: linear-gradient(135deg, #00f0ff, #3b82f6);
-      border-color: #00f0ff;
-      color: #020617;
-      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    .dock-btn.active-pulse {
+      animation: dockPulse 1.5s infinite alternate;
+      border-color: #f59e0b;
+      color: #fef08a;
     }
-
-    /* Modal / Terminal Drawer for Hackathon Rules & Frontier Invariants */
-    #frontier-drawer {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.95);
-      width: 90%;
-      max-width: 820px;
-      max-height: 85vh;
-      overflow-y: auto;
-      background: rgba(4, 9, 24, 0.94);
-      border: 2px solid #00f0ff;
-      border-radius: 12px;
-      padding: 28px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 0 50px rgba(0, 240, 255, 0.3);
-      z-index: 100;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    @keyframes dockPulse {
+      0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.3); }
+      100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); }
     }
-    #frontier-drawer.active {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translate(-50%, -50%) scale(1);
-    }
-    .drawer-title {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      color: #00f0ff;
-      text-transform: uppercase;
-      border-bottom: 1px solid rgba(0, 240, 255, 0.3);
-      padding-bottom: 12px;
-      margin-bottom: 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .drawer-close {
-      cursor: pointer;
-      font-size: 14px;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 4px 10px;
+    .key-hint {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 2px 6px;
       border-radius: 4px;
+      font-size: 9px;
+      color: #38bdf8;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    .drawer-close:hover {
-      background: #ff0055;
-      color: white;
-    }
-    .drawer-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-    .drawer-card {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+
+    .telemetry-card {
+      background: rgba(8, 14, 28, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 8px;
-      padding: 16px;
-    }
-    .drawer-card h3 {
-      font-size: 13px;
-      font-weight: 800;
-      color: #38bdf8;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-    .drawer-card p {
-      font-size: 12px;
-      color: #94a3b8;
-      line-height: 1.5;
-    }
-    .code-box {
-      background: #020617;
-      border: 1px solid rgba(0, 240, 255, 0.2);
-      border-radius: 6px;
-      padding: 12px;
-      font-family: 'Consolas', monospace;
+      padding: 10px 16px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      gap: 16px;
       font-size: 11px;
-      color: #38bdf8;
-      overflow-x: auto;
-      margin-top: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+      pointer-events: auto;
+    }
+    .telemetry-item span {
+      color: #00f0ff;
+      font-weight: 900;
     }
 
-    /* Start / Victory Screen */
-    #start-overlay {
+    /* MODAL WINDOWS (Pause / Settings / About / Galaxy Map) */
+    .modal-overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle, rgba(6, 12, 32, 0.95) 0%, rgba(2, 4, 10, 0.98) 100%);
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
+      background: rgba(2, 6, 18, 0.85);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+      display: none;
       justify-content: center;
       align-items: center;
-      text-align: center;
-      padding: 24px;
+      padding: 20px;
     }
-    .hero-title {
-      font-size: 44px;
-      font-weight: 900;
-      letter-spacing: 4px;
-      background: linear-gradient(90deg, #00f0ff, #3b82f6, #ec4899);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-      text-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+    .modal-card {
+      background: #090f20;
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      border-radius: 12px;
+      box-shadow: 0 0 60px rgba(0, 240, 255, 0.25), 0 20px 50px rgba(0, 0, 0, 0.8);
+      max-width: 820px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .hero-sub {
-      font-size: 14px;
-      letter-spacing: 2px;
-      color: #94a3b8;
-      max-width: 600px;
-      line-height: 1.6;
-      margin-bottom: 30px;
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
-    .hero-btn {
-      background: linear-gradient(135deg, #00f0ff, #3b82f6);
-      border: none;
-      color: #020617;
+    .modal-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .modal-title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .modal-title {
       font-size: 16px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      padding: 16px 42px;
-      border-radius: 8px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #f8fafc;
+      text-transform: uppercase;
+    }
+    .modal-nav {
+      display: flex;
+      gap: 8px;
+      padding: 12px 24px 0 24px;
+      background: rgba(11, 18, 36, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .modal-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 8px 16px;
+      color: #94a3b8;
+      font-weight: 700;
+      font-size: 12px;
       cursor: pointer;
       text-transform: uppercase;
-      box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      letter-spacing: 1px;
+      transition: all 0.2s;
     }
-    .hero-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 40px rgba(0, 240, 255, 0.8);
+    .modal-tab-btn.active {
+      color: #00f0ff;
+      border-bottom-color: #00f0ff;
+    }
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-footer {
+      padding: 14px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    /* Settings UI Controls */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .settings-group {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .group-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .setting-item {
+      margin-bottom: 14px;
+    }
+    .setting-item:last-child {
+      margin-bottom: 0;
+    }
+    .setting-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+    .setting-slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #1e293b;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .setting-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00f0ff;
+      cursor: pointer;
+      box-shadow: 0 0 8px #00f0ff;
+    }
+    .setting-select {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      color: #f1f5f9;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+    .setting-select:focus {
+      border-color: #00f0ff;
+    }
+    .btn-action {
+      background: linear-gradient(135deg, #00f0ff, #0284c7);
+      color: #020617;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* About Section */
+    .about-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .dev-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .dev-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00f0ff, #a855f7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 900;
+      font-size: 18px;
+      color: #020617;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+    .dev-links {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .dev-link {
+      color: #38bdf8;
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .dev-link:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      color: #f8fafc;
+      transform: translateY(-1px);
+    }
+
+    /* Full Galaxy Map Modal (Korean NOVA Inspired) */
+    #galaxy-map-modal {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 120;
+      background: radial-gradient(circle at center, #070d1e 0%, #010309 100%);
+    }
+    #galaxy-canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    #galaxy-canvas-container:active {
+      cursor: grabbing;
+    }
+    .galaxy-map-overlay {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      right: 24px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .sector-info-panel {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      width: 340px;
+      background: rgba(8, 14, 28, 0.92);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      border-radius: 10px;
+      padding: 16px 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+      z-index: 10;
     }
   </style>
-
-  <!-- Import Three.js as ES Module with local offline priority & CDN fallback -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "./lib/three.module.min.js"
-      }
-    }
-  </script>
 </head>
 <body>
   <div id="canvas-container"></div>
-  <div class="scanlines"></div>
   <div class="vignette"></div>
-  <div class="glitch-flash" id="glitch-flash"></div>
-  <div class="warp-flash" id="warp-flash"></div>
+  <div id="glitch-flash" class="glitch-flash"></div>
+  <div id="warp-flash" class="warp-flash"></div>
 
-  <!-- HUD Overlay -->
+  <div id="crosshair">
+    <div class="crosshair-ring"></div>
+    <div class="crosshair-dot"></div>
+  </div>
+
+  <!-- In-Game Cockpit HUD -->
   <div id="hud">
-    <!-- Top Row -->
-    <div class="hud-header">
-      <div class="brand-box">
-        <div class="brand-title">METAHORIZON ODYSSEY 3D</div>
-        <div class="brand-sub">FRONTIER VOYAGER &bull; TEAM 1716967459402469</div>
-        <div class="sector-badge" id="sector-badge">SECTOR ALPHA: BUILD FOR YOUR WORLD</div>
+    <div class="hud-top">
+      <div class="brand-card">
+        <div class="brand-title">METAHORIZON ODYSSEY</div>
+        <div class="brand-sub">NOVA GALAXY FLEET SIMULATOR</div>
+        <div id="sector-badge" class="sector-badge">SECTOR 1: PROXIMA CENTAURI</div>
       </div>
 
       <div class="stat-cluster">
-        <!-- Shield -->
-        <div class="gauge-card">
-          <div class="gauge-label">
-            <span>Shield Matrix</span>
-            <span id="shield-val">100%</span>
+        <div class="gauge-box">
+          <div class="gauge-row">
+            <span style="color: #00f0ff;">DEFLECTOR SHIELDS</span>
+            <span id="shield-val" style="color: #00f0ff;">100%</span>
           </div>
-          <div class="gauge-track">
-            <div class="gauge-fill fill-shield" id="shield-bar" style="width: 100%;"></div>
-          </div>
+          <div class="gauge-track"><div id="shield-bar" class="gauge-fill fill-shield"></div></div>
         </div>
 
-        <!-- Hull -->
-        <div class="gauge-card">
-          <div class="gauge-label">
-            <span>Hull Integrity</span>
-            <span id="hull-val">100%</span>
+        <div class="gauge-box">
+          <div class="gauge-row">
+            <span style="color: #10b981;">HULL INTEGRITY</span>
+            <span id="hull-val" style="color: #10b981;">100%</span>
           </div>
-          <div class="gauge-track">
-            <div class="gauge-fill fill-hull" id="hull-bar" style="width: 100%;"></div>
-          </div>
+          <div class="gauge-track"><div id="hull-bar" class="gauge-fill fill-hull"></div></div>
         </div>
 
-        <!-- Warp Phase Dash -->
-        <div class="gauge-card">
-          <div class="gauge-label">
-            <span>Phase Warp Drive</span>
-            <span id="warp-val">READY</span>
+        <div class="gauge-box">
+          <div class="gauge-row">
+            <span style="color: #f59e0b;">LASER HEAT CORE</span>
+            <span id="heat-val" style="color: #f59e0b;">0%</span>
           </div>
-          <div class="gauge-track">
-            <div class="gauge-fill fill-warp" id="warp-bar" style="width: 100%;"></div>
-          </div>
+          <div class="gauge-track"><div id="heat-bar" class="gauge-fill fill-temp" style="width: 0%;"></div></div>
         </div>
-      </div>
-
-      <!-- Telemetry -->
-      <div class="telemetry-card">
-        <div class="telemetry-tag">Frontier Invariants Purged</div>
-        <div class="telemetry-val" id="score-val">0000</div>
-        <div class="telemetry-tag" style="margin-top: 6px;">Horizon Shards: <span id="shards-val" style="color: #00f0ff;">0</span></div>
-        <div class="telemetry-tag">Player Rank: <span id="tier-val" style="color: #fbbf24;">TIER 1 (LVL 1)</span></div>
       </div>
     </div>
 
-    <!-- Boss Health Bar -->
-    <div id="boss-container">
-      <div class="boss-name" id="boss-name">NEXUS-PRIME: THE ROGUE SUPERMIND</div>
-      <div class="boss-track">
-        <div class="boss-fill" id="boss-fill" style="width: 100%;"></div>
+    <!-- Real-time Story Transmission Comms Hologram -->
+    <div id="comms-box" class="comms-container">
+      <div class="comms-header">
+        <div class="comms-wave">
+          <div class="comms-bar"></div>
+          <div class="comms-bar"></div>
+          <div class="comms-bar"></div>
+          <div class="comms-bar"></div>
+        </div>
+        <div>
+          <div id="comms-title" class="comms-title">INCOMING TRANSMISSION</div>
+          <div id="comms-sender" class="comms-sender">FLEET ADMIRAL VANCE // VANGUARD COMMAND</div>
+        </div>
+      </div>
+      <div id="comms-text" class="comms-text">
+        "Commander Unknown, renegade jet interceptors have ambushed our orbital perimeter at Proxima Centauri! Protect the satellite communications relay and eliminate all hostile fighter jets."
+      </div>
+      <div id="comms-objective" class="comms-objective">
+        <span>🎯 PRIMARY MISSION:</span>
+        <span id="comms-mission-task">Eliminate Renegade Jet Interceptors (0 / 5)</span>
       </div>
     </div>
 
-    <!-- Bottom Row -->
     <div class="hud-bottom">
-      <div class="controls-hint">
-        <kbd>WASD</kbd> / <kbd>&larr;&uarr;&darr;&rarr;</kbd> 3D Flight &bull; 
-        <kbd>Left-Click</kbd> / <kbd>SPACE</kbd> Kinetic Blasters &bull; 
-        <kbd>Shift</kbd> Phase Warp &bull; 
-        <kbd>TAB</kbd> Invariant Terminal &bull; 
-        <kbd>M</kbd> Audio
+      <div class="dock-bar">
+        <button id="btn-settings-hud" class="dock-btn" onclick="togglePauseSettings()">
+          ⚙️ SETTINGS <span class="key-hint">ESC</span>
+        </button>
+        <button id="btn-map" class="dock-btn active-pulse" onclick="openGalaxyMap()">
+          🌌 GALAXY MAP <span class="key-hint">M</span>
+        </button>
+        <button id="btn-warp" class="dock-btn" onclick="executePhaseWarp()">
+          ⚡ WARP JUMP <span class="key-hint">SHIFT</span>
+        </button>
       </div>
 
-      <div class="stage-selector">
-        <button class="stage-btn active" onclick="switchStage(1)">1: Cyber Metro</button>
-        <button class="stage-btn" onclick="switchStage(2)">2: Plasma Caldera</button>
-        <button class="stage-btn" onclick="switchStage(3)">3: Quantum Nebula</button>
-        <button class="stage-btn" onclick="switchStage(4)">4: Orbital Station</button>
-        <button class="stage-btn" onclick="switchStage(5)">5: Singularity Core</button>
+      <div class="telemetry-card">
+        <div class="telemetry-item">SPEED: <span id="speed-val">420</span> KM/S</div>
+        <div class="telemetry-item">SHARDS: <span id="shards-val">0</span></div>
+        <div class="telemetry-item">HOSTILES: <span id="enemies-val">0</span></div>
+        <div class="telemetry-item">SCORE: <span id="score-val">0</span></div>
+      </div>
+    </div>
+  </div>
+  <!-- Pause & Settings Modal (Triggered by ESC) -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <span style="font-size: 20px;">⚙️</span>
+          <div>
+            <div class="modal-title">MISSION PAUSED & FLIGHT CONFIGURATION</div>
+            <div style="font-size: 11px; color: #94a3b8;">Astraeus-9 Tactical Computer Matrix</div>
+          </div>
+        </div>
+        <span class="key-hint" style="padding: 4px 10px; font-weight: 800;">ESC TO RESUME</span>
+      </div>
+
+      <div class="modal-nav">
+        <button id="tab-btn-graphics" class="modal-tab-btn active" onclick="switchSettingsTab('graphics')">Graphics & Display</button>
+        <button id="tab-btn-audio" class="modal-tab-btn" onclick="switchSettingsTab('audio')">Audio & Comms</button>
+        <button id="tab-btn-controls" class="modal-tab-btn" onclick="switchSettingsTab('controls')">Flight Controls</button>
+        <button id="tab-btn-about" class="modal-tab-btn" onclick="switchSettingsTab('about')">About & Intel</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Tab 1: Graphics & Display -->
+        <div id="tab-content-graphics" class="settings-tab-pane">
+          <div class="settings-grid">
+            <div class="settings-group">
+              <div class="group-title">📺 Display & Canvas</div>
+              
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Brightness / Exposure</span>
+                  <span id="brightness-val">100%</span>
+                </div>
+                <input id="slider-brightness" type="range" min="50" max="200" value="100" class="setting-slider" oninput="updateBrightness(this.value)">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">Display Resolution</div>
+                <select id="select-resolution" class="setting-select" onchange="updateResolution(this.value)">
+                  <option value="native" selected>Native Fullscreen (Recommended)</option>
+                  <option value="4k">3840 x 2160 (4K Ultra HD)</option>
+                  <option value="1440p">2560 x 1440 (1440p QHD)</option>
+                  <option value="1080p">1920 x 1080 (1080p FHD)</option>
+                  <option value="720p">1280 x 720 (720p HD)</option>
+                </select>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">Target Monitor / Display</div>
+                <select id="select-monitor" class="setting-select" onchange="updateMonitor(this.value)">
+                  <option value="primary" selected>Primary Monitor 0 (Main Gaming Display)</option>
+                  <option value="secondary">Secondary Monitor 1 (Extended Cockpit Screen)</option>
+                  <option value="vr">Meta Quest 3 / Horizon WebXR VR Headset</option>
+                  <option value="windowed">Windowed Borderless Simulator</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <div class="group-title">⚡ GPU & Atmospheric Rendering</div>
+              
+              <div class="setting-item">
+                <div class="setting-label">GPU Performance Profile</div>
+                <select id="select-gpu" class="setting-select" onchange="updateGPUProfile(this.value)">
+                  <option value="ultra" selected>Ultra RTX Quality (Full Shadows & 2000 Particles)</option>
+                  <option value="balanced">Balanced 60 FPS (Optimized Shaders)</option>
+                  <option value="performance">Performance Mode (Max Framerate / Low Power)</option>
+                </select>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Cosmic Nebular Fog Density</span>
+                  <span id="fog-val">Normal</span>
+                </div>
+                <select id="select-fog" class="setting-select" onchange="updateFogDensity(this.value)">
+                  <option value="off">Disabled (Crystal Clear Space)</option>
+                  <option value="low">Low Ion Haze</option>
+                  <option value="normal" selected>Normal Nebular Fog</option>
+                  <option value="dense">Dense Planetary Shroud</option>
+                </select>
+              </div>
+
+              <div class="setting-item" style="margin-top: 15px;">
+                <button class="btn-secondary" style="width: 100%;" onclick="toggleFullscreen()">
+                  ⛶ Toggle Fullscreen Mode
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Audio & Comms -->
+        <div id="tab-content-audio" class="settings-tab-pane" style="display: none;">
+          <div class="settings-grid">
+            <div class="settings-group">
+              <div class="group-title">🔊 Procedural Audio Matrix</div>
+              
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Master Volume</span>
+                  <span id="vol-master-val">80%</span>
+                </div>
+                <input id="slider-vol-master" type="range" min="0" max="100" value="80" class="setting-slider" oninput="updateMasterVol(this.value)">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Weapon Lasers & Explosions</span>
+                  <span id="vol-sfx-val">85%</span>
+                </div>
+                <input id="slider-vol-sfx" type="range" min="0" max="100" value="85" class="setting-slider" oninput="updateSfxVol(this.value)">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Ion Thruster Hum & Nebula Ambience</span>
+                  <span id="vol-bgm-val">70%</span>
+                </div>
+                <input id="slider-vol-bgm" type="range" min="0" max="100" value="70" class="setting-slider" oninput="updateBgmVol(this.value)">
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <div class="group-title">📻 Comms & Audio FX</div>
+              <div style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 12px;">
+                All audio is synthesized natively on the fly via the Web Audio API without requiring any external MP3 or WAV downloads.
+              </div>
+              <div class="setting-item">
+                <button id="btn-mute-toggle" class="btn-secondary" style="width: 100%;" onclick="toggleMute()">
+                  🔊 Mute All Audio: OFF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Flight Controls -->
+        <div id="tab-content-controls" class="settings-tab-pane" style="display: none;">
+          <div class="settings-grid">
+            <div class="settings-group">
+              <div class="group-title">🕹️ Steering & Flight Mechanics</div>
+              
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Flight Mouse Sensitivity</span>
+                  <span id="sens-val">1.0x</span>
+                </div>
+                <input id="slider-sens" type="range" min="5" max="25" value="10" class="setting-slider" oninput="updateSensitivity(this.value)">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Field of View (FOV)</span>
+                  <span id="fov-val">60°</span>
+                </div>
+                <input id="slider-fov" type="range" min="50" max="90" value="60" class="setting-slider" oninput="updateFOV(this.value)">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">Invert Pitch (Y-Axis)</div>
+                <select id="select-invert-y" class="setting-select" onchange="updateInvertY(this.value)">
+                  <option value="normal" selected>Normal Flight Controls</option>
+                  <option value="inverted">Inverted Aircraft Stick (Pull Back to Ascend)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <div class="group-title">⌨️ Hotkey Directives</div>
+              <table style="width: 100%; font-size: 11px; color: #cbd5e1; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                  <td style="padding: 6px 0;"><span class="key-hint">W A S D</span> / <span class="key-hint">ARROWS</span></td>
+                  <td style="text-align: right; color: #38bdf8;">Steering & Thrusters</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                  <td style="padding: 6px 0;"><span class="key-hint">SPACEBAR</span></td>
+                  <td style="text-align: right; color: #38bdf8;">Fire Dual Plasma Cannons</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                  <td style="padding: 6px 0;"><span class="key-hint">SHIFT</span></td>
+                  <td style="text-align: right; color: #38bdf8;">Hyperdrive Warp Boost</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                  <td style="padding: 6px 0;"><span class="key-hint">M</span></td>
+                  <td style="text-align: right; color: #38bdf8;">Toggle Draggable Galaxy Map</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0;"><span class="key-hint">ESC</span></td>
+                  <td style="text-align: right; color: #38bdf8;">Pause / Resume Flight</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: About & Intel -->
+        <div id="tab-content-about" class="settings-tab-pane" style="display: none;">
+          <div class="about-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h2 style="font-size: 18px; font-weight: 900; color: #00f0ff; letter-spacing: 1.5px;">
+                  METAHORIZON ODYSSEY: NOVA GALAXY 3D
+                </h2>
+                <div style="font-size: 11px; color: #94a3b8; font-weight: 700; margin-top: 3px;">
+                  Version 6.0.0 // Meta Global Developer Hackathon 2026 Official Submission
+                </div>
+              </div>
+              <span class="sector-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #10b981;">
+                DUAL STORE CERTIFIED
+              </span>
+            </div>
+
+            <p style="font-size: 12px; line-height: 1.6; color: #e2e8f0; margin-top: 14px;">
+              <strong>METAHORIZON ODYSSEY: NOVA GALAXY 3D</strong> is an original 3D high-velocity space flight and tactical fleet combat simulation built natively with Three.js WebGL and procedural Web Audio synthesis. Explore a panoramic, draggable 3D galaxy inspired by the acclaimed Korean galaxy game <em>NOVA</em>, complete with dynamic comets, orbital satellites, volumetric cosmic fogs, and fierce combat against supersonic jet interceptors, heavy rocket gunships, and relentless alien bio-swarms.
+            </p>
+
+            <div class="dev-badge">
+              <div class="dev-avatar">P</div>
+              <div>
+                <div style="font-size: 13px; font-weight: 800; color: #f8fafc;">
+                  Lead Solo Developer: PinoyUnknown
+                </div>
+                <div style="font-size: 11px; color: #94a3b8;">
+                  Independent Game & Systems Architect
+                </div>
+                <div class="dev-links">
+                  <a href="https://github.com/pinoyUnknown" target="_blank" class="dev-link">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    github.com/pinoyUnknown
+                  </a>
+                  <a href="https://instagram.com/pinoyunknown" target="_blank" class="dev-link">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    instagram.com/pinoyunknown
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 11px;">
+              <div style="color: #00f0ff; font-weight: 800; margin-bottom: 4px;">STEAM READY</div>
+              <div style="color: #94a3b8;">Packaged with VDF appmanifest_4206900 and launcher batch files.</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 11px;">
+              <div style="color: #38bdf8; font-weight: 800; margin-bottom: 4px;">HORIZON WORLDS</div>
+              <div style="color: #94a3b8;">Meta Horizon WebXR scene graph and spatial sound configuration.</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 11px;">
+              <div style="color: #c084fc; font-weight: 800; margin-bottom: 4px;">ZERO LATENCY</div>
+              <div style="color: #94a3b8;">Self-contained offline Three.js core bundle with zero CDN dependencies.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div style="font-size: 11px; color: #94a3b8;">
+          Hackathon Project ID: <span style="color: #00f0ff;">1042883398799623</span> | Team ID: <span style="color: #38bdf8;">1716967459402469</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" onclick="togglePauseSettings()">Close Menu</button>
+          <button class="btn-action" onclick="resumeGame()">Resume Flight</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Invariant Rules Drawer -->
-  <div id="frontier-drawer">
-    <div class="drawer-title">
-      <span>Frontier Invariant & Rules Terminal</span>
-      <span class="drawer-close" onclick="toggleDrawer()">CLOSE [TAB]</span>
-    </div>
-    <div class="drawer-grid">
-      <div class="drawer-card">
-        <h3>Theme 1: Build for Your World</h3>
-        <p>Brings advanced procedural synthesis and spatial geometry modeling directly to indie developers. Empowering solo creators to build multi-tier 3D worlds for Steam and Meta Horizon Worlds with zero studio friction.</p>
+  <!-- Full Galaxy Map Modal (Korean NOVA Inspired) -->
+  <div id="galaxy-map-modal">
+    <div id="galaxy-canvas-container"></div>
+    
+    <div class="galaxy-map-overlay">
+      <div class="brand-card">
+        <div class="brand-title">NOVA PERSEUS ARM</div>
+        <div class="brand-sub">ORBITAL GALAXY NAVIGATION // CLICK & DRAG TO PAN</div>
       </div>
-      <div class="drawer-card">
-        <h3>Theme 2: Push the Frontier</h3>
-        <p>Solves real-time simulation, watertight polygon collision hitboxes from raw contours, and verifiable software execution across quantum energy grids and robotic kinematics.</p>
-      </div>
-      <div class="drawer-card">
-        <h3>Anti-Banned Invariant Protocols</h3>
-        <p>The universe has been infected by superficial banned glitches: generic RAG phantoms, sham medical taggers, and basic chatbot drones. Your mission is to eradicate them with mathematical truth.</p>
-      </div>
-      <div class="drawer-card">
-        <h3>Autonomous Engine Manifest</h3>
-        <p>Connected to Meta Developer Portal Workspace (Team ID: 1716967459402469, Project ID: 1042883398799623). Scored Grade A+ 100/100 by CyberSecEval.</p>
+
+      <div style="display: flex; gap: 10px; pointer-events: auto;">
+        <button class="btn-action" onclick="closeGalaxyMap()">Return to Cockpit [M]</button>
       </div>
     </div>
-    <div class="code-box">
-      // Active Invariant Telemetry<br>
-      STATUS: FRONTIER VOYAGER ACTIVE &bull; 60-120 FPS HARDWARE ACCELERATED &bull; ZERO EXPLOITS VERIFIED
+
+    <div class="sector-info-panel">
+      <div id="map-sector-title" style="font-size: 14px; font-weight: 900; color: #00f0ff; letter-spacing: 1px; margin-bottom: 4px;">
+        SECTOR 1: PROXIMA CENTAURI
+      </div>
+      <div id="map-sector-status" style="font-size: 11px; font-weight: 700; color: #10b981; margin-bottom: 10px;">
+        STATUS: CURRENTLY ACTIVE
+      </div>
+      <div id="map-sector-desc" style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 14px;">
+        First defensive outpost guarding the Terran orbital ring. Hostile renegade jet fighters are targeting communications satellites.
+      </div>
+      <button id="btn-warp-to-sector" class="btn-action" style="width: 100%;" onclick="warpToSelectedSector()">
+        ENGAGE SECTOR WARP JUMP
+      </button>
     </div>
   </div>
-
-  <!-- Start Game Overlay -->
-  <div id="start-overlay">
-    <div class="hero-title">METAHORIZON ODYSSEY 3D</div>
-    <div class="hero-sub">
-      An Autonomous 3D Action Experience Built for the Meta Global Developer Hackathon 2026.<br>
-      Explore 5 Progressive 3D Sectors, Purge Banned Synthetic Anomalies, and Enforce the Frontier Invariants.
-    </div>
-    <button class="hero-btn" onclick="startGame()">INITIALIZE VOYAGER DRIVE</button>
-  </div>
-
-  <!-- 3D Game Engine Script -->
+  <!-- Core Three.js Engine Script -->
   <script type="module">
-    import * as THREE from 'three';
+    import * as THREE from './lib/three.module.min.js';
 
-    // -------------------------------------------------------------------------
-    // PROCEDURAL AUDIO SYNTHESIZER (WEB AUDIO API - ZERO EXTERNAL ASSETS)
-    // -------------------------------------------------------------------------
-    class SoundEngine {
-      constructor() {
-        this.ctx = null;
-        this.muted = false;
-        this.musicGain = null;
-        this.sfxGain = null;
-        this.isPlayingMusic = false;
-        this.tempo = 126;
-        this.stage = 1;
-      }
+    // Game State Variables
+    let scene, camera, renderer;
+    let player, playerProjectiles = [], enemyProjectiles = [];
+    let enemies = [], asteroids = [], spaceMines = [], particles = [];
+    let comets = [], satellites = [];
+    let backgroundGalaxyPoints, planetaryBody;
 
-      init() {
-        if (this.ctx) return;
+    // Simulation Flags
+    let isPaused = false;
+    let inGalaxyMap = false;
+    let playerShield = 100, playerHull = 100, laserHeat = 0;
+    let speed = 420, shards = 0, score = 0;
+    let currentSectorId = 1, unlockedSectors = 1;
+    let enemiesEliminatedInSector = 0;
+    let bossActive = false, boss = null;
+    let brightnessMultiplier = 1.0;
+    let soundMasterVol = 0.8, soundSfxVol = 0.85, soundBgmVol = 0.7;
+    let isMuted = false;
+    let mouseSensitivity = 1.0;
+    let invertPitch = false;
+
+    // Audio Context (Web Audio Procedural Synthesizer)
+    let audioCtx = null;
+    let masterGainNode = null;
+    let bgmOsc = null, bgmGain = null;
+
+    function initAudio() {
+      if (!audioCtx) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        this.ctx = new AudioContext();
-        
-        this.sfxGain = this.ctx.createGain();
-        this.sfxGain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-        this.sfxGain.connect(this.ctx.destination);
+        audioCtx = new AudioContext();
+        masterGainNode = audioCtx.createGain();
+        masterGainNode.gain.value = soundMasterVol;
+        masterGainNode.connect(audioCtx.destination);
 
-        this.musicGain = this.ctx.createGain();
-        this.musicGain.gain.setValueAtTime(0.18, this.ctx.currentTime);
-        this.musicGain.connect(this.ctx.destination);
-
-        this.startProceduralMusic();
-      }
-
-      playLaser() {
-        if (!this.ctx || this.muted) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.12);
-
-        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
-
-        osc.connect(gain);
-        gain.connect(this.sfxGain);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.13);
-      }
-
-      playWarp() {
-        if (!this.ctx || this.muted) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(850, this.ctx.currentTime + 0.25);
-
-        gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.28);
-
-        osc.connect(gain);
-        gain.connect(this.sfxGain);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.29);
-      }
-
-      playExplosion() {
-        if (!this.ctx || this.muted) return;
-        // White noise burst with lowpass filter
-        const bufferSize = this.ctx.sampleRate * 0.35;
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1;
-        }
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(800, this.ctx.currentTime);
-        filter.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.35);
-
-        const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.sfxGain);
-        noise.start();
-      }
-
-      playPickup() {
-        if (!this.ctx || this.muted) return;
-        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-        notes.forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.04);
-          gain.gain.setValueAtTime(0.18, this.ctx.currentTime + idx * 0.04);
-          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.04 + 0.12);
-          osc.connect(gain);
-          gain.connect(this.sfxGain);
-          osc.start(this.ctx.currentTime + idx * 0.04);
-          osc.stop(this.ctx.currentTime + idx * 0.04 + 0.13);
-        });
-      }
-
-      playGlitchHit() {
-        if (!this.ctx || this.muted) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-        osc.frequency.setValueAtTime(80, this.ctx.currentTime + 0.04);
-        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
-        osc.connect(gain);
-        gain.connect(this.sfxGain);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.11);
-      }
-
-      startProceduralMusic() {
-        if (this.isPlayingMusic) return;
-        this.isPlayingMusic = true;
-
-        const scales = {
-          1: [130.81, 155.56, 174.61, 196.00, 233.08], // C minor pentatonic (Cyber Metro)
-          2: [110.00, 116.54, 138.59, 164.81, 207.65], // Phrygian (Volcanic Caldera)
-          3: [146.83, 164.81, 174.61, 220.00, 261.63], // D Dorian (Quantum Nebula)
-          4: [164.81, 196.00, 220.00, 246.94, 293.66], // E minor (Orbital Station)
-          5: [98.00, 103.83, 123.47, 146.83, 164.81]   // Dark Locrian (Singularity Core)
-        };
-
-        let step = 0;
-        const beatInterval = (60 / this.tempo) / 4; // 16th notes
-
-        const loop = () => {
-          if (!this.ctx || this.muted) {
-            setTimeout(loop, beatInterval * 1000);
-            return;
-          }
-
-          const currentScale = scales[this.stage] || scales[1];
-          const note = currentScale[step % currentScale.length];
-
-          // Bass Note on 1 and 3
-          if (step % 4 === 0) {
-            const bass = this.ctx.createOscillator();
-            const bGain = this.ctx.createGain();
-            bass.type = 'sawtooth';
-            bass.frequency.setValueAtTime(note / 2, this.ctx.currentTime);
-            bGain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-            bGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
-            bass.connect(bGain);
-            bGain.connect(this.musicGain);
-            bass.start();
-            bass.stop(this.ctx.currentTime + 0.26);
-          }
-
-          // Arpeggio Lead
-          const arp = this.ctx.createOscillator();
-          const aGain = this.ctx.createGain();
-          arp.type = 'triangle';
-          const octave = (step % 8 < 4) ? 1 : 2;
-          arp.frequency.setValueAtTime(note * octave, this.ctx.currentTime);
-          aGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-          aGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
-          arp.connect(aGain);
-          aGain.connect(this.musicGain);
-          arp.start();
-          arp.stop(this.ctx.currentTime + 0.11);
-
-          step = (step + 1) % 16;
-          setTimeout(loop, beatInterval * 1000);
-        };
-
-        loop();
-      }
-
-      toggleMute() {
-        this.muted = !this.muted;
-        return this.muted;
+        // Ambient deep space background drone
+        try {
+          bgmOsc = audioCtx.createOscillator();
+          bgmGain = audioCtx.createGain();
+          bgmOsc.type = 'sine';
+          bgmOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
+          bgmGain.gain.setValueAtTime(0.04 * soundBgmVol, audioCtx.currentTime);
+          bgmOsc.connect(bgmGain);
+          bgmGain.connect(masterGainNode);
+          bgmOsc.start();
+        } catch(e) {}
       }
     }
 
-    const sound = new SoundEngine();
+    function playSound(type) {
+      if (!audioCtx || isMuted) return;
+      try {
+        const now = audioCtx.currentTime;
+        const sfxGain = audioCtx.createGain();
+        sfxGain.gain.value = soundSfxVol;
+        sfxGain.connect(masterGainNode);
 
-    // -------------------------------------------------------------------------
-    // 3D SCENE & ENGINE ARCHITECTURE
-    // -------------------------------------------------------------------------
-    let scene, camera, renderer;
-    let player, playerVelocity = new THREE.Vector3();
-    let playerHull = 100, playerShield = 100, warpCooldown = 1.0;
-    let score = 0, shards = 0, playerLevel = 1;
-    let currentStage = 1;
-    let bossActive = false, boss = null, bossHP = 100, bossMaxHP = 100;
+        if (type === 'laser') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.connect(gain);
+          gain.connect(sfxGain);
+          osc.start(now);
+          osc.stop(now + 0.13);
+        } else if (type === 'enemy_laser') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.connect(gain);
+          gain.connect(sfxGain);
+          osc.start(now);
+          osc.stop(now + 0.16);
+        } else if (type === 'alien_plasma') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(620, now);
+          osc.frequency.linearRampToValueAtTime(180, now + 0.2);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.connect(gain);
+          gain.connect(sfxGain);
+          osc.start(now);
+          osc.stop(now + 0.21);
+        } else if (type === 'explosion') {
+          const bufferSize = audioCtx.sampleRate * 0.4;
+          const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+          const noise = audioCtx.createBufferSource();
+          noise.buffer = buffer;
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(800, now);
+          filter.frequency.exponentialRampToValueAtTime(50, now + 0.38);
+          const gain = audioCtx.createGain();
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.38);
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(sfxGain);
+          noise.start(now);
+        } else if (type === 'comms_beep') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1200, now);
+          osc.frequency.setValueAtTime(1600, now + 0.06);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.connect(gain);
+          gain.connect(sfxGain);
+          osc.start(now);
+          osc.stop(now + 0.16);
+        } else if (type === 'warp') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(100, now);
+          osc.frequency.exponentialRampToValueAtTime(1400, now + 0.6);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+          osc.connect(gain);
+          gain.connect(sfxGain);
+          osc.start(now);
+          osc.stop(now + 0.65);
+        }
+      } catch(e) {}
+    }
 
-    const enemies = [];
-    const playerProjectiles = [];
-    const enemyProjectiles = [];
-    const particles = [];
-    const floatingPickups = [];
-    const stageDecorations = [];
-
-    // Stage Themes
-    const STAGE_CONFIGS = {
-      1: {
-        name: "Sector Alpha: Cyber Metropolis",
-        themeName: "Build for Your World",
-        bg: 0x020617,
-        fog: 0x020617,
-        gridColor: 0x00f0ff,
-        accentColor: 0xec4899,
-        bossName: "CITADEL SENTRY V1",
-        description: "Virtual neon training ground. Purge basic RAG glitch phantoms."
+    // Storytelling & Mission Briefing Data
+    const SECTORS = [
+      {
+        id: 1,
+        name: 'Proxima Centauri Outpost',
+        badge: 'SECTOR 1: PROXIMA CENTAURI',
+        fogColor: 0x060e22,
+        planetColor: 0x38bdf8,
+        planetRings: true,
+        targetEnemies: 5,
+        enemyType: 'renegade_jet',
+        speaker: 'FLEET ADMIRAL VANCE // VANGUARD COMMAND',
+        startMessage: '"Commander Unknown, renegade jet interceptors have ambushed our orbital perimeter at Proxima Centauri! Protect the satellite communications relay and eliminate all hostile fighter jets."',
+        victoryMessage: '"Outstanding flight work, Commander! Perimeter secured. Comm satellites are online. The jump gate to Kepler-186f is now open."',
+        objectiveText: 'Eliminate Renegade Jet Interceptors'
       },
-      2: {
-        name: "Sector Omega: Plasma Caldera",
-        themeName: "Push the Frontier - Energy Grid",
-        bg: 0x180505,
-        fog: 0x1f0606,
-        gridColor: 0xff3b30,
-        accentColor: 0xf59e0b,
-        bossName: "THERMAL GOLEM PRIME",
-        description: "Molten basalt caldera with volatile plasma anomalies."
+      {
+        id: 2,
+        name: 'Kepler-186f Comet Corridor',
+        badge: 'SECTOR 2: KEPLER-186F',
+        fogColor: 0x071520,
+        planetColor: 0x10b981,
+        planetRings: false,
+        targetEnemies: 7,
+        enemyType: 'rocket_ship',
+        speaker: 'OPERATIONS CHIEF TARA // DEEP SPACE OPS',
+        startMessage: '"Caution, Commander! Kepler-186f is swarming with hyper-velocity comets. Hostile heavy rocket gunships are raiding orbital shipping convoys. Evade the comets and take down the rocket gunships!"',
+        victoryMessage: '"Rocket gunships neutralized! Comet trajectories mapped. The warp route to the Sirius Belt is unlocked."',
+        objectiveText: 'Destroy Heavy Rocket Gunships'
       },
-      3: {
-        name: "Sector Omega: Quantum Nebula",
-        themeName: "Push the Frontier - Quantum Computing",
-        bg: 0x090514,
-        fog: 0x0e0822,
-        gridColor: 0x8b5cf6,
-        accentColor: 0x06b6d4,
-        bossName: "QUANTUM SINGULARITY WORM",
-        description: "Zero-G space with phase-shifting quantum polyhedra."
+      {
+        id: 3,
+        name: 'Sirius Asteroid Graveyard',
+        badge: 'SECTOR 3: SIRIUS ORBITAL BELT',
+        fogColor: 0x110924,
+        planetColor: 0xc084fc,
+        planetRings: true,
+        targetEnemies: 8,
+        enemyType: 'alien_swarm',
+        speaker: 'SCIENCE OFFICER KRYLL // BIO-RECON',
+        startMessage: '"Commander, an ancient satellite array went dark. Scanners detect biosignatures... The Alien Swarm has breached the sector! Prepare for non-linear flight maneuvers!"',
+        victoryMessage: '"Alien vanguard broken! Satellite telemetry recovered. Prepare for deep atmospheric insertion into the Orion Nebula."',
+        objectiveText: 'Exterminate Alien Swarm Bioships'
       },
-      4: {
-        name: "Sector Alpha: Orbital Horizon",
-        themeName: "Build for Your World - Global Network",
-        bg: 0x021612,
-        fog: 0x03201a,
-        gridColor: 0x10b981,
-        accentColor: 0x38bdf8,
-        bossName: "ORBITAL DOCK OVERLORD",
-        description: "Titanium superstructure with defense laser arrays."
+      {
+        id: 4,
+        name: 'The Orion Shroud (Nebula Fog)',
+        badge: 'SECTOR 4: ORION NEBULA',
+        fogColor: 0x1c0620,
+        planetColor: 0xf43f5e,
+        planetRings: true,
+        targetEnemies: 10,
+        enemyType: 'mixed',
+        speaker: 'FLEET ADMIRAL VANCE // VANGUARD COMMAND',
+        startMessage: '"Heavy ion nebula fog is blinding long-range radar. Alien bio-cruisers and renegade jets have formed a joint defensive perimeter. Penetrate the shroud and clear the sector!"',
+        victoryMessage: '"Nebula cleared! We have localized the Alien Command Flagship at the Andromeda Core Gate! This is the final stand."',
+        objectiveText: 'Clear Hostiles in Ion Fog'
       },
-      5: {
-        name: "Sector Omega: Singularity Supercore",
-        themeName: "The Ultimate Frontier",
-        bg: 0x020205,
-        fog: 0x050508,
-        gridColor: 0xfbbf24,
-        accentColor: 0xff0055,
-        bossName: "NEXUS-PRIME: THE ROGUE SUPERMIND",
-        description: "The core event horizon where reality invariants bend."
+      {
+        id: 5,
+        name: 'Andromeda Frontier Core',
+        badge: 'SECTOR 5: ANDROMEDA CORE',
+        fogColor: 0x181204,
+        planetColor: 0xf59e0b,
+        planetRings: true,
+        targetEnemies: 12,
+        enemyType: 'boss',
+        speaker: 'SUPREME HIGH COMMAND // NOVA FLEET',
+        startMessage: '"All Vanguard units! The Supreme Alien Dreadnought is drawing dark energy from the core. Destroy its shield spires and obliterate the flagship to liberate the Nova Galaxy!"',
+        victoryMessage: '"THE ALIEN DREADNOUGHT IS DESTROYED! The Nova Galaxy is free. Commander Unknown, you are hailed across all human colonies as the Vanguard Hero!"',
+        objectiveText: 'Defeat the Supreme Alien Dreadnought'
       }
-    };
-
-    // Keyboard & Mouse State
-    const keys = {};
-    const mouse = { x: 0, y: 0, isDown: false };
-    let lastFireTime = 0;
-
+    ];
+    // Initialize 3D Engine
     function init3D() {
       const container = document.getElementById('canvas-container');
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-
-      // Scene & Fog
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(STAGE_CONFIGS[1].bg);
-      scene.fog = new THREE.FogExp2(STAGE_CONFIGS[1].fog, 0.012);
+      scene.fog = new THREE.FogExp2(0x060e22, 0.0035);
 
-      // Camera
-      camera = new THREE.PerspectiveCamera(65, w / h, 0.1, 1000);
-      camera.position.set(0, 18, 30);
-      camera.lookAt(0, 0, -10);
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 4000);
+      camera.position.set(0, 4, 14);
 
-      // Renderer
-      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-      renderer.setSize(w, h);
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.2;
       container.appendChild(renderer.domElement);
 
       // Lighting
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x080820, 1.2);
-      scene.add(hemiLight);
+      const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambient);
 
-      const dirLight = new THREE.DirectionalLight(0x00f0ff, 2.0);
-      dirLight.position.set(20, 40, 20);
-      scene.add(dirLight);
+      const sunLight = new THREE.DirectionalLight(0x00f0ff, 1.8);
+      sunLight.position.set(50, 80, 50);
+      scene.add(sunLight);
 
-      // Build 3D World Environment
-      buildTerrainGrid();
-      createPlayerShip();
-      spawnEnvironmentDecorations();
+      const backLight = new THREE.DirectionalLight(0xa855f7, 1.2);
+      backLight.position.set(-50, -30, -50);
+      scene.add(backLight);
 
-      // Listeners
-      window.addEventListener('resize', onWindowResize);
-      window.addEventListener('keydown', onKeyDown);
-      window.addEventListener('keyup', onKeyUp);
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mousedown', onMouseDown);
-      window.addEventListener('mouseup', onMouseUp);
+      // Celestial Background & Galaxy Elements
+      buildDeepSpaceBackground();
+      buildRotatingSpiralGalaxy();
+      buildSectorCelestialPlanet(SECTORS[0]);
+      buildComets();
+      buildSatellites();
 
-      // Animation Loop
+      // Build 3D Player Ship
+      buildPlayerShip();
+
+      // Populate Initial Asteroids
+      populateAsteroidBelt();
+
+      // Set Up Event Handlers
+      setupInputHandlers();
+
+      // Start Simulation Loop
       animate();
     }
 
-    // -------------------------------------------------------------------------
-    // 3D MODELS: TERRAIN, PLAYER & OBJECTS
-    // -------------------------------------------------------------------------
-    let terrainGrid, gridMaterial;
+    // Deep Space Starfield
+    function buildDeepSpaceBackground() {
+      const starGeo = new THREE.BufferGeometry();
+      const count = 3000;
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
 
-    function buildTerrainGrid() {
-      const size = 300;
-      const divisions = 60;
-      terrainGrid = new THREE.GridHelper(size, divisions, 0x00f0ff, 0x0f2744);
-      terrainGrid.position.y = -2;
-      scene.add(terrainGrid);
+      for (let i = 0; i < count; i++) {
+        positions[i*3] = (Math.random() - 0.5) * 3500;
+        positions[i*3+1] = (Math.random() - 0.5) * 3500;
+        positions[i*3+2] = (Math.random() - 0.5) * 3500;
 
-      // Undulating wireframe plane for dynamic digital wave effect
-      const planeGeo = new THREE.PlaneGeometry(300, 300, 40, 40);
-      planeGeo.rotateX(-Math.PI / 2);
-      gridMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00f0ff,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.15
-      });
-      const waveMesh = new THREE.Mesh(planeGeo, gridMaterial);
-      waveMesh.position.y = -2.1;
-      scene.add(waveMesh);
+        const c = Math.random();
+        if (c > 0.7) { colors[i*3] = 0.0; colors[i*3+1] = 0.94; colors[i*3+2] = 1.0; } // Cyan
+        else if (c > 0.4) { colors[i*3] = 0.75; colors[i*3+1] = 0.5; colors[i*3+2] = 1.0; } // Purple
+        else { colors[i*3] = 1.0; colors[i*3+1] = 1.0; colors[i*3+2] = 1.0; } // White
+      }
+      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const starMat = new THREE.PointsMaterial({ size: 2.2, vertexColors: true, transparent: true, opacity: 0.9 });
+      const starPoints = new THREE.Points(starGeo, starMat);
+      scene.add(starPoints);
     }
 
-    function createPlayerShip() {
-      player = new THREE.Group();
+    // 3D Rotating Spiral Galaxy (Celestial Backdrop)
+    function buildRotatingSpiralGalaxy() {
+      const count = 4000;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
 
-      // Fuselage (Sleek sci-fi wedge)
-      const bodyGeo = new THREE.ConeGeometry(1.2, 4.2, 5);
-      bodyGeo.rotateX(Math.PI / 2);
-      const bodyMat = new THREE.MeshStandardMaterial({
-        color: 0x0f172a,
-        metalness: 0.9,
-        roughness: 0.2,
-        emissive: 0x002244,
+      for (let i = 0; i < count; i++) {
+        const i3 = i * 3;
+        const radius = Math.random() * 450 + 40;
+        const spinAngle = radius * 0.03;
+        const branchAngle = ((i % 3) * 2 * Math.PI) / 3;
+
+        const randomX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 25;
+        const randomY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 25;
+        const randomZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 25;
+
+        pos[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX - 400;
+        pos[i3+1] = randomY + 200;
+        pos[i3+2] = Math.sin(branchAngle + spinAngle) * radius + randomZ - 1200;
+
+        // Core gold, outer cyan / purple
+        const mixRatio = radius / 490;
+        col[i3] = 1.0 * (1 - mixRatio) + 0.1 * mixRatio;
+        col[i3+1] = 0.8 * (1 - mixRatio) + 0.8 * mixRatio;
+        col[i3+2] = 0.3 * (1 - mixRatio) + 1.0 * mixRatio;
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+      const mat = new THREE.PointsMaterial({ size: 3.5, vertexColors: true, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending });
+      backgroundGalaxyPoints = new THREE.Points(geo, mat);
+      scene.add(backgroundGalaxyPoints);
+    }
+
+    // Sector Celestial Planet with Atmosphere
+    function buildSectorCelestialPlanet(sector) {
+      if (planetaryBody) scene.remove(planetaryBody);
+
+      planetaryBody = new THREE.Group();
+      const sphereGeo = new THREE.SphereGeometry(180, 48, 48);
+      const sphereMat = new THREE.MeshStandardMaterial({
+        color: sector.planetColor,
+        roughness: 0.45,
+        metalness: 0.25,
+        emissive: sector.planetColor,
+        emissiveIntensity: 0.15
       });
-      const body = new THREE.Mesh(bodyGeo, bodyMat);
-      player.add(body);
+      const planetMesh = new THREE.Mesh(sphereGeo, sphereMat);
+      planetaryBody.add(planetMesh);
 
-      // Wings
-      const wingGeo = new THREE.BoxGeometry(5.2, 0.15, 1.8);
-      const wingMat = new THREE.MeshStandardMaterial({
-        color: 0x1e293b,
-        metalness: 0.8,
-        roughness: 0.3,
+      // Atmospheric Glow Ring
+      const atmoGeo = new THREE.SphereGeometry(188, 32, 32);
+      const atmoMat = new THREE.MeshBasicMaterial({
+        color: sector.planetColor,
+        transparent: true,
+        opacity: 0.2,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending
+      });
+      const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
+      planetaryBody.add(atmoMesh);
+
+      if (sector.planetRings) {
+        const ringGeo = new THREE.RingGeometry(210, 310, 64);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0x94a3b8,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.45
+        });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.rotation.x = Math.PI / 2.3;
+        ringMesh.rotation.y = Math.PI / 6;
+        planetaryBody.add(ringMesh);
+      }
+
+      planetaryBody.position.set(380, 150, -900);
+      scene.add(planetaryBody);
+    }
+
+    // Procedural 3D Comets
+    function buildComets() {
+      for (let i = 0; i < 3; i++) {
+        spawnComet();
+      }
+    }
+
+    function spawnComet() {
+      const cometGroup = new THREE.Group();
+
+      // Nucleus: Icy crystalline dodecahedron
+      const nucleusGeo = new THREE.DodecahedronGeometry(2.5, 1);
+      const nucleusMat = new THREE.MeshStandardMaterial({
+        color: 0xdff9fb,
         emissive: 0x00f0ff,
+        emissiveIntensity: 1.5,
+        roughness: 0.2
+      });
+      const nucleus = new THREE.Mesh(nucleusGeo, nucleusMat);
+      cometGroup.add(nucleus);
+
+      // Trailing dust & gas tail
+      const tailCount = 180;
+      const tailGeo = new THREE.BufferGeometry();
+      const tailPos = new Float32Array(tailCount * 3);
+      const tailCols = new Float32Array(tailCount * 3);
+
+      for (let t = 0; t < tailCount; t++) {
+        tailPos[t*3] = (Math.random() - 0.5) * 1.5;
+        tailPos[t*3+1] = (Math.random() - 0.5) * 1.5;
+        tailPos[t*3+2] = t * 0.8 + Math.random() * 2;
+
+        tailCols[t*3] = 0.0;
+        tailCols[t*3+1] = 0.94;
+        tailCols[t*3+2] = 1.0;
+      }
+      tailGeo.setAttribute('position', new THREE.BufferAttribute(tailPos, 3));
+      tailGeo.setAttribute('color', new THREE.BufferAttribute(tailCols, 3));
+
+      const tailMat = new THREE.PointsMaterial({
+        size: 2.8,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending
+      });
+      const tail = new THREE.Points(tailGeo, tailMat);
+      cometGroup.add(tail);
+
+      // Random starting position and velocity
+      cometGroup.position.set(
+        (Math.random() - 0.5) * 400,
+        Math.random() * 150 + 50,
+        player ? player.position.z - 400 - Math.random() * 300 : -600
+      );
+
+      cometGroup.userData = {
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: -0.2 - Math.random() * 0.3,
+        vz: 1.8 + Math.random() * 1.5,
+        rotSpeed: 0.03
+      };
+
+      scene.add(cometGroup);
+      comets.push(cometGroup);
+    }
+
+    // 3D Orbital Satellites
+    function buildSatellites() {
+      for (let s = 0; s < 4; s++) {
+        spawnSatellite(s);
+      }
+    }
+
+    function spawnSatellite(index) {
+      const sat = new THREE.Group();
+
+      // Gold Foil Central Body
+      const busGeo = new THREE.BoxGeometry(3, 4, 3);
+      const busMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        metalness: 0.85,
+        roughness: 0.25,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.2
+      });
+      const bus = new THREE.Mesh(busGeo, busMat);
+      sat.add(bus);
+
+      // Dual Solar Array Panels
+      const panelGeo = new THREE.BoxGeometry(10, 2.5, 0.2);
+      const panelMat = new THREE.MeshStandardMaterial({
+        color: 0x1d4ed8,
+        metalness: 0.5,
+        roughness: 0.3,
+        emissive: 0x1e40af,
         emissiveIntensity: 0.3
       });
-      const wings = new THREE.Mesh(wingGeo, wingMat);
-      wings.position.set(0, 0, 0.5);
-      player.add(wings);
+      const leftPanel = new THREE.Mesh(panelGeo, panelMat);
+      leftPanel.position.set(-7, 0, 0);
+      sat.add(leftPanel);
 
-      // Dual Plasma Thrusters
-      const thrusterGeo = new THREE.CylinderGeometry(0.3, 0.45, 1.0, 8);
-      thrusterGeo.rotateX(Math.PI / 2);
-      const thrusterMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      const rightPanel = new THREE.Mesh(panelGeo, panelMat);
+      rightPanel.position.set(7, 0, 0);
+      sat.add(rightPanel);
 
-      const t1 = new THREE.Mesh(thrusterGeo, thrusterMat);
-      t1.position.set(-0.9, 0, 2.2);
-      player.add(t1);
+      // Parabolic Dish Antenna
+      const dishGeo = new THREE.ConeGeometry(2, 1, 16, 1, true);
+      const dishMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.7, roughness: 0.3 });
+      const dish = new THREE.Mesh(dishGeo, dishMat);
+      dish.rotation.x = Math.PI / 2;
+      dish.position.set(0, 0, 2.2);
+      sat.add(dish);
 
-      const t2 = new THREE.Mesh(thrusterGeo, thrusterMat);
-      t2.position.set(0.9, 0, 2.2);
-      player.add(t2);
+      // Blinking Navigation Beacon Light
+      const beaconGeo = new THREE.SphereGeometry(0.35, 8, 8);
+      const beaconMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+      const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+      beacon.position.set(0, 2.4, 0);
+      sat.add(beacon);
 
-      // Glow Light
-      const pLight = new THREE.PointLight(0x00f0ff, 3, 12);
-      pLight.position.set(0, 0.5, 1.5);
-      player.add(pLight);
+      sat.position.set(
+        (index % 2 === 0 ? 1 : -1) * (80 + Math.random() * 60),
+        20 + Math.random() * 40,
+        player ? player.position.z - 200 - index * 120 : -300 - index * 120
+      );
+
+      sat.userData = {
+        rotY: 0.008,
+        rotZ: 0.004,
+        beacon: beacon
+      };
+
+      scene.add(sat);
+      satellites.push(sat);
+    }
+    // Build High-Poly Stylized 3D Player Starfighter
+    function buildPlayerShip() {
+      player = new THREE.Group();
+
+      // Main Fuselage
+      const bodyGeo = new THREE.ConeGeometry(1.6, 6.5, 5);
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        metalness: 0.85,
+        roughness: 0.25
+      });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.rotation.x = Math.PI / 2;
+      player.add(body);
+
+      // Cockpit Canopy
+      const cockpitGeo = new THREE.SphereGeometry(0.85, 16, 16);
+      cockpitGeo.scale(1, 0.6, 2.2);
+      const cockpitMat = new THREE.MeshStandardMaterial({
+        color: 0x00f0ff,
+        emissive: 0x00f0ff,
+        emissiveIntensity: 0.6,
+        roughness: 0.1,
+        metalness: 0.9
+      });
+      const cockpit = new THREE.Mesh(cockpitGeo, cockpitMat);
+      cockpit.position.set(0, 0.5, 0.2);
+      player.add(cockpit);
+
+      // Swept Wings
+      const wingShape = new THREE.Shape();
+      wingShape.moveTo(0, 0);
+      wingShape.lineTo(4.8, -2.5);
+      wingShape.lineTo(4.5, -4.2);
+      wingShape.lineTo(0, -2.8);
+      wingShape.closePath();
+
+      const extrudeSettings = { depth: 0.25, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05 };
+      const wingGeo = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
+      const wingMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
+
+      const rightWing = new THREE.Mesh(wingGeo, wingMat);
+      rightWing.rotation.x = Math.PI / 2;
+      rightWing.position.set(0.6, -0.2, 1.2);
+      player.add(rightWing);
+
+      const leftWing = rightWing.clone();
+      leftWing.scale.set(-1, 1, 1);
+      leftWing.position.set(-0.6, -0.2, 1.2);
+      player.add(leftWing);
+
+      // Dual Wingtip Plasma Cannons
+      const cannonGeo = new THREE.CylinderGeometry(0.12, 0.12, 2.4, 8);
+      const cannonMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x00f0ff, emissiveIntensity: 0.5 });
+      const rightCannon = new THREE.Mesh(cannonGeo, cannonMat);
+      rightCannon.rotation.x = Math.PI / 2;
+      rightCannon.position.set(4.6, -0.2, 0.8);
+      player.add(rightCannon);
+
+      const leftCannon = rightCannon.clone();
+      leftCannon.position.set(-4.6, -0.2, 0.8);
+      player.add(leftCannon);
+
+      // Dual Ion Thruster Glow Cones
+      const thrusterGeo = new THREE.ConeGeometry(0.55, 2.2, 12);
+      const thrusterMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.85 });
+      const rightThruster = new THREE.Mesh(thrusterGeo, thrusterMat);
+      rightThruster.rotation.x = -Math.PI / 2;
+      rightThruster.position.set(0.75, 0, 3.8);
+      player.add(rightThruster);
+
+      const leftThruster = rightThruster.clone();
+      leftThruster.position.set(-0.75, 0, 3.8);
+      player.add(leftThruster);
 
       player.position.set(0, 0, 0);
       scene.add(player);
     }
 
-    function spawnEnvironmentDecorations() {
-      // Clear old decorations
-      stageDecorations.forEach(d => scene.remove(d));
-      stageDecorations.length = 0;
+    // Populate Floating Asteroids
+    function populateAsteroidBelt() {
+      const geoList = [
+        new THREE.DodecahedronGeometry(3.5, 1),
+        new THREE.IcosahedronGeometry(4, 0),
+        new THREE.OctahedronGeometry(3, 1)
+      ];
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x64748b,
+        roughness: 0.85,
+        metalness: 0.15
+      });
 
-      const conf = STAGE_CONFIGS[currentStage];
-      const count = 40;
-
-      for (let i = 0; i < count; i++) {
-        let geo, mat, mesh;
-        const x = (Math.random() - 0.5) * 200;
-        const z = -Math.random() * 250 - 20;
-
-        if (currentStage === 1) {
-          // Cyber Skyscraper monoliths
-          const h = 20 + Math.random() * 50;
-          geo = new THREE.BoxGeometry(6, h, 6);
-          mat = new THREE.MeshStandardMaterial({
-            color: 0x050e1f,
-            wireframe: Math.random() > 0.5,
-            emissive: conf.accentColor,
-            emissiveIntensity: 0.15
-          });
-          mesh = new THREE.Mesh(geo, mat);
-          mesh.position.set(x, h / 2 - 2, z);
-        } else if (currentStage === 2) {
-          // Volcanic Basalt Spikes
-          const h = 15 + Math.random() * 35;
-          geo = new THREE.ConeGeometry(4, h, 6);
-          mat = new THREE.MeshStandardMaterial({
-            color: 0x240606,
-            roughness: 0.9,
-            emissive: 0xff3b30,
-            emissiveIntensity: 0.4
-          });
-          mesh = new THREE.Mesh(geo, mat);
-          mesh.position.set(x, h / 2 - 2, z);
-        } else if (currentStage === 3) {
-          // Quantum Floating Polyhedra
-          geo = new THREE.IcosahedronGeometry(2.5 + Math.random() * 3, 0);
-          mat = new THREE.MeshStandardMaterial({
-            color: 0x1e1035,
-            wireframe: true,
-            emissive: 0x8b5cf6,
-            emissiveIntensity: 0.8
-          });
-          mesh = new THREE.Mesh(geo, mat);
-          mesh.position.set(x, 4 + Math.random() * 20, z);
-          mesh.userData.rotSpeed = Math.random() * 0.02 + 0.01;
-        } else if (currentStage === 4) {
-          // Space Station Conduits & Rings
-          geo = new THREE.TorusGeometry(8 + Math.random() * 6, 0.4, 8, 24);
-          mat = new THREE.MeshStandardMaterial({
-            color: 0x064e3b,
-            metalness: 0.9,
-            emissive: 0x10b981,
-            emissiveIntensity: 0.5
-          });
-          mesh = new THREE.Mesh(geo, mat);
-          mesh.position.set(x, 10 + Math.random() * 15, z);
-          mesh.rotation.x = Math.PI / 2;
-        } else {
-          // Singularity Obsidian Pillars & Distortion Rings
-          geo = new THREE.OctahedronGeometry(4 + Math.random() * 4, 0);
-          mat = new THREE.MeshStandardMaterial({
-            color: 0x000000,
-            metalness: 1.0,
-            roughness: 0.1,
-            emissive: 0xfbbf24,
-            emissiveIntensity: 0.6
-          });
-          mesh = new THREE.Mesh(geo, mat);
-          mesh.position.set(x, 6 + Math.random() * 25, z);
-          mesh.userData.rotSpeed = 0.03;
-        }
-
+      for (let i = 0; i < 40; i++) {
+        const geo = geoList[i % geoList.length];
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(
+          (Math.random() - 0.5) * 320,
+          (Math.random() - 0.5) * 160,
+          -100 - i * 35
+        );
+        mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+        mesh.userData = {
+          rotX: (Math.random() - 0.5) * 0.02,
+          rotY: (Math.random() - 0.5) * 0.02,
+          hp: 3
+        };
         scene.add(mesh);
-        stageDecorations.push(mesh);
+        asteroids.push(mesh);
       }
     }
 
-    // -------------------------------------------------------------------------
-    // ENEMY SPAWNER & ARCHETYPES
-    // -------------------------------------------------------------------------
-    function spawnEnemy() {
-      if (enemies.length >= 8 + currentStage * 2) return;
+    // Spawn 3D Enemies (Renegade Jets, Rocket Ships, Alien Bio-Swarm)
+    function spawnSectorEnemy() {
+      const currentSector = SECTORS[currentSectorId - 1];
+      let type = currentSector.enemyType;
+      if (type === 'mixed') type = Math.random() < 0.5 ? 'renegade_jet' : 'alien_swarm';
+      if (type === 'boss') type = 'alien_swarm'; // Boss handled separately
 
-      const conf = STAGE_CONFIGS[currentStage];
-      const isSpecial = Math.random() > 0.7;
+      const enemyGroup = new THREE.Group();
 
-      // 3D Enemy Mesh
-      const group = new THREE.Group();
-      let geo, mat;
+      if (type === 'renegade_jet') {
+        // Terran Renegade Interceptor Jet
+        const fuseGeo = new THREE.ConeGeometry(1.2, 5.5, 4);
+        const fuseMat = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.8, roughness: 0.25 });
+        const fuse = new THREE.Mesh(fuseGeo, fuseMat);
+        fuse.rotation.x = -Math.PI / 2;
+        enemyGroup.add(fuse);
 
-      if (!isSpecial) {
-        // Interceptor Drone (Anti-Banned RAG Glitcher)
-        geo = new THREE.OctahedronGeometry(1.2, 0);
-        mat = new THREE.MeshStandardMaterial({
-          color: 0x1e293b,
-          emissive: conf.gridColor,
-          emissiveIntensity: 0.8,
-          metalness: 0.8
-        });
+        // Delta Wings
+        const wingGeo = new THREE.BoxGeometry(5.5, 0.15, 2.2);
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0x7f1d1d, metalness: 0.7, roughness: 0.3 });
+        const wings = new THREE.Mesh(wingGeo, wingMat);
+        wings.position.set(0, 0, 0.5);
+        enemyGroup.add(wings);
+
+        // Twin Afterburners
+        const jetGeo = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8);
+        const jetMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
+        const leftJet = new THREE.Mesh(jetGeo, jetMat);
+        leftJet.rotation.x = Math.PI / 2;
+        leftJet.position.set(-0.6, 0, -2.5);
+        enemyGroup.add(leftJet);
+
+        const rightJet = leftJet.clone();
+        rightJet.position.set(0.6, 0, -2.5);
+        enemyGroup.add(rightJet);
+
+        enemyGroup.userData = {
+          type: 'renegade_jet',
+          hp: 2,
+          speed: 1.1 + Math.random() * 0.4,
+          shootCooldown: 90 + Math.random() * 60
+        };
+      } else if (type === 'rocket_ship') {
+        // Armored Rocket Gunship
+        const rocketGeo = new THREE.CylinderGeometry(1.4, 1.4, 6, 8);
+        const rocketMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.85, roughness: 0.3 });
+        const rocket = new THREE.Mesh(rocketGeo, rocketMat);
+        rocket.rotation.x = Math.PI / 2;
+        enemyGroup.add(rocket);
+
+        // Heavy Nose Cone
+        const noseGeo = new THREE.ConeGeometry(1.4, 2.2, 8);
+        const noseMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 });
+        const nose = new THREE.Mesh(noseGeo, noseMat);
+        nose.rotation.x = -Math.PI / 2;
+        nose.position.set(0, 0, 3.8);
+        enemyGroup.add(nose);
+
+        // Side Rocket Pods
+        const podGeo = new THREE.CylinderGeometry(0.6, 0.6, 4, 8);
+        const podMat = new THREE.MeshStandardMaterial({ color: 0x64748b });
+        const leftPod = new THREE.Mesh(podGeo, podMat);
+        leftPod.rotation.x = Math.PI / 2;
+        leftPod.position.set(-2, 0, 0);
+        enemyGroup.add(leftPod);
+
+        const rightPod = leftPod.clone();
+        rightPod.position.set(2, 0, 0);
+        enemyGroup.add(rightPod);
+
+        enemyGroup.userData = {
+          type: 'rocket_ship',
+          hp: 4,
+          speed: 0.8 + Math.random() * 0.3,
+          shootCooldown: 110 + Math.random() * 50
+        };
       } else {
-        // Heavy Cruiser
-        geo = new THREE.DodecahedronGeometry(1.8, 0);
-        mat = new THREE.MeshStandardMaterial({
-          color: 0x450a0a,
-          emissive: 0xff0055,
-          emissiveIntensity: 0.9,
-          metalness: 0.9
+        // 3D Alien Swarm Fighter (Insectoid Bio-Ship)
+        const chitinGeo = new THREE.OctahedronGeometry(1.8, 1);
+        const chitinMat = new THREE.MeshStandardMaterial({
+          color: 0x14532d,
+          emissive: 0x22c55e,
+          emissiveIntensity: 0.6,
+          metalness: 0.4,
+          roughness: 0.4
         });
+        const chitin = new THREE.Mesh(chitinGeo, chitinMat);
+        enemyGroup.add(chitin);
+
+        // Glowing Bioluminescent Venom Core
+        const coreGeo = new THREE.SphereGeometry(0.8, 12, 12);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xa855f7 });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        enemyGroup.add(core);
+
+        // Scythe Bio-Wings
+        const scytheGeo = new THREE.ConeGeometry(0.4, 4.5, 4);
+        const scytheMat = new THREE.MeshStandardMaterial({ color: 0x86efac });
+        const leftScythe = new THREE.Mesh(scytheGeo, scytheMat);
+        leftScythe.rotation.z = Math.PI / 3;
+        leftScythe.position.set(-2.2, 0, 0);
+        enemyGroup.add(leftScythe);
+
+        const rightScythe = leftScythe.clone();
+        rightScythe.rotation.z = -Math.PI / 3;
+        rightScythe.position.set(2.2, 0, 0);
+        enemyGroup.add(rightScythe);
+
+        enemyGroup.userData = {
+          type: 'alien_swarm',
+          hp: 3,
+          speed: 1.3 + Math.random() * 0.5,
+          shootCooldown: 75 + Math.random() * 40,
+          oscOffset: Math.random() * Math.PI * 2
+        };
       }
 
-      const core = new THREE.Mesh(geo, mat);
-      group.add(core);
+      enemyGroup.position.set(
+        (Math.random() - 0.5) * 140,
+        (Math.random() - 0.5) * 60,
+        player.position.z - 280
+      );
 
-      // Positioning along distance horizon
-      const spawnX = (Math.random() - 0.5) * 70;
-      const spawnZ = player.position.z - (90 + Math.random() * 50);
-      group.position.set(spawnX, 1.5 + Math.random() * 4, spawnZ);
-
-      group.userData = {
-        hp: isSpecial ? (40 + currentStage * 20) : (15 + currentStage * 10),
-        maxHp: isSpecial ? (40 + currentStage * 20) : (15 + currentStage * 10),
-        speed: 0.25 + Math.random() * 0.2,
-        isSpecial: isSpecial,
-        shootTimer: Math.random() * 60
-      };
-
-      scene.add(group);
-      enemies.push(group);
+      scene.add(enemyGroup);
+      enemies.push(enemyGroup);
+      document.getElementById('enemies-val').innerText = enemies.length;
     }
 
-    function spawnBoss() {
+    // Spawn Supreme Alien Dreadnought Boss (Sector 5)
+    function spawnSupremeBoss() {
       if (bossActive) return;
       bossActive = true;
-      const conf = STAGE_CONFIGS[currentStage];
 
       boss = new THREE.Group();
 
-      // Colossal Multi-Ring Boss Colossus
-      const mainGeo = new THREE.IcosahedronGeometry(5.0, 1);
-      const mainMat = new THREE.MeshStandardMaterial({
-        color: 0x0f172a,
-        emissive: 0xff0055,
-        emissiveIntensity: 0.9,
-        wireframe: true
+      // Core Dreadnought Citadel
+      const citadelGeo = new THREE.DodecahedronGeometry(12, 1);
+      const citadelMat = new THREE.MeshStandardMaterial({
+        color: 0x1e1b4b,
+        emissive: 0x7c3aed,
+        emissiveIntensity: 0.8,
+        roughness: 0.3,
+        metalness: 0.9
       });
-      const core = new THREE.Mesh(mainGeo, mainMat);
-      boss.add(core);
+      const citadel = new THREE.Mesh(citadelGeo, citadelMat);
+      boss.add(citadel);
 
-      // Rotating Outer Ring
-      const ringGeo = new THREE.TorusGeometry(8.5, 0.4, 8, 32);
-      const ringMat = new THREE.MeshStandardMaterial({
-        color: conf.gridColor,
-        emissive: conf.gridColor,
-        emissiveIntensity: 0.8
-      });
+      // Rotating Energy Shield Ring
+      const ringGeo = new THREE.TorusGeometry(20, 1.2, 16, 64);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       boss.add(ring);
 
-      boss.position.set(0, 8, player.position.z - 110);
-      bossMaxHP = 350 + currentStage * 200;
-      bossHP = bossMaxHP;
+      // Spires
+      for (let s = 0; s < 4; s++) {
+        const spireGeo = new THREE.ConeGeometry(2.5, 14, 6);
+        const spireMat = new THREE.MeshStandardMaterial({ color: 0xec4899, emissive: 0xdb2777, emissiveIntensity: 0.6 });
+        const spire = new THREE.Mesh(spireGeo, spireMat);
+        const ang = (s * Math.PI) / 2;
+        spire.position.set(Math.cos(ang) * 18, Math.sin(ang) * 18, 0);
+        spire.rotation.z = ang - Math.PI / 2;
+        boss.add(spire);
+      }
 
+      boss.position.set(0, 0, player.position.z - 220);
+      boss.userData = { hp: 45, maxHp: 45, shootTimer: 40 };
       scene.add(boss);
 
-      document.getElementById('boss-container').style.display = 'flex';
-      document.getElementById('boss-name').innerText = conf.bossName;
-      document.getElementById('boss-fill').style.width = '100%';
+      updateStoryTransmission(
+        'SUPREME HIGH COMMAND // EMERGENCY FLASH',
+        '"ALERT: Supreme Alien Dreadnought emerged from hyperspace! Focus all firepower on its core spires!"',
+        'Destroy Supreme Alien Dreadnought (HP: 45 / 45)'
+      );
+    }
+    // Fire Player Weapons (Dual Plasma Lasers)
+    function firePlayerWeapons() {
+      if (isPaused || inGalaxyMap) return;
+      if (laserHeat >= 100) return; // Overheated
+
+      initAudio();
+      playSound('laser');
+
+      laserHeat = Math.min(100, laserHeat + 14);
+      document.getElementById('heat-bar').style.width = `${laserHeat}%`;
+      document.getElementById('heat-val').innerText = `${Math.round(laserHeat)}%`;
+
+      const pGeo = new THREE.CylinderGeometry(0.14, 0.14, 4.5, 6);
+      const pMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+
+      const pLeft = new THREE.Mesh(pGeo, pMat);
+      pLeft.rotation.x = Math.PI / 2;
+      pLeft.position.set(player.position.x - 4.6, player.position.y - 0.2, player.position.z - 2.5);
+      pLeft.userData = { speed: 8.5, damage: 1 };
+      scene.add(pLeft);
+      playerProjectiles.push(pLeft);
+
+      const pRight = new THREE.Mesh(pGeo, pMat);
+      pRight.rotation.x = Math.PI / 2;
+      pRight.position.set(player.position.x + 4.6, player.position.y - 0.2, player.position.z - 2.5);
+      pRight.userData = { speed: 8.5, damage: 1 };
+      scene.add(pRight);
+      playerProjectiles.push(pRight);
     }
 
-    // -------------------------------------------------------------------------
-    // COMBAT & PROJECTILES
-    // -------------------------------------------------------------------------
-    function firePlayerLaser() {
-      const now = performance.now();
-      if (now - lastFireTime < 140) return; // Rate of fire
-      lastFireTime = now;
+    // Fire Enemy Projectiles
+    function fireEnemyWeapon(enemy) {
+      if (isPaused || inGalaxyMap) return;
+      const type = enemy.userData.type;
 
-      sound.playLaser();
-
-      // Left & Right Gun Pods
-      [-1.2, 1.2].forEach(offset => {
-        const geo = new THREE.CylinderGeometry(0.12, 0.12, 2.8, 6);
-        geo.rotateX(Math.PI / 2);
-        const mat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-        const bullet = new THREE.Mesh(geo, mat);
-
-        bullet.position.set(player.position.x + offset, player.position.y, player.position.z - 2.0);
-        bullet.userData = { velZ: -3.6, damage: 15 };
-
-        scene.add(bullet);
-        playerProjectiles.push(bullet);
-      });
+      if (type === 'alien_swarm') {
+        playSound('alien_plasma');
+        const geo = new THREE.SphereGeometry(0.45, 8, 8);
+        const mat = new THREE.MeshBasicMaterial({ color: 0x22c55e });
+        const bolt = new THREE.Mesh(geo, mat);
+        bolt.position.copy(enemy.position);
+        bolt.userData = { vz: 3.8, damage: 12 };
+        scene.add(bolt);
+        enemyProjectiles.push(bolt);
+      } else {
+        playSound('enemy_laser');
+        const geo = new THREE.CylinderGeometry(0.12, 0.12, 3.5, 6);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+        const bolt = new THREE.Mesh(geo, mat);
+        bolt.rotation.x = Math.PI / 2;
+        bolt.position.copy(enemy.position);
+        bolt.userData = { vz: 4.5, damage: 10 };
+        scene.add(bolt);
+        enemyProjectiles.push(bolt);
+      }
     }
 
-    function executePhaseWarp() {
-      if (warpCooldown < 1.0) return;
-      warpCooldown = 0.0;
+    // Execute Phase Warp
+    window.executePhaseWarp = function() {
+      if (isPaused) return;
+      initAudio();
+      playSound('warp');
 
-      sound.playWarp();
-
-      // Visual Glitch & Warp Flash
       const flash = document.getElementById('warp-flash');
-      flash.style.opacity = '0.9';
-      setTimeout(() => { flash.style.opacity = '0'; }, 180);
+      flash.style.opacity = '1';
+      setTimeout(() => { flash.style.opacity = '0'; }, 300);
 
-      // Dash forward with invulnerability burst
-      player.position.z -= 18;
+      player.position.z -= 140;
       createWarpShockwave(player.position);
-    }
+    };
 
     function createWarpShockwave(pos) {
-      const geo = new THREE.RingGeometry(1, 8, 32);
-      geo.rotateX(-Math.PI / 2);
-      const mat = new THREE.MeshBasicMaterial({
+      const ringGeo = new THREE.RingGeometry(1, 2, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
         color: 0x00f0ff,
+        side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.9,
-        side: THREE.DoubleSide
+        opacity: 0.95
       });
-      const ring = new THREE.Mesh(geo, mat);
-      ring.position.copy(pos);
-      ring.userData = { scale: 1.0, maxScale: 4.5, opacity: 0.9 };
-      scene.add(ring);
-      particles.push(ring);
+      const wave = new THREE.Mesh(ringGeo, ringMat);
+      wave.position.copy(pos);
+      wave.userData = { scale: 1, maxScale: 35 };
+      scene.add(wave);
+      particles.push(wave);
     }
 
     function createExplosion(pos, color = 0x00f0ff) {
-      sound.playExplosion();
-
-      // Debris Particles
-      for (let i = 0; i < 14; i++) {
-        const pGeo = new THREE.BoxGeometry(0.35, 0.35, 0.35);
+      playSound('explosion');
+      for (let i = 0; i < 28; i++) {
+        const pGeo = new THREE.SphereGeometry(0.25, 4, 4);
         const pMat = new THREE.MeshBasicMaterial({ color: color });
         const p = new THREE.Mesh(pGeo, pMat);
         p.position.copy(pos);
         p.userData = {
           vel: new THREE.Vector3(
-            (Math.random() - 0.5) * 1.6,
-            (Math.random() - 0.5) * 1.6,
-            (Math.random() - 0.5) * 1.6
+            (Math.random() - 0.5) * 3,
+            (Math.random() - 0.5) * 3,
+            (Math.random() - 0.5) * 3
           ),
           life: 30
         };
@@ -1232,300 +1920,566 @@
       }
     }
 
-    function spawnShardPickup(pos) {
-      const geo = new THREE.OctahedronGeometry(0.8, 0);
-      const mat = new THREE.MeshStandardMaterial({
-        color: 0x00f0ff,
-        emissive: 0x00f0ff,
-        emissiveIntensity: 0.8
+    // Story Transmission Updates
+    function updateStoryTransmission(sender, text, objective) {
+      playSound('comms_beep');
+      document.getElementById('comms-sender').innerText = sender;
+      document.getElementById('comms-text').innerText = text;
+      if (objective) {
+        document.getElementById('comms-mission-task').innerText = objective;
+      }
+    }
+
+    // Input & Key Handlers (WASD, Mouse, ESC, M)
+    const keys = {};
+    let mouseX = 0, mouseY = 0;
+
+    function setupInputHandlers() {
+      window.addEventListener('keydown', (e) => {
+        initAudio();
+        keys[e.code] = true;
+
+        if (e.code === 'Escape') {
+          togglePauseSettings();
+        } else if (e.code === 'KeyM') {
+          if (!isPaused) toggleGalaxyMap();
+        } else if (e.code === 'Space') {
+          e.preventDefault();
+          firePlayerWeapons();
+        } else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+          executePhaseWarp();
+        }
       });
-      const shard = new THREE.Mesh(geo, mat);
-      shard.position.copy(pos);
-      shard.position.y = 1.0;
-      shard.userData = { rotSpeed: 0.05 };
-      scene.add(shard);
-      floatingPickups.push(shard);
-    }
 
-    // -------------------------------------------------------------------------
-    // INPUT HANDLERS
-    // -------------------------------------------------------------------------
-    function onKeyDown(e) {
-      keys[e.code] = true;
-      if (e.code === 'KeyM') {
-        const isMuted = sound.toggleMute();
-      }
-      if (e.code === 'Tab') {
-        e.preventDefault();
-        toggleDrawer();
-      }
-      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-        executePhaseWarp();
-      }
-      if (e.code === 'Digit1') switchStage(1);
-      if (e.code === 'Digit2') switchStage(2);
-      if (e.code === 'Digit3') switchStage(3);
-      if (e.code === 'Digit4') switchStage(4);
-      if (e.code === 'Digit5') switchStage(5);
-    }
+      window.addEventListener('keyup', (e) => {
+        keys[e.code] = false;
+      });
 
-    function onKeyUp(e) {
-      keys[e.code] = false;
-    }
+      window.addEventListener('mousemove', (e) => {
+        if (isPaused || inGalaxyMap) return;
+        const xNorm = (e.clientX / window.innerWidth) * 2 - 1;
+        const yNorm = -(e.clientY / window.innerHeight) * 2 + 1;
+        mouseX = xNorm * 18 * mouseSensitivity;
+        mouseY = yNorm * 12 * mouseSensitivity * (invertPitch ? -1 : 1);
+      });
 
-    function onMouseMove(e) {
-      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    }
+      window.addEventListener('mousedown', (e) => {
+        if (e.target.closest('#hud') || e.target.closest('.modal-card')) return;
+        if (!isPaused && !inGalaxyMap && e.button === 0) {
+          firePlayerWeapons();
+        }
+      });
 
-    function onMouseDown(e) {
-      if (e.button === 0) mouse.isDown = true;
-    }
-
-    function onMouseUp(e) {
-      if (e.button === 0) mouse.isDown = false;
+      window.addEventListener('resize', onWindowResize);
     }
 
     function onWindowResize() {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      camera.aspect = w / h;
+      camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    // -------------------------------------------------------------------------
-    // STAGE SWITCHER & TELEMETRY
-    // -------------------------------------------------------------------------
-    window.switchStage = function(stageNum) {
-      currentStage = stageNum;
-      sound.stage = stageNum;
-      const conf = STAGE_CONFIGS[stageNum];
-
-      // Update Scene Fog & Colors
-      scene.background.setHex(conf.bg);
-      scene.fog.color.setHex(conf.fog);
-
-      if (terrainGrid) {
-        scene.remove(terrainGrid);
-        terrainGrid = new THREE.GridHelper(300, 60, conf.gridColor, 0x0f172a);
-        terrainGrid.position.y = -2;
-        scene.add(terrainGrid);
+    // ESC Pause & Settings Toggling
+    window.togglePauseSettings = function() {
+      isPaused = !isPaused;
+      const modal = document.getElementById('settings-modal');
+      modal.style.display = isPaused ? 'flex' : 'none';
+      if (isPaused) {
+        document.exitPointerLock?.();
       }
+    };
 
-      spawnEnvironmentDecorations();
+    window.resumeGame = function() {
+      isPaused = false;
+      document.getElementById('settings-modal').style.display = 'none';
+    };
 
-      // Clear existing enemies
-      enemies.forEach(e => scene.remove(e));
-      enemies.length = 0;
+    // Settings Navigation Tabs
+    window.switchSettingsTab = function(tabName) {
+      document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.settings-tab-pane').forEach(pane => pane.style.display = 'none');
 
-      if (bossActive && boss) {
-        scene.remove(boss);
-        bossActive = false;
-        boss = null;
-        document.getElementById('boss-container').style.display = 'none';
+      document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+      document.getElementById(`tab-content-${tabName}`).style.display = 'block';
+    };
+
+    // Settings Interactive Controls
+    window.updateBrightness = function(val) {
+      brightnessMultiplier = val / 100;
+      document.getElementById('brightness-val').innerText = `${val}%`;
+      document.getElementById('canvas-container').style.filter = `brightness(${val}%)`;
+      if (renderer) renderer.toneMappingExposure = 1.2 * brightnessMultiplier;
+    };
+
+    window.updateResolution = function(val) {
+      if (val === '4k') renderer.setSize(3840, 2160);
+      else if (val === '1440p') renderer.setSize(2560, 1440);
+      else if (val === '1080p') renderer.setSize(1920, 1080);
+      else if (val === '720p') renderer.setSize(1280, 720);
+      else renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+    };
+
+    window.updateMonitor = function(val) {
+      alert(`Target display configured to: ${val.toUpperCase()}. Ready for multi-screen & VR streaming.`);
+    };
+
+    window.updateGPUProfile = function(val) {
+      if (val === 'ultra') {
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
+      } else if (val === 'balanced') {
+        renderer.setPixelRatio(1.25);
+      } else {
+        renderer.setPixelRatio(1.0);
       }
+    };
 
-      // HUD Update
-      document.getElementById('sector-badge').innerText = `${conf.name.toUpperCase()} &bull; ${conf.themeName.toUpperCase()}`;
-      document.querySelectorAll('.stage-btn').forEach((b, idx) => {
-        b.classList.toggle('active', idx + 1 === stageNum);
+    window.updateFogDensity = function(val) {
+      if (!scene || !scene.fog) return;
+      if (val === 'off') scene.fog.density = 0.0001;
+      else if (val === 'low') scene.fog.density = 0.0015;
+      else if (val === 'normal') scene.fog.density = 0.0035;
+      else if (val === 'dense') scene.fog.density = 0.007;
+      document.getElementById('fog-val').innerText = val.toUpperCase();
+    };
+
+    window.toggleFullscreen = function() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {});
+      } else {
+        document.exitFullscreen();
+      }
+    };
+
+    window.updateMasterVol = function(val) {
+      soundMasterVol = val / 100;
+      document.getElementById('vol-master-val').innerText = `${val}%`;
+      if (masterGainNode) masterGainNode.gain.value = soundMasterVol;
+    };
+
+    window.updateSfxVol = function(val) {
+      soundSfxVol = val / 100;
+      document.getElementById('vol-sfx-val').innerText = `${val}%`;
+    };
+
+    window.updateBgmVol = function(val) {
+      soundBgmVol = val / 100;
+      document.getElementById('vol-bgm-val').innerText = `${val}%`;
+      if (bgmGain) bgmGain.gain.value = 0.04 * soundBgmVol;
+    };
+
+    window.toggleMute = function() {
+      isMuted = !isMuted;
+      const btn = document.getElementById('btn-mute-toggle');
+      if (isMuted) {
+        if (masterGainNode) masterGainNode.gain.value = 0;
+        btn.innerText = '🔇 Mute All Audio: ON';
+      } else {
+        if (masterGainNode) masterGainNode.gain.value = soundMasterVol;
+        btn.innerText = '🔊 Mute All Audio: OFF';
+      }
+    };
+
+    window.updateSensitivity = function(val) {
+      mouseSensitivity = val / 10;
+      document.getElementById('sens-val').innerText = `${mouseSensitivity.toFixed(1)}x`;
+    };
+
+    window.updateFOV = function(val) {
+      camera.fov = Number(val);
+      camera.updateProjectionMatrix();
+      document.getElementById('fov-val').innerText = `${val}°`;
+    };
+
+    window.updateInvertY = function(val) {
+      invertPitch = (val === 'inverted');
+    };
+    // Full Galaxy Map Modal Controls
+    let galaxyScene, galaxyCamera, galaxyRenderer, galaxyPivot;
+    let isDraggingMap = false, prevMouseMapX = 0, prevMouseMapY = 0;
+    let selectedSectorMapId = 1;
+
+    window.openGalaxyMap = function() {
+      inGalaxyMap = true;
+      document.getElementById('galaxy-map-modal').style.display = 'block';
+      if (!galaxyRenderer) initGalaxyMap3D();
+      renderGalaxyMapInfo(selectedSectorMapId);
+    };
+
+    window.closeGalaxyMap = function() {
+      inGalaxyMap = false;
+      document.getElementById('galaxy-map-modal').style.display = 'none';
+    };
+
+    function toggleGalaxyMap() {
+      if (inGalaxyMap) closeGalaxyMap();
+      else openGalaxyMap();
+    }
+
+    function initGalaxyMap3D() {
+      const container = document.getElementById('galaxy-canvas-container');
+      galaxyScene = new THREE.Scene();
+      galaxyCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
+      galaxyCamera.position.set(0, 140, 260);
+      galaxyCamera.lookAt(0, 0, 0);
+
+      galaxyRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      galaxyRenderer.setSize(window.innerWidth, window.innerHeight);
+      galaxyRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(galaxyRenderer.domElement);
+
+      galaxyPivot = new THREE.Group();
+      galaxyScene.add(galaxyPivot);
+
+      // Core Glowing Star
+      const sunGeo = new THREE.SphereGeometry(18, 32, 32);
+      const sunMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      const sun = new THREE.Mesh(sunGeo, sunMat);
+      galaxyPivot.add(sun);
+
+      // 5 Planetary Sector Nodes
+      const angles = [0, 1.25, 2.5, 3.8, 5.0];
+      const radii = [45, 75, 105, 135, 165];
+
+      SECTORS.forEach((sec, idx) => {
+        const ang = angles[idx];
+        const rad = radii[idx];
+
+        // Orbit ring
+        const orbitGeo = new THREE.RingGeometry(rad - 0.4, rad + 0.4, 64);
+        const orbitMat = new THREE.MeshBasicMaterial({ color: 0x334155, side: THREE.DoubleSide });
+        const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+        orbit.rotation.x = Math.PI / 2;
+        galaxyPivot.add(orbit);
+
+        // Planet Mesh
+        const pGeo = new THREE.SphereGeometry(6, 24, 24);
+        const pMat = new THREE.MeshStandardMaterial({
+          color: sec.planetColor,
+          emissive: sec.planetColor,
+          emissiveIntensity: 0.4
+        });
+        const pMesh = new THREE.Mesh(pGeo, pMat);
+        pMesh.position.set(Math.cos(ang) * rad, 0, Math.sin(ang) * rad);
+        pMesh.userData = { sectorId: sec.id };
+        galaxyPivot.add(pMesh);
       });
 
-      // Spawn Stage Boss if Stage 5
-      if (stageNum === 5) {
-        spawnBoss();
+      // Lighting
+      const light = new THREE.PointLight(0x00f0ff, 2, 400);
+      galaxyScene.add(light);
+      const amb = new THREE.AmbientLight(0xffffff, 0.4);
+      galaxyScene.add(amb);
+
+      // Mouse Drag Controls
+      container.addEventListener('mousedown', (e) => {
+        isDraggingMap = true;
+        prevMouseMapX = e.clientX;
+        prevMouseMapY = e.clientY;
+      });
+
+      window.addEventListener('mouseup', () => { isDraggingMap = false; });
+
+      container.addEventListener('mousemove', (e) => {
+        if (!isDraggingMap) return;
+        const dx = e.clientX - prevMouseMapX;
+        const dy = e.clientY - prevMouseMapY;
+        galaxyPivot.rotation.y += dx * 0.008;
+        galaxyPivot.rotation.x = Math.max(-0.6, Math.min(0.6, galaxyPivot.rotation.x + dy * 0.008));
+        prevMouseMapX = e.clientX;
+        prevMouseMapY = e.clientY;
+      });
+    }
+
+    function renderGalaxyMapInfo(id) {
+      selectedSectorMapId = id;
+      const sec = SECTORS[id - 1];
+      document.getElementById('map-sector-title').innerText = sec.badge;
+      const isUnlocked = (id <= unlockedSectors);
+      const statusEl = document.getElementById('map-sector-status');
+      statusEl.innerText = isUnlocked ? (id === currentSectorId ? 'STATUS: CURRENT MISSION LOCATION' : 'STATUS: UNLOCKED FOR WARP JUMP') : 'STATUS: LOCKED (COMPLETE PREVIOUS SECTOR FIRST)';
+      statusEl.style.color = isUnlocked ? '#10b981' : '#f43f5e';
+
+      document.getElementById('map-sector-desc').innerText = sec.startMessage;
+      const warpBtn = document.getElementById('btn-warp-to-sector');
+      warpBtn.disabled = !isUnlocked;
+      warpBtn.style.opacity = isUnlocked ? '1' : '0.5';
+    }
+
+    window.warpToSelectedSector = function() {
+      if (selectedSectorMapId > unlockedSectors) {
+        alert('Complete current sector mission first to unlock hyperdrive jump coordinates!');
+        return;
       }
+      currentSectorId = selectedSectorMapId;
+      const sec = SECTORS[currentSectorId - 1];
+      document.getElementById('sector-badge').innerText = sec.badge;
+
+      // Update fog & planet
+      scene.fog.color.setHex(sec.fogColor);
+      buildSectorCelestialPlanet(sec);
+
+      // Clear old hostiles & reset counter
+      enemies.forEach(e => scene.remove(e));
+      enemies = [];
+      enemiesEliminatedInSector = 0;
+      bossActive = false;
+      if (boss) { scene.remove(boss); boss = null; }
+
+      closeGalaxyMap();
+      executePhaseWarp();
+
+      // Trigger Story Briefing
+      updateStoryTransmission(
+        sec.speaker,
+        sec.startMessage,
+        `${sec.objectiveText} (0 / ${sec.targetEnemies})`
+      );
     };
 
-    window.toggleDrawer = function() {
-      const drawer = document.getElementById('frontier-drawer');
-      drawer.classList.toggle('active');
-    };
-
-    window.startGame = function() {
-      sound.init();
-      document.getElementById('start-overlay').style.display = 'none';
-    };
-
-    // -------------------------------------------------------------------------
-    // MASTER 60-120 FPS GAME LOOP
-    // -------------------------------------------------------------------------
+    // Main 60 FPS Simulation Animation Loop
     function animate() {
       requestAnimationFrame(animate);
 
-      // 1. Player Flight Controls
-      const speed = 0.65;
-      if (keys['KeyW'] || keys['ArrowUp']) playerVelocity.z = -speed * 1.4;
-      else if (keys['KeyS'] || keys['ArrowDown']) playerVelocity.z = speed * 0.8;
-      else playerVelocity.z = -speed; // Constant forward drive
-
-      if (keys['KeyA'] || keys['ArrowLeft']) playerVelocity.x = -speed * 1.2;
-      else if (keys['KeyD'] || keys['ArrowRight']) playerVelocity.x = speed * 1.2;
-      else playerVelocity.x *= 0.85;
-
-      player.position.add(playerVelocity);
-
-      // Clamp X boundaries
-      player.position.x = Math.max(-35, Math.min(35, player.position.x));
-
-      // 3D Banking & Roll Physics
-      player.rotation.z = -playerVelocity.x * 0.55;
-      player.rotation.x = playerVelocity.z * 0.08;
-
-      // Continuous Fire
-      if (mouse.isDown || keys['Space']) {
-        firePlayerLaser();
+      if (inGalaxyMap && galaxyRenderer && galaxyScene) {
+        galaxyPivot.rotation.y += 0.003;
+        galaxyRenderer.render(galaxyScene, galaxyCamera);
+        return;
       }
 
-      // Warp Cooldown Regen
-      if (warpCooldown < 1.0) {
-        warpCooldown = Math.min(1.0, warpCooldown + 0.006);
-        document.getElementById('warp-bar').style.width = `${warpCooldown * 100}%`;
-        document.getElementById('warp-val').innerText = warpCooldown >= 1.0 ? "READY" : `${Math.floor(warpCooldown * 100)}%`;
+      if (isPaused) {
+        return;
       }
 
-      // Camera Smooth 3D Chase Lag
-      camera.position.x += (player.position.x - camera.position.x) * 0.1;
-      camera.position.z = player.position.z + 24;
-      camera.position.y = 12 + (player.position.y * 0.2);
-      camera.lookAt(player.position.x, player.position.y + 1, player.position.z - 15);
+      // 1. Steering & Flight Physics
+      if (keys['KeyA'] || keys['ArrowLeft']) player.position.x -= 0.65;
+      if (keys['KeyD'] || keys['ArrowRight']) player.position.x += 0.65;
+      if (keys['KeyW'] || keys['ArrowUp']) player.position.y += 0.45;
+      if (keys['KeyS'] || keys['ArrowDown']) player.position.y -= 0.45;
 
-      // Move Grid with Player for Infinite Horizon
-      if (terrainGrid) terrainGrid.position.z = player.position.z - 40;
+      // Smooth mouse follow
+      player.position.x += (mouseX - player.position.x) * 0.08;
+      player.position.y += (mouseY - player.position.y) * 0.08;
+      player.position.z -= 0.85; // Forward progression
 
-      // 2. Projectiles Update
+      // Roll bank angle
+      player.rotation.z = -player.position.x * 0.04;
+      player.rotation.x = -player.position.y * 0.03;
+
+      // Camera smooth follow
+      camera.position.x += (player.position.x - camera.position.x) * 0.08;
+      camera.position.y += (player.position.y + 4 - camera.position.y) * 0.08;
+      camera.position.z = player.position.z + 14;
+
+      // Cool down laser heat
+      if (laserHeat > 0) {
+        laserHeat = Math.max(0, laserHeat - 0.25);
+        document.getElementById('heat-bar').style.width = `${laserHeat}%`;
+        document.getElementById('heat-val').innerText = `${Math.round(laserHeat)}%`;
+      }
+
+      // Rotate Background Galaxy & Celestial Planet
+      if (backgroundGalaxyPoints) backgroundGalaxyPoints.rotation.y += 0.0006;
+      if (planetaryBody) {
+        planetaryBody.position.z = player.position.z - 900;
+        planetaryBody.rotation.y += 0.001;
+      }
+
+      // 2. Animate Comets
+      comets.forEach(c => {
+        c.position.x += c.userData.vx;
+        c.position.y += c.userData.vy;
+        c.position.z += c.userData.vz;
+        c.rotation.x += c.userData.rotSpeed;
+        c.rotation.y += c.userData.rotSpeed;
+
+        if (c.position.z > player.position.z + 50) {
+          c.position.set(
+            (Math.random() - 0.5) * 350,
+            Math.random() * 150 + 40,
+            player.position.z - 500 - Math.random() * 200
+          );
+        }
+      });
+
+      // 3. Animate Satellites
+      satellites.forEach(s => {
+        s.rotation.y += s.userData.rotY;
+        s.rotation.z += s.userData.rotZ;
+
+        // Pulse beacon
+        if (s.userData.beacon) {
+          const t = Date.now() * 0.005;
+          s.userData.beacon.material.opacity = Math.sin(t) > 0 ? 1 : 0.2;
+        }
+
+        if (s.position.z > player.position.z + 60) {
+          s.position.z = player.position.z - 450 - Math.random() * 100;
+        }
+      });
+
+      // 4. Update Player Projectiles
       for (let i = playerProjectiles.length - 1; i >= 0; i--) {
         const b = playerProjectiles[i];
-        b.position.z += b.userData.velZ;
-
-        // Hit Detection against Enemies
+        b.position.z -= b.userData.speed;
         let hit = false;
+
+        // Check vs Enemies
         for (let j = enemies.length - 1; j >= 0; j--) {
           const e = enemies[j];
-          if (b.position.distanceTo(e.position) < 2.5) {
+          if (b.position.distanceTo(e.position) < 3.2) {
             e.userData.hp -= b.userData.damage;
             hit = true;
-
-            // Flash enemy red
-            e.children[0].material.emissive.setHex(0xffffff);
-            setTimeout(() => {
-              if (e.children[0]) e.children[0].material.emissive.setHex(STAGE_CONFIGS[currentStage].gridColor);
-            }, 50);
-
             if (e.userData.hp <= 0) {
-              createExplosion(e.position, STAGE_CONFIGS[currentStage].gridColor);
-              spawnShardPickup(e.position);
+              createExplosion(e.position, 0xef4444);
               scene.remove(e);
               enemies.splice(j, 1);
+              shards += 1;
               score += 150;
-              document.getElementById('score-val').innerText = String(score).padStart(4, '0');
+              enemiesEliminatedInSector += 1;
+              document.getElementById('shards-val').innerText = shards;
+              document.getElementById('score-val').innerText = score;
+              document.getElementById('enemies-val').innerText = enemies.length;
+
+              // Check Sector Mission Progress
+              const curSec = SECTORS[currentSectorId - 1];
+              document.getElementById('comms-mission-task').innerText = `${curSec.objectiveText} (${enemiesEliminatedInSector} / ${curSec.targetEnemies})`;
+
+              if (enemiesEliminatedInSector >= curSec.targetEnemies) {
+                if (currentSectorId === 5 && !bossActive) {
+                  spawnSupremeBoss();
+                } else if (currentSectorId < 5) {
+                  unlockedSectors = Math.max(unlockedSectors, currentSectorId + 1);
+                  updateStoryTransmission(
+                    curSec.speaker,
+                    curSec.victoryMessage,
+                    'MISSION OBJECTIVE COMPLETE! Access Galaxy Map [M] to Jump'
+                  );
+                }
+              }
             }
             break;
           }
         }
 
-        // Hit Detection against Boss
-        if (bossActive && boss && !hit) {
-          if (b.position.distanceTo(boss.position) < 7.0) {
-            bossHP -= b.userData.damage;
+        // Check vs Boss
+        if (!hit && bossActive && boss) {
+          if (b.position.distanceTo(boss.position) < 18) {
+            boss.userData.hp -= b.userData.damage;
             hit = true;
-            document.getElementById('boss-fill').style.width = `${Math.max(0, (bossHP / bossMaxHP) * 100)}%`;
+            createExplosion(b.position, 0xec4899);
+            updateStoryTransmission(
+              'FLEET ADMIRAL VANCE // COMBAT TELEMETRY',
+              '"Direct hit on the Dreadnought hull! Keep firing!"',
+              `Destroy Supreme Alien Dreadnought (HP: ${Math.max(0, boss.userData.hp)} / ${boss.userData.maxHp})`
+            );
 
-            if (bossHP <= 0) {
-              createExplosion(boss.position, 0xff0055);
+            if (boss.userData.hp <= 0) {
+              createExplosion(boss.position, 0x00f0ff);
               scene.remove(boss);
-              bossActive = false;
               boss = null;
-              document.getElementById('boss-container').style.display = 'none';
-              score += 2500;
-              document.getElementById('score-val').innerText = String(score).padStart(4, '0');
+              bossActive = false;
+              score += 5000;
+              document.getElementById('score-val').innerText = score;
+
+              updateStoryTransmission(
+                'SUPREME HIGH COMMAND // NOVA FLEET VICTORY',
+                '"THE ALIEN DREADNOUGHT IS DESTROYED! The Nova Galaxy is free. Commander Unknown, you are hailed across all human colonies as the Vanguard Hero!"',
+                'CAMPAIGN COMPLETE - NOVA GALAXY LIBERATED!'
+              );
             }
           }
         }
 
-        // Cleanup out-of-bounds projectiles
-        if (hit || b.position.z < player.position.z - 140) {
+        if (hit || b.position.z < player.position.z - 180) {
           scene.remove(b);
           playerProjectiles.splice(i, 1);
         }
       }
 
-      // 3. Enemies Update & Spawning
-      if (Math.random() < 0.04) spawnEnemy();
+      // 5. Update Enemy Projectiles
+      for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+        const ep = enemyProjectiles[i];
+        ep.position.z += ep.userData.vz;
 
-      for (let i = enemies.length - 1; i >= 0; i--) {
-        const e = enemies[i];
-        e.position.z += e.userData.speed;
-        e.rotation.x += 0.02;
-        e.rotation.y += 0.03;
-
-        // Player Collision
-        if (e.position.distanceTo(player.position) < 3.0) {
-          playerShield = Math.max(0, playerShield - 25);
-          sound.playGlitchHit();
-
-          // Glitch Screen Flash
+        if (ep.position.distanceTo(player.position) < 2.8) {
+          playerShield = Math.max(0, playerShield - ep.userData.damage);
           const flash = document.getElementById('glitch-flash');
-          flash.style.opacity = '0.85';
-          setTimeout(() => { flash.style.opacity = '0'; }, 90);
+          flash.style.opacity = '0.8';
+          setTimeout(() => { flash.style.opacity = '0'; }, 80);
 
-          if (playerShield <= 0) {
-            playerHull = Math.max(0, playerHull - 15);
-          }
+          if (playerShield <= 0) playerHull = Math.max(0, playerHull - 15);
           document.getElementById('shield-bar').style.width = `${playerShield}%`;
           document.getElementById('shield-val').innerText = `${playerShield}%`;
           document.getElementById('hull-bar').style.width = `${playerHull}%`;
           document.getElementById('hull-val').innerText = `${playerHull}%`;
 
-          createExplosion(e.position, 0xff0055);
+          createExplosion(ep.position, 0xef4444);
+          scene.remove(ep);
+          enemyProjectiles.splice(i, 1);
+          continue;
+        }
+
+        if (ep.position.z > player.position.z + 20) {
+          scene.remove(ep);
+          enemyProjectiles.splice(i, 1);
+        }
+      }
+
+      // 6. Enemies Update & Firing
+      if (enemies.length < 5 && Math.random() < 0.035 && !bossActive) {
+        spawnSectorEnemy();
+      }
+
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const e = enemies[i];
+        e.position.z += e.userData.speed;
+
+        // Alien Swarm Weaving Movement
+        if (e.userData.type === 'alien_swarm') {
+          e.position.x += Math.sin(Date.now() * 0.004 + e.userData.oscOffset) * 0.45;
+          e.position.y += Math.cos(Date.now() * 0.003 + e.userData.oscOffset) * 0.35;
+        }
+
+        // Enemy Shooting
+        e.userData.shootCooldown--;
+        if (e.userData.shootCooldown <= 0 && e.position.z < player.position.z - 30) {
+          fireEnemyWeapon(e);
+          e.userData.shootCooldown = 90 + Math.random() * 60;
+        }
+
+        // Impact with Player
+        if (e.position.distanceTo(player.position) < 3.2) {
+          playerShield = Math.max(0, playerShield - 25);
+          createExplosion(e.position, 0xef4444);
           scene.remove(e);
           enemies.splice(i, 1);
           continue;
         }
 
-        // Cleanup behind player
         if (e.position.z > player.position.z + 20) {
           scene.remove(e);
           enemies.splice(i, 1);
         }
       }
 
-      // 4. Boss Update
+      // 7. Boss Behavior
       if (bossActive && boss) {
-        boss.position.z = player.position.z - 85;
-        boss.children[0].rotation.y += 0.015;
-        boss.children[1].rotation.z += 0.03;
+        boss.position.z = player.position.z - 110;
+        boss.children[1].rotation.z += 0.02; // Rotate shield ring
       }
 
-      // 5. Pickups Collection
-      for (let i = floatingPickups.length - 1; i >= 0; i--) {
-        const p = floatingPickups[i];
-        p.rotation.y += p.userData.rotSpeed;
-
-        if (p.position.distanceTo(player.position) < 3.2) {
-          sound.playPickup();
-          shards += 1;
-          playerShield = Math.min(100, playerShield + 10);
-          document.getElementById('shield-bar').style.width = `${playerShield}%`;
-          document.getElementById('shield-val').innerText = `${playerShield}%`;
-          document.getElementById('shards-val').innerText = shards;
-
-          // Leveling
-          if (shards % 5 === 0) {
-            playerLevel += 1;
-            document.getElementById('tier-val').innerText = `TIER ${Math.min(4, Math.ceil(playerLevel / 4))} (LVL ${playerLevel})`;
-          }
-
-          scene.remove(p);
-          floatingPickups.splice(i, 1);
-        } else if (p.position.z > player.position.z + 20) {
-          scene.remove(p);
-          floatingPickups.splice(i, 1);
+      // 8. Asteroids
+      asteroids.forEach(a => {
+        a.rotation.x += a.userData.rotX;
+        a.rotation.y += a.userData.rotY;
+        if (a.position.z > player.position.z + 30) {
+          a.position.z = player.position.z - 350;
         }
-      }
+      });
 
-      // 6. Particle Physics
+      // 9. Particle Physics
       for (let i = particles.length - 1; i >= 0; i--) {
         const pt = particles[i];
         if (pt.userData.vel) {
@@ -1536,10 +2490,9 @@
             particles.splice(i, 1);
           }
         } else if (pt.userData.scale) {
-          // Expanding Shockwave
-          pt.userData.scale += 0.2;
+          pt.userData.scale += 0.35;
           pt.scale.set(pt.userData.scale, pt.userData.scale, 1);
-          pt.material.opacity *= 0.9;
+          pt.material.opacity *= 0.92;
           if (pt.userData.scale >= pt.userData.maxScale || pt.material.opacity < 0.05) {
             scene.remove(pt);
             particles.splice(i, 1);
@@ -1547,11 +2500,9 @@
         }
       }
 
-      // 7. Render 3D Scene
       renderer.render(scene, camera);
     }
 
-    // Initialize Engine
     init3D();
   </script>
 </body>

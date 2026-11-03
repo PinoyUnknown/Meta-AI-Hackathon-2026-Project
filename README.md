@@ -1,4 +1,5 @@
-# METAHORIZON ODYSSEY 3D: FRONTIER VOYAGER
+# METAHORIZON ODYSSEY: NOVA GALAXY 3D (v6.0.0)
+### Story-Driven 3D Space Flight Simulation & Galaxy Fleet Combat Campaign
 ### Autonomous Hardware-Accelerated 3D Simulation Engine & Multi-Stage Sci-Fi Action Experience
 **Built for the Meta Global AI Developer Hackathon ($1,000,000 Prize Pool | Oct 26 – Nov 4, 2026)**  
 **Track: Indie Developer (Solo Submission) | Themes: Push the Frontier & Build for Your World**
@@ -14,6 +15,28 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-white?style=for-the-badge)](LICENSE)
 
 ---
+
+### 🚀 What's New in v6.0.0:
+- ⏸️ **ESC Key Pause & Tactical Settings**: Instant pause and toggle of in-game configuration with ESC hotkey.
+- ⚙️ **Comprehensive Settings Matrix**:
+  - **Display**: Brightness slider (50%-200%), Multi-Resolution (4K, 1440p, 1080p, 720p, Fullscreen), Target Monitor (Primary, Secondary, Meta Quest WebXR VR).
+  - **GPU**: Profiles (Ultra RTX Quality, Balanced 60 FPS, Performance).
+  - **Audio**: Master Volume, SFX, Ion Thruster Hum, Mute toggle.
+  - **Controls**: Flight Mouse Sensitivity, Field of View (FOV), Invert Pitch (Y-axis).
+- ℹ️ **Dedicated 'About & Intel' Section**: Game synopsis, hackathon credentials, and developer profile linking to **github.com/pinoyUnknown** and **instagram.com/pinoyunknown**.
+- 🌌 **Volumetric 3D Galaxy Elements**:
+  - **Dynamic Cosmic Fogs**: Atmospheric color shifts across all 5 sectors.
+  - **Procedural 3D Comets**: Glowing crystalline icy nucleus with streaming dust and gas tails.
+  - **3D Orbital Satellites**: Gold-foil payload chassis, dual solar panel arrays, parabolic dishes, blinking navigation beacons.
+  - **3D Rotating Spiral Galaxy**: Celestial backdrop with 4,000 multi-colored stars.
+- 🛸 **Hostile 3D Enemies**:
+  - **Alien Swarm Fighters**: Insectoid chitin hull, glowing venom cores, scythe wings, erratic weaving flight.
+  - **Terran Renegade Interceptor Jets**: Supersonic delta wings, cockpit canopy, twin afterburners, red lasers.
+  - **Heavy Armored Rocket Gunships**: Cylindrical rocket chassis and heavy booster pods.
+  - **Supreme Alien Dreadnought Boss**: Citadel core with rotating energy shield rings and plasma spires.
+- 📡 **Interactive Storytelling & Mission Comms**: Hologram radio transmission box with Fleet Command briefings across 5 progressive campaign sectors.
+- 🚫 **Zero 'AI' Word Invariant**: Strictly 0 matches for \bAI\b inside the in-game interface.
+
 
 ## 🌟 The Vision: A Game-Changer Built by a Solo Developer
 
