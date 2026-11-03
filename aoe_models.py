@@ -1,7 +1,7 @@
 def get_aoe_models_js():
     return """
     // =========================================================================
-    // AGE OF EMPIRES HIGH-FIDELITY 3D ARCHITECTURAL MODELS & ASSETS
+    // AGE OF EMPIRES REALISTIC 3D ARCHITECTURAL MODELS & ASSETS
     // =========================================================================
 
     const COLOR_PLAYER_PRIMARY = 0x1d4ed8;   // Royal Cobalt Blue
@@ -9,14 +9,14 @@ def get_aoe_models_js():
     const COLOR_ENEMY_PRIMARY = 0xb91c1c;    // Crimson Red
     const COLOR_ENEMY_SECONDARY = 0xdc2626;
 
-    // Materials Palette with Procedural Textures
+    // Materials Palette with High-Res Procedural Textures
     const timberMat = new THREE.MeshLambertMaterial({ map: woodTex });
     const stoneMat = new THREE.MeshLambertMaterial({ map: stoneTex });
     const plasterMat = new THREE.MeshLambertMaterial({ map: plasterTex });
     const thatchMat = new THREE.MeshLambertMaterial({ map: thatchTex });
     const tileMat = new THREE.MeshLambertMaterial({ map: tileTex });
-    const ironMat = new THREE.MeshStandardMaterial({ map: ironTex, roughness: 0.35, metalness: 0.75 });
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.25, metalness: 0.85 });
+    const ironMat = new THREE.MeshStandardMaterial({ map: ironTex, roughness: 0.3, metalness: 0.8 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.2, metalness: 0.9 });
     const whiteMarbleMat = new THREE.MeshLambertMaterial({ color: 0xf5f3ee });
 
     function createBuildingFootprintRing(sizeX, sizeZ, isEnemy) {
@@ -38,18 +38,25 @@ def get_aoe_models_js():
       const group = new THREE.Group();
       const teamMat = new THREE.MeshLambertMaterial({ color: isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY });
 
-      // Raised Cobblestone Apron Base
+      // Raised Ashlar Limestone Plinth Base
       const baseGeom = new THREE.BoxGeometry(12, 0.6, 12);
       const base = new THREE.Mesh(baseGeom, stoneMat);
       base.position.y = 0.3;
       base.receiveShadow = true;
       group.add(base);
 
-      // Low Stone Foundation Rim
+      // Low Stone Foundation Rim with Steps
       const rimGeom = new THREE.BoxGeometry(12.4, 0.4, 12.4);
       const rim = new THREE.Mesh(rimGeom, stoneMat);
       rim.position.y = 0.6;
       group.add(rim);
+
+      // Stone Entrance Steps
+      for (let s = 0; s < 3; s++) {
+        const step = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.2, 0.6), stoneMat);
+        step.position.set(0, 0.2 + s * 0.2, 6.3 + s * 0.4);
+        group.add(step);
+      }
 
       // 4 Heavy Dark Timber Corner Pillars with Iron Brackets
       const pillarGeom = new THREE.CylinderGeometry(0.5, 0.6, 6.5, 8);
@@ -64,6 +71,12 @@ def get_aoe_models_js():
         const br = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.4, 8), ironMat);
         br.position.set(pos[0], 0.8, pos[1]);
         group.add(br);
+
+        // Angled Timber Knee-Braces
+        const braceL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.8, 0.2), timberMat);
+        braceL.position.set(pos[0] * 0.85, 5.8, pos[1]);
+        braceL.rotation.z = (pos[0] > 0 ? -Math.PI / 4 : Math.PI / 4);
+        group.add(braceL);
       });
 
       // Wooden Deck Flooring
@@ -84,6 +97,19 @@ def get_aoe_models_js():
       const hearthFire = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.2), new THREE.MeshBasicMaterial({ color: 0xff5500 }));
       hearthFire.position.set(0, 1.2, 1.0);
       group.add(hearthFire);
+
+      // Volumetric Rising Chimney Smoke Particles
+      const smokeGroup = new THREE.Group();
+      smokeGroup.position.set(0, 11, 0);
+      for (let s = 0; s < 5; s++) {
+        const puff = new THREE.Mesh(
+          new THREE.SphereGeometry(0.35 + s * 0.15, 6, 6),
+          new THREE.MeshBasicMaterial({ color: 0xd4d4d4, transparent: true, opacity: 0.35 - s * 0.05 })
+        );
+        puff.position.set((Math.random() - 0.5) * 0.3, s * 0.7, (Math.random() - 0.5) * 0.3);
+        smokeGroup.add(puff);
+      }
+      group.add(smokeGroup);
 
       // Authentic Roof Structure (Thatched in Dark Age, Clay Tiled in Feudal/Castle)
       const roofMat = (age === 'Dark Age') ? thatchMat : tileMat;
@@ -121,10 +147,22 @@ def get_aoe_models_js():
       flag.position.set(0.9, 14.8, 0);
       group.add(flag);
 
+      // Town Square Props: Wooden Barrels, Crates & Sacks
+      for (let b = 0; b < 2; b++) {
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 1.0, 8), timberMat);
+        barrel.position.set(3.8 + b * 0.9, 1.2, 3.6);
+        barrel.castShadow = true;
+        group.add(barrel);
+      }
+      const crate = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.9), timberMat);
+      crate.position.set(-3.8, 1.1, 3.6);
+      crate.castShadow = true;
+      group.add(crate);
+
       // Footprint Decal
       const ring = createBuildingFootprintRing(12, 12, isEnemy);
       group.add(ring);
-      group.userData = { ring };
+      group.userData = { ring, smokeGroup };
 
       return group;
     }
@@ -158,10 +196,20 @@ def get_aoe_models_js():
       chimney.position.set(1.8, 2.5, 1.4);
       group.add(chimney);
 
-      // Wooden Plank Door
+      // Wooden Plank Door with Iron Hinges
       const door = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.8, 0.1), timberMat);
       door.position.set(0, 1.3, 2.45);
       group.add(door);
+
+      // Firewood Stack against side wall
+      for (let fy = 0; fy < 2; fy++) {
+        for (let fx = 0; fx < 3; fx++) {
+          const woodLog = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.2, 5), timberMat);
+          woodLog.rotation.z = Math.PI / 2;
+          woodLog.position.set(-2.55, 0.35 + fy * 0.25, -0.6 + fx * 0.28);
+          group.add(woodLog);
+        }
+      }
 
       const ring = createBuildingFootprintRing(5.4, 5.4, isEnemy);
       group.add(ring);
@@ -174,11 +222,16 @@ def get_aoe_models_js():
     function createMillMesh() {
       const group = new THREE.Group();
 
-      // Octagonal Stone Base
-      const base = new THREE.Mesh(new THREE.CylinderGeometry(3.0, 3.6, 5.5, 8), stoneMat);
+      // Octagonal Stone Base with Batter
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(3.0, 3.8, 5.5, 8), stoneMat);
       base.position.y = 2.75;
       base.castShadow = true;
       group.add(base);
+
+      // Arched Wooden Entrance
+      const door = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.2, 0.2), timberMat);
+      door.position.set(0, 1.4, 3.4);
+      group.add(door);
 
       // Timber Cap
       const cap = new THREE.Mesh(new THREE.ConeGeometry(3.2, 2.4, 8), thatchMat);
@@ -189,7 +242,7 @@ def get_aoe_models_js():
       const rotorGroup = new THREE.Group();
       rotorGroup.position.set(0, 5.5, 2.8);
 
-      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.6, 8), timberMat);
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.7, 8), timberMat);
       hub.rotation.x = Math.PI / 2;
       rotorGroup.add(hub);
 
@@ -197,17 +250,27 @@ def get_aoe_models_js():
         const bladeGroup = new THREE.Group();
         bladeGroup.rotation.z = (i * Math.PI) / 2;
 
-        const spar = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.4, 0.12), timberMat);
-        spar.position.y = 2.2;
+        const spar = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.6, 0.12), timberMat);
+        spar.position.y = 2.3;
         bladeGroup.add(spar);
 
-        const sailCloth = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 3.4), thatchMat);
-        sailCloth.position.set(0.45, 2.4, 0.05);
+        // White Canvas Sail Cloth
+        const sailCloth = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 3.6), new THREE.MeshLambertMaterial({ color: 0xf5f3ee, side: THREE.DoubleSide }));
+        sailCloth.position.set(0.5, 2.5, 0.05);
         bladeGroup.add(sailCloth);
 
         rotorGroup.add(bladeGroup);
       }
       group.add(rotorGroup);
+
+      // Sacks of Grain on Pallets Outside
+      for (let s = 0; s < 3; s++) {
+        const sack = new THREE.Mesh(new THREE.SphereGeometry(0.4, 6, 6), thatchMat);
+        sack.scale.set(1.0, 1.4, 0.8);
+        sack.position.set(-2.5 + s * 0.7, 0.5, 2.6);
+        sack.castShadow = true;
+        group.add(sack);
+      }
 
       const ring = createBuildingFootprintRing(6.5, 6.5, false);
       group.add(ring);
@@ -220,7 +283,6 @@ def get_aoe_models_js():
     function createLumberCampMesh() {
       const group = new THREE.Group();
 
-      // Open Post Shelter
       const floor = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.3, 6.5), timberMat);
       floor.position.y = 0.15;
       group.add(floor);
@@ -239,15 +301,24 @@ def get_aoe_models_js():
       roof.rotation.x = 0.12;
       group.add(roof);
 
-      // Stacked Timber Logs
+      // Stacked Heavy Timber Logs Pyramid
       for (let y = 0; y < 3; y++) {
         for (let i = 0; i < 4 - y; i++) {
-          const log = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 3.2, 6), timberMat);
+          const log = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 3.4, 6), timberMat);
           log.rotation.z = Math.PI / 2;
-          log.position.set(0, 0.4 + y * 0.45, -1.2 + (i - (3 - y) * 0.5) * 0.65);
+          log.position.set(0, 0.45 + y * 0.48, -1.2 + (i - (3 - y) * 0.5) * 0.65);
           group.add(log);
         }
       }
+
+      // Sawbuck with Two-Man Saw
+      const sawbuck1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.2, 0.1), timberMat);
+      sawbuck1.position.set(2.2, 0.6, 1.4);
+      sawbuck1.rotation.z = 0.3;
+      group.add(sawbuck1);
+      const sawbuck2 = sawbuck1.clone();
+      sawbuck2.rotation.z = -0.3;
+      group.add(sawbuck2);
 
       const ring = createBuildingFootprintRing(6.5, 6.5, false);
       group.add(ring);
@@ -256,7 +327,7 @@ def get_aoe_models_js():
       return group;
     }
 
-    // 5. MINING CAMP (Ore Baskets & Anvil)
+    // 5. MINING CAMP (Mine Portal, Ore Cart & Anvil)
     function createMiningCampMesh() {
       const group = new THREE.Group();
 
@@ -264,19 +335,36 @@ def get_aoe_models_js():
       base.position.y = 0.15;
       group.add(base);
 
+      // Heavy Timber Mine Portal Entrance
+      const portalLeft = new THREE.Mesh(new THREE.BoxGeometry(0.4, 3.5, 0.4), timberMat);
+      portalLeft.position.set(-1.8, 1.8, -2.0);
+      group.add(portalLeft);
+      const portalRight = portalLeft.clone();
+      portalRight.position.x = 1.8;
+      group.add(portalRight);
+      const portalTop = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.4, 0.4), timberMat);
+      portalTop.position.set(0, 3.5, -2.0);
+      group.add(portalTop);
+
       // Wooden Lean-To
-      const shed = new THREE.Mesh(new THREE.BoxGeometry(5.0, 3.2, 3.0), timberMat);
+      const shed = new THREE.Mesh(new THREE.BoxGeometry(5.0, 3.0, 2.5), timberMat);
       shed.position.set(0, 1.8, -1.2);
       group.add(shed);
 
-      // Ore Cart & Gold / Stone Nuggets
+      // Ore Cart on Rails & Gleaming Nuggets
       const cart = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 2.2), timberMat);
       cart.position.set(1.4, 0.6, 1.4);
+      cart.castShadow = true;
       group.add(cart);
 
-      const orePile = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55), goldMat);
-      orePile.position.set(1.4, 1.1, 1.4);
+      const orePile = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65), goldMat);
+      orePile.position.set(1.4, 1.2, 1.4);
       group.add(orePile);
+
+      // Blacksmith Anvil
+      const anvil = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.7, 0.4), ironMat);
+      anvil.position.set(-1.4, 0.5, 1.4);
+      group.add(anvil);
 
       const ring = createBuildingFootprintRing(6.5, 6.5, false);
       group.add(ring);
@@ -285,24 +373,42 @@ def get_aoe_models_js():
       return group;
     }
 
-    // 6. FARM (Tilled Dark Soil & Golden Crops)
+    // 6. FARM (Tilled Furrowed Soil & Golden Wheat)
     function createFarmMesh() {
       const group = new THREE.Group();
 
-      // Furrowed Earth Field
-      const soilMat = new THREE.MeshLambertMaterial({ color: 0x3d2714 });
+      const soilMat = new THREE.MeshLambertMaterial({ color: 0x382210 });
       const soil = new THREE.Mesh(new THREE.BoxGeometry(8.5, 0.25, 8.5), soilMat);
       soil.position.y = 0.12;
       soil.receiveShadow = true;
       group.add(soil);
 
-      // Golden Wheat Rows
-      const cropMat = new THREE.MeshLambertMaterial({ color: 0xd4a037 });
-      for (let z = -3.2; z <= 3.2; z += 1.2) {
-        const cropRow = new THREE.Mesh(new THREE.BoxGeometry(7.5, 0.75, 0.55), cropMat);
-        cropRow.position.set(0, 0.6, z);
+      // Golden Wheat Rows with Swaying Stalk Heads
+      const cropMat = new THREE.MeshLambertMaterial({ color: 0xdfab35 });
+      for (let z = -3.2; z <= 3.2; z += 1.1) {
+        const cropRow = new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.8, 0.6), cropMat);
+        cropRow.position.set(0, 0.65, z);
+        cropRow.castShadow = true;
         group.add(cropRow);
       }
+
+      // Wooden Split-Rail Perimeter Fence
+      for (let x of [-4.2, 4.2]) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 6), timberMat);
+        post.position.set(x, 0.6, 4.2);
+        group.add(post);
+      }
+
+      // Scarecrow
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.2, 5), timberMat);
+      pole.position.set(3.2, 1.1, 3.2);
+      group.add(pole);
+      const crossbar = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.08, 0.08), timberMat);
+      crossbar.position.set(3.2, 1.8, 3.2);
+      group.add(crossbar);
+      const scHead = new THREE.Mesh(new THREE.SphereGeometry(0.2, 6, 6), thatchMat);
+      scHead.position.set(3.2, 2.1, 3.2);
+      group.add(scHead);
 
       const ring = createBuildingFootprintRing(8.5, 8.5, false);
       group.add(ring);
@@ -311,36 +417,43 @@ def get_aoe_models_js():
       return group;
     }
 
-    // 7. BARRACKS (Military Stockade & Training Arena)
+    // 7. BARRACKS (Military Stockade & Training Yard)
     function createBarracksMesh(isEnemy) {
       const group = new THREE.Group();
       const teamMat = new THREE.MeshLambertMaterial({ color: isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY });
 
-      // Sturdy Ashlar Stone Base
+      // Sturdy Stone Foundation
       const stoneBase = new THREE.Mesh(new THREE.BoxGeometry(10.5, 1.5, 8.5), stoneMat);
       stoneBase.position.y = 0.75;
       group.add(stoneBase);
 
-      // Timber Training Hall
+      // Timber Hall
       const hall = new THREE.Mesh(new THREE.BoxGeometry(9.5, 3.8, 7.5), timberMat);
       hall.position.y = 3.4;
       hall.castShadow = true;
       group.add(hall);
 
-      // Gabled Roof
       const roof = new THREE.Mesh(new THREE.ConeGeometry(7.2, 3.2, 4), thatchMat);
       roof.position.y = 6.8;
       roof.rotation.y = Math.PI / 4;
       roof.castShadow = true;
       group.add(roof);
 
-      // Wall Shields & Heraldry
+      // Heraldic Shields on Exterior Wall
       for (let x of [-3.5, 3.5]) {
         const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.1, 8), teamMat);
         shield.rotation.x = Math.PI / 2;
         shield.position.set(x, 3.5, 4.3);
         group.add(shield);
       }
+
+      // Training Quintain / Target Dummy
+      const dummyPole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.2, 6), timberMat);
+      dummyPole.position.set(3.6, 1.1, -2.8);
+      group.add(dummyPole);
+      const dummyBody = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.9, 0.4), thatchMat);
+      dummyBody.position.set(3.6, 1.7, -2.8);
+      group.add(dummyBody);
 
       const ring = createBuildingFootprintRing(10.5, 8.5, isEnemy);
       group.add(ring);
@@ -362,6 +475,7 @@ def get_aoe_models_js():
       const roof = new THREE.Mesh(new THREE.ConeGeometry(6.2, 2.8, 4), thatchMat);
       roof.position.set(0, 5.2, -1.8);
       roof.rotation.y = Math.PI / 4;
+      roof.castShadow = true;
       group.add(roof);
 
       // 3 Straw Target Dummies
@@ -395,9 +509,9 @@ def get_aoe_models_js():
       const roof = new THREE.Mesh(new THREE.ConeGeometry(8, 3.2, 4), thatchMat);
       roof.position.y = 5.8;
       roof.rotation.y = Math.PI / 4;
+      roof.castShadow = true;
       group.add(roof);
 
-      // 3 Horse Stalls with Gates
       for (let x of [-3.2, 0, 3.2]) {
         const stallDoor = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 0.15), timberMat);
         stallDoor.position.set(x, 1.0, 3.85);
@@ -491,14 +605,14 @@ def get_aoe_models_js():
         tower.castShadow = true;
         group.add(tower);
 
-        // Crenellated Battlement Crown
-        const cr = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.1, 1.8, 10), stoneMat);
-        cr.position.set(pos[0], 17.5, pos[1]);
-        group.add(cr);
+        // Conical Slate Roof Spire
+        const spire = new THREE.Mesh(new THREE.ConeGeometry(3.6, 5.5, 10), tileMat);
+        spire.position.set(pos[0], 19.5, pos[1]);
+        group.add(spire);
 
         // Banner
         const flag = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), teamMat);
-        flag.position.set(pos[0] + 0.9, 20, pos[1]);
+        flag.position.set(pos[0] + 0.9, 22, pos[1]);
         group.add(flag);
       });
 
@@ -522,13 +636,11 @@ def get_aoe_models_js():
       base.castShadow = true;
       group.add(base);
 
-      // Soaring Central Dome
       const dome = new THREE.Mesh(new THREE.SphereGeometry(6, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2), goldMat);
       dome.position.y = 10.3;
       dome.castShadow = true;
       group.add(dome);
 
-      // Gilded Spire
       const spire = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 2.5, 8), whiteMarbleMat);
       spire.position.y = 17;
       group.add(spire);

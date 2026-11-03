@@ -893,12 +893,11 @@
 import * as THREE from './lib/three.module.min.js';
 
     // =========================================================================
-    // THREE.JS SETUP & LIGHTING
+    // THREE.JS SETUP, ACES FILMIC TONE MAPPING & ATMOSPHERIC LIGHTING
     // =========================================================================
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb);
-    scene.fog = new THREE.FogExp2(0xb0d8f0, 0.0022);
+    scene.fog = new THREE.FogExp2(0xc2daf0, 0.0028);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
     camera.position.set(0, 28, 38);
@@ -907,29 +906,67 @@ import * as THREE from './lib/three.module.min.js';
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.22;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    // Sun & Atmosphere Lights
-    const hemiLight = new THREE.HemisphereLight(0xfff7e6, 0x556b2f, 0.65);
+    // Atmospheric Sky Dome with Horizon Gradient & Clouds
+    const skyGeom = new THREE.SphereGeometry(450, 32, 16);
+    const skyCanvas = document.createElement('canvas');
+    skyCanvas.width = 512;
+    skyCanvas.height = 512;
+    const skyCtx = skyCanvas.getContext('2d');
+    const skyGrad = skyCtx.createLinearGradient(0, 0, 0, 512);
+    skyGrad.addColorStop(0, '#1e40af');    // Deep royal blue zenith
+    skyGrad.addColorStop(0.45, '#3b82f6'); // Mid-sky
+    skyGrad.addColorStop(0.82, '#93c5fd'); // Atmospheric haze
+    skyGrad.addColorStop(1, '#ffedd5');    // Warm golden horizon
+    skyCtx.fillStyle = skyGrad;
+    skyCtx.fillRect(0, 0, 512, 512);
+
+    // Soft cumulus cloud wisps
+    for (let c = 0; c < 30; c++) {
+      const cx = Math.random() * 512;
+      const cy = 180 + Math.random() * 220;
+      const cr = 35 + Math.random() * 65;
+      const cloudGrad = skyCtx.createRadialGradient(cx, cy, 4, cx, cy, cr);
+      cloudGrad.addColorStop(0, 'rgba(255, 255, 255, 0.42)');
+      cloudGrad.addColorStop(0.6, 'rgba(255, 255, 255, 0.18)');
+      cloudGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      skyCtx.fillStyle = cloudGrad;
+      skyCtx.beginPath();
+      skyCtx.arc(cx, cy, cr, 0, Math.PI * 2);
+      skyCtx.fill();
+    }
+
+    const skyTex = new THREE.CanvasTexture(skyCanvas);
+    const skyMat = new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide });
+    const skyDome = new THREE.Mesh(skyGeom, skyMat);
+    scene.add(skyDome);
+
+    // Realistic Sun & Atmospheric Bounce Lighting
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x3f3528, 0.85);
     scene.add(hemiLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfffaed, 1.45);
-    sunLight.position.set(60, 90, 50);
+    const sunLight = new THREE.DirectionalLight(0xfff7ed, 1.95);
+    sunLight.position.set(70, 95, 60);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
     sunLight.shadow.camera.near = 10;
-    sunLight.shadow.camera.far = 280;
-    sunLight.shadow.camera.left = -120;
-    sunLight.shadow.camera.right = 120;
-    sunLight.shadow.camera.top = 120;
-    sunLight.shadow.camera.bottom = -120;
-    sunLight.shadow.bias = -0.0005;
+    sunLight.shadow.camera.far = 300;
+    sunLight.shadow.camera.left = -115;
+    sunLight.shadow.camera.right = 115;
+    sunLight.shadow.camera.top = 115;
+    sunLight.shadow.camera.bottom = -115;
+    sunLight.shadow.bias = -0.0004;
+    sunLight.shadow.normalBias = 0.02;
     scene.add(sunLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.45);
+    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.35);
     scene.add(ambientLight);
 
     window.addEventListener('resize', () => {
@@ -940,7 +977,7 @@ import * as THREE from './lib/three.module.min.js';
         
 
     // =========================================================================
-    // PROCEDURAL TEXTURE GENERATION (HIGH FIDELITY VIBRANT AGE OF EMPIRES)
+    // PROCEDURAL TEXTURE GENERATION (REALISTIC AGE OF EMPIRES VISUALS)
     // =========================================================================
     function createProceduralCanvas(width, height) {
       const c = document.createElement('canvas');
@@ -949,194 +986,374 @@ import * as THREE from './lib/three.module.min.js';
       return c;
     }
 
+    // 1. Natural Lush Meadow Grass with Dirt Blending
     function generateGrassTexture() {
       const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#559933';
+
+      // Base meadow gradient with organic hue shifts
+      const grad = ctx.createLinearGradient(0, 0, 512, 512);
+      grad.addColorStop(0, '#3e6b28');
+      grad.addColorStop(0.5, '#4a7d32');
+      grad.addColorStop(1, '#3b6625');
+      ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 512, 512);
 
-      // Grass blades
-      for (let i = 0; i < 2000; i++) {
+      // Subtle rich earth patches
+      for (let i = 0; i < 30; i++) {
         const x = Math.random() * 512;
         const y = Math.random() * 512;
-        ctx.strokeStyle = Math.random() > 0.5 ? '#6eb53e' : '#468028';
-        ctx.lineWidth = 1.6;
+        const r = 15 + Math.random() * 35;
+        const earthGrad = ctx.createRadialGradient(x, y, 2, x, y, r);
+        earthGrad.addColorStop(0, 'rgba(74, 53, 31, 0.45)');
+        earthGrad.addColorStop(1, 'rgba(74, 53, 31, 0)');
+        ctx.fillStyle = earthGrad;
         ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + (Math.random() - 0.5) * 5, y - 4 - Math.random() * 5);
-        ctx.stroke();
-      }
-
-      // Small wildflowers
-      for (let i = 0; i < 150; i++) {
-        const x = Math.random() * 512;
-        const y = Math.random() * 512;
-        ctx.fillStyle = Math.random() > 0.4 ? '#fef08a' : '#ffffff';
-        ctx.beginPath();
-        ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+        ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      const tex = new THREE.CanvasTexture(c);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(40, 40);
-      return tex;
-    }
-
-    function generateWoodTexture() {
-      const c = createProceduralCanvas(256, 256);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#8b5a2b';
-      ctx.fillRect(0, 0, 256, 256);
-
-      ctx.fillStyle = '#6d421d';
-      for (let i = 0; i < 256; i += 16) {
-        ctx.fillRect(0, i, 256, 2);
-      }
-      for (let i = 0; i < 50; i++) {
-        ctx.strokeStyle = 'rgba(60, 35, 15, 0.4)';
-        ctx.lineWidth = 2;
+      // 4000 Individual layered blades of grass
+      for (let i = 0; i < 4000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const shades = ['#559138', '#63a841', '#427429', '#6ebc48', '#385e23'];
+        ctx.strokeStyle = shades[Math.floor(Math.random() * shades.length)];
+        ctx.lineWidth = 1.2 + Math.random() * 1.0;
         ctx.beginPath();
-        ctx.arc(Math.random() * 256, Math.random() * 256, Math.random() * 20, 0, Math.PI * 2);
+        ctx.moveTo(x, y);
+        const curve = (Math.random() - 0.5) * 6;
+        ctx.quadraticCurveTo(x + curve * 0.5, y - 4, x + curve, y - 7 - Math.random() * 7);
         ctx.stroke();
       }
-      const tex = new THREE.CanvasTexture(c);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      return tex;
-    }
 
-    function generateStoneTexture() {
-      const c = createProceduralCanvas(256, 256);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#7a7a7a';
-      ctx.fillRect(0, 0, 256, 256);
-
-      // Ashlar stone brick joints
-      ctx.strokeStyle = '#4a4a4a';
-      ctx.lineWidth = 2;
-      for (let y = 0; y < 256; y += 32) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(256, y);
-        ctx.stroke();
-
-        const offset = (y / 32) % 2 === 0 ? 0 : 32;
-        for (let x = offset; x < 256; x += 64) {
+      // Clover clusters & Meadow wildflowers
+      for (let i = 0; i < 80; i++) {
+        const cx = Math.random() * 512;
+        const cy = Math.random() * 512;
+        // 3 clover leaves
+        ctx.fillStyle = '#2d531e';
+        for (let a = 0; a < 3; a++) {
+          const ang = (a * Math.PI * 2) / 3;
           ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(x, y + 32);
-          ctx.stroke();
+          ctx.arc(cx + Math.cos(ang) * 2.8, cy + Math.sin(ang) * 2.8, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Occasional flower center
+        if (Math.random() > 0.5) {
+          ctx.fillStyle = Math.random() > 0.4 ? '#fef08a' : (Math.random() > 0.5 ? '#ef4444' : '#60a5fa');
+          ctx.beginPath();
+          ctx.arc(cx, cy, 1.8, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
 
-      for (let i = 0; i < 1000; i++) {
-        const x = Math.random() * 256;
-        const y = Math.random() * 256;
-        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)';
-        ctx.fillRect(x, y, 2, 2);
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(24, 24);
+      return tex;
+    }
+
+    // 2. Medieval Ashlar Stone Texture (Hand-Dressed Limestone Blocks)
+    function generateStoneTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      // Aged limestone base
+      ctx.fillStyle = '#827f78';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Block rows with irregular ashlar courses
+      const rowHeights = [36, 44, 40, 48, 38, 42, 46, 38, 42, 44, 40, 48, 46];
+      let curY = 0;
+
+      for (let r = 0; r < rowHeights.length; r++) {
+        const h = rowHeights[r];
+        let curX = (r % 2 === 0 ? 0 : -28);
+
+        while (curX < 512) {
+          const w = 55 + Math.random() * 35;
+          // Block face with subtle gradient
+          const stoneLight = 110 + Math.floor(Math.random() * 35);
+          ctx.fillStyle = `rgb(${stoneLight}, ${stoneLight - 4}, ${stoneLight - 8})`;
+          ctx.fillRect(curX + 2, curY + 2, w - 4, h - 4);
+
+          // Top highlight bevel
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+          ctx.fillRect(curX + 2, curY + 2, w - 4, 3);
+          ctx.fillRect(curX + 2, curY + 2, 3, h - 4);
+
+          // Bottom shadow bevel
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+          ctx.fillRect(curX + 2, curY + h - 4, w - 4, 3);
+          ctx.fillRect(curX + w - 4, curY + 2, 3, h - 4);
+
+          // Mortar joint
+          ctx.fillStyle = '#47443e';
+          ctx.fillRect(curX, curY, w, 2);
+          ctx.fillRect(curX, curY, 2, h);
+
+          curX += w;
+        }
+        curY += h;
       }
+
+      // Weathering stains & Chisel marks
+      for (let i = 0; i < 1500; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.08)';
+        ctx.fillRect(x, y, 1 + Math.random() * 2, 1 + Math.random() * 2);
+      }
+
       const tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
       return tex;
     }
 
-    function generateThatchTexture() {
-      const c = createProceduralCanvas(256, 256);
+    // 3. Rich Oak Timber Texture with Wood Grain & Planks
+    function generateWoodTexture() {
+      const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#c89d55';
-      ctx.fillRect(0, 0, 256, 256);
 
-      ctx.strokeStyle = '#9e7330';
-      ctx.lineWidth = 1.5;
-      for (let i = 0; i < 600; i++) {
-        const x = Math.random() * 256;
-        const y = Math.random() * 256;
+      // Deep heartwood base
+      ctx.fillStyle = '#7a4b22';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Distinct plank grooves
+      const plankW = 42;
+      for (let x = 0; x < 512; x += plankW) {
+        // Plank tone variation
+        const varTone = (Math.random() - 0.5) * 18;
+        ctx.fillStyle = `rgba(${Math.floor(100 + varTone)}, ${Math.floor(65 + varTone)}, ${Math.floor(30 + varTone)}, 0.4)`;
+        ctx.fillRect(x, 0, plankW, 512);
+
+        // Wood grain lines
+        for (let g = 0; g < 18; g++) {
+          const gx = x + Math.random() * plankW;
+          ctx.strokeStyle = 'rgba(55, 30, 12, 0.35)';
+          ctx.lineWidth = 1.0 + Math.random() * 1.5;
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.bezierCurveTo(gx + (Math.random() - 0.5) * 8, 170, gx + (Math.random() - 0.5) * 8, 340, gx, 512);
+          ctx.stroke();
+        }
+
+        // Dark plank seam
+        ctx.fillStyle = '#3a1f0a';
+        ctx.fillRect(x, 0, 3, 512);
+
+        // Iron nail studs
+        for (let y = 30; y < 512; y += 95) {
+          ctx.fillStyle = '#1e1e1e';
+          ctx.beginPath();
+          ctx.arc(x + plankW * 0.5, y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // 4. Terracotta Clay Roof Tiles (Shaded Curved Barrel Tiles)
+    function generateTileTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = '#8f3518';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const tileH = 28;
+      const tileW = 38;
+
+      for (let y = 0; y < 512; y += tileH) {
+        const offset = (y / tileH) % 2 === 0 ? 0 : tileW * 0.5;
+        for (let x = -tileW; x < 512 + tileW; x += tileW) {
+          const rx = x + offset;
+
+          // Curved 3D tile shading
+          const tileGrad = ctx.createLinearGradient(rx, y, rx + tileW, y);
+          tileGrad.addColorStop(0, '#66220e');
+          tileGrad.addColorStop(0.3, '#b84d2a');
+          tileGrad.addColorStop(0.7, '#cf5e38');
+          tileGrad.addColorStop(1, '#5a1d0b');
+          ctx.fillStyle = tileGrad;
+          ctx.fillRect(rx + 2, y + 2, tileW - 4, tileH - 4);
+
+          // Scalloped bottom rim
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+          ctx.fillRect(rx + 2, y + 2, tileW - 4, 3);
+
+          // Overlap shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.fillRect(rx, y + tileH - 3, tileW, 3);
+        }
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // 5. Tudor Half-Timbered Plaster (Fachwerk White Stucco & Dark Oak Framing)
+    function generatePlasterTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      // Textured lime plaster base
+      ctx.fillStyle = '#f0eae0';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Stucco grain
+      for (let i = 0; i < 2000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)';
+        ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
+      }
+
+      // Dark aged timber framing beams
+      ctx.fillStyle = '#422814';
+
+      // Perimeter frame
+      const bw = 24;
+      ctx.fillRect(0, 0, 512, bw);
+      ctx.fillRect(0, 512 - bw, 512, bw);
+      ctx.fillRect(0, 0, bw, 512);
+      ctx.fillRect(512 - bw, 0, bw, 512);
+      // Center upright & cross braces
+      ctx.fillRect(256 - bw * 0.5, 0, bw, 512);
+
+      // Diagonal cross beams
+      ctx.lineWidth = bw;
+      ctx.strokeStyle = '#422814';
+      ctx.beginPath();
+      ctx.moveTo(bw, bw);
+      ctx.lineTo(256 - bw * 0.5, 512 - bw);
+      ctx.moveTo(512 - bw, bw);
+      ctx.lineTo(256 + bw * 0.5, 512 - bw);
+      ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // 6. Thatched Straw Roof Texture
+    function generateThatchTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = '#b88942';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Thousands of individual reed fibers
+      for (let i = 0; i < 3000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const shades = ['#cca058', '#996e2b', '#e0b56e', '#80591e'];
+        ctx.strokeStyle = shades[Math.floor(Math.random() * shades.length)];
+        ctx.lineWidth = 1.4;
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x + (Math.random() - 0.5) * 4, y + 8 + Math.random() * 8);
+        ctx.lineTo(x + (Math.random() - 0.5) * 5, y + 14 + Math.random() * 16);
         ctx.stroke();
       }
+
       const tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
       return tex;
     }
 
-    function generateTileTexture() {
-      const c = createProceduralCanvas(256, 256);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#a8432a';
-      ctx.fillRect(0, 0, 256, 256);
-
-      ctx.strokeStyle = '#6e2716';
-      ctx.lineWidth = 2;
-      for (let y = 0; y < 256; y += 16) {
-        ctx.strokeRect(0, y, 256, 16);
-      }
-      const tex = new THREE.CanvasTexture(c);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      return tex;
-    }
-
-    function generatePlasterTexture() {
-      const c = createProceduralCanvas(256, 256);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#eae2cf';
-      ctx.fillRect(0, 0, 256, 256);
-
-      // Timber framing cross-beams
-      ctx.fillStyle = '#5c3818';
-      ctx.fillRect(0, 0, 256, 12);
-      ctx.fillRect(0, 244, 256, 12);
-      ctx.fillRect(0, 0, 12, 256);
-      ctx.fillRect(244, 0, 12, 256);
-      ctx.fillRect(122, 0, 12, 256);
-      const tex = new THREE.CanvasTexture(c);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      return tex;
-    }
-
-    function generateIronTexture() {
-      const c = createProceduralCanvas(128, 128);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#4a5568';
-      ctx.fillRect(0, 0, 128, 128);
-      for (let i = 0; i < 400; i++) {
-        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)';
-        ctx.fillRect(Math.random() * 128, Math.random() * 128, 2, 2);
-      }
-      return new THREE.CanvasTexture(c);
-    }
-
+    // 7. Shimmering Water Caustics Texture
     function generateWaterTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      // Deep aquatic gradient
+      const grad = ctx.createLinearGradient(0, 0, 512, 512);
+      grad.addColorStop(0, '#105670');
+      grad.addColorStop(0.5, '#196f8c');
+      grad.addColorStop(1, '#124d63');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Wave ripple rings
+      for (let i = 0; i < 90; i++) {
+        const cx = Math.random() * 512;
+        const cy = Math.random() * 512;
+        const r = 10 + Math.random() * 45;
+
+        ctx.strokeStyle = 'rgba(180, 235, 255, 0.28)';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, r, r * 0.45, Math.random() * Math.PI, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Wave crest highlight
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.3, 0, Math.PI);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(4, 18);
+      return tex;
+    }
+
+    // 8. Hammered Iron Metal Texture
+    function generateIronTexture() {
       const c = createProceduralCanvas(256, 256);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#1e6f9f';
+      ctx.fillStyle = '#475569';
       ctx.fillRect(0, 0, 256, 256);
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-      ctx.lineWidth = 1.8;
-      for (let i = 0; i < 60; i++) {
-        const y = Math.random() * 256;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.bezierCurveTo(64, y + 8, 192, y - 8, 256, y);
-        ctx.stroke();
+      for (let i = 0; i < 800; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.2)';
+        ctx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
       }
       const tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(6, 60);
+      return tex;
+    }
+
+    // 9. Rocky Mountain Cliff Texture
+    function generateCliffTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#645d54';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Stratified horizontal strata layers
+      for (let y = 0; y < 512; y += 18 + Math.random() * 12) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.fillRect(0, y, 512, 3);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fillRect(0, y + 3, 512, 2);
+      }
+      for (let i = 0; i < 1200; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? '#7a7065' : '#4a443d';
+        ctx.fillRect(Math.random() * 512, Math.random() * 512, 3, 3);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
       return tex;
     }
 
     // =========================================================================
-    // WEB AUDIO SYNTHESIZER (PROCEDURAL VOICE BARKS, FANFARE & SFX)
+    // WEB AUDIO SYNTHESIZER (PROCEDURAL VOICE BARKS, AMBIENCE & COMBAT SFX)
     // =========================================================================
     let audioCtx = null;
     let masterGain = null;
@@ -1147,7 +1364,7 @@ import * as THREE from './lib/three.module.min.js';
         if (AudioClass) {
           audioCtx = new AudioClass();
           masterGain = audioCtx.createGain();
-          masterGain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+          masterGain.gain.setValueAtTime(0.75, audioCtx.currentTime);
           masterGain.connect(audioCtx.destination);
         }
       }
@@ -1176,13 +1393,13 @@ import * as THREE from './lib/three.module.min.js';
       filter.Q.value = 4.0;
 
       if (type === 'select') {
-        // "Mandatum?" - Rising question inflection
+        // "Mandatum?" - Rising vocal inflection
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(140, t);
         osc.frequency.exponentialRampToValueAtTime(220, t + 0.18);
         filter.frequency.setValueAtTime(750, t);
         filter.frequency.exponentialRampToValueAtTime(1400, t + 0.18);
-        gain.gain.setValueAtTime(0.18, t);
+        gain.gain.setValueAtTime(0.2, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
         osc.connect(filter);
         filter.connect(gain);
@@ -1195,7 +1412,7 @@ import * as THREE from './lib/three.module.min.js';
         osc.frequency.setValueAtTime(180, t);
         osc.frequency.linearRampToValueAtTime(120, t + 0.2);
         filter.frequency.setValueAtTime(950, t);
-        gain.gain.setValueAtTime(0.16, t);
+        gain.gain.setValueAtTime(0.18, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
         osc.connect(filter);
         filter.connect(gain);
@@ -1208,7 +1425,7 @@ import * as THREE from './lib/three.module.min.js';
         osc.frequency.setValueAtTime(160, t);
         osc.frequency.exponentialRampToValueAtTime(110, t + 0.22);
         filter.frequency.setValueAtTime(1100, t);
-        gain.gain.setValueAtTime(0.16, t);
+        gain.gain.setValueAtTime(0.18, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
         osc.connect(filter);
         filter.connect(gain);
@@ -1222,7 +1439,7 @@ import * as THREE from './lib/three.module.min.js';
         osc.frequency.linearRampToValueAtTime(170, t + 0.15);
         osc.frequency.linearRampToValueAtTime(120, t + 0.3);
         filter.frequency.setValueAtTime(800, t);
-        gain.gain.setValueAtTime(0.16, t);
+        gain.gain.setValueAtTime(0.18, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
         osc.connect(filter);
         filter.connect(gain);
@@ -1250,7 +1467,7 @@ import * as THREE from './lib/three.module.min.js';
         osc.frequency.exponentialRampToValueAtTime(280, t + 0.14);
         osc.frequency.exponentialRampToValueAtTime(160, t + 0.28);
         filter.frequency.setValueAtTime(1500, t);
-        gain.gain.setValueAtTime(0.22, t);
+        gain.gain.setValueAtTime(0.24, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
         osc.connect(filter);
         filter.connect(gain);
@@ -1266,7 +1483,6 @@ import * as THREE from './lib/three.module.min.js';
       initAudio();
       const t = audioCtx.currentTime;
 
-      // Two-step harmonic formant frequency transition
       const tones = [
         { f1: 330, f2: 660, start: 0, dur: 0.24 },
         { f1: 260, f2: 520, start: 0.24, dur: 0.24 },
@@ -1291,58 +1507,59 @@ import * as THREE from './lib/three.module.min.js';
         g.connect(masterGain);
 
         o1.start(t + tone.start);
-        o1.stop(t + tone.start + tone.dur);
         o2.start(t + tone.start);
+        o1.stop(t + tone.start + tone.dur);
         o2.stop(t + tone.start + tone.dur);
       });
     }
 
-    // Town Bell Alarm
+    // Heavy Bronze Town Bell Toll
     function playTownBellSound() {
       if (!audioCtx) return;
       initAudio();
       const t = audioCtx.currentTime;
-      const freqs = [440, 880, 1320, 1760];
-      freqs.forEach((freq, idx) => {
+
+      [130, 260, 520, 780].forEach((freq, idx) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, t);
-        gain.gain.setValueAtTime(0.2 / (idx + 1), t);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+        gain.gain.setValueAtTime(0.25 / (idx + 1), t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
         osc.connect(gain);
         gain.connect(masterGain);
         osc.start(t);
-        osc.stop(t + 2.2);
+        osc.stop(t + 2.5);
       });
     }
 
-    // Age Advancement Fanfare
+    // Royal Age Advancement Trumpet Fanfare
     function playAdvanceAgeFanfare() {
       if (!audioCtx) return;
       initAudio();
       const t = audioCtx.currentTime;
+
       const notes = [
-        { f: 261.63, start: 0.0, dur: 0.25 }, // C4
-        { f: 329.63, start: 0.22, dur: 0.25 }, // E4
-        { f: 392.00, start: 0.44, dur: 0.35 }, // G4
-        { f: 523.25, start: 0.75, dur: 0.80 }  // C5
+        { f: 293.66, start: 0, dur: 0.18 }, // D4
+        { f: 369.99, start: 0.18, dur: 0.18 }, // F#4
+        { f: 440.00, start: 0.36, dur: 0.22 }, // A4
+        { f: 587.33, start: 0.58, dur: 0.55 }  // D5
       ];
-      notes.forEach(n => {
+
+      notes.forEach(note => {
         const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
+        const gain = audioCtx.createGain();
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(n.f, t + n.start);
-        g.gain.setValueAtTime(0.2, t + n.start);
-        g.gain.exponentialRampToValueAtTime(0.001, t + n.start + n.dur);
-        osc.connect(g);
-        g.connect(masterGain);
-        osc.start(t + n.start);
-        osc.stop(t + n.start + n.dur);
+        osc.frequency.setValueAtTime(note.f, t + note.start);
+        gain.gain.setValueAtTime(0.22, t + note.start);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + note.start + note.dur);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(t + note.start);
+        osc.stop(t + note.start + note.dur);
       });
     }
 
-    // Combat Sounds
     function playSwordClashSound() {
       if (!audioCtx) return;
       initAudio();
@@ -1350,8 +1567,8 @@ import * as THREE from './lib/three.module.min.js';
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(1800, t);
-      osc.frequency.exponentialRampToValueAtTime(200, t + 0.12);
+      osc.frequency.setValueAtTime(800, t);
+      osc.frequency.exponentialRampToValueAtTime(180, t + 0.12);
       gain.gain.setValueAtTime(0.25, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
       osc.connect(gain);
@@ -1397,7 +1614,6 @@ import * as THREE from './lib/three.module.min.js';
       if (!audioCtx) return;
       initAudio();
       const t = audioCtx.currentTime;
-      // Soft atmospheric thunder rumble
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
@@ -1421,10 +1637,11 @@ import * as THREE from './lib/three.module.min.js';
     const plasterTex = generatePlasterTexture();
     const ironTex = generateIronTexture();
     const waterTex = generateWaterTexture();
+    const cliffTex = generateCliffTexture();
         
 
     // =========================================================================
-    // AGE OF EMPIRES HIGH-FIDELITY 3D ARCHITECTURAL MODELS & ASSETS
+    // AGE OF EMPIRES REALISTIC 3D ARCHITECTURAL MODELS & ASSETS
     // =========================================================================
 
     const COLOR_PLAYER_PRIMARY = 0x1d4ed8;   // Royal Cobalt Blue
@@ -1432,14 +1649,14 @@ import * as THREE from './lib/three.module.min.js';
     const COLOR_ENEMY_PRIMARY = 0xb91c1c;    // Crimson Red
     const COLOR_ENEMY_SECONDARY = 0xdc2626;
 
-    // Materials Palette with Procedural Textures
+    // Materials Palette with High-Res Procedural Textures
     const timberMat = new THREE.MeshLambertMaterial({ map: woodTex });
     const stoneMat = new THREE.MeshLambertMaterial({ map: stoneTex });
     const plasterMat = new THREE.MeshLambertMaterial({ map: plasterTex });
     const thatchMat = new THREE.MeshLambertMaterial({ map: thatchTex });
     const tileMat = new THREE.MeshLambertMaterial({ map: tileTex });
-    const ironMat = new THREE.MeshStandardMaterial({ map: ironTex, roughness: 0.35, metalness: 0.75 });
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.25, metalness: 0.85 });
+    const ironMat = new THREE.MeshStandardMaterial({ map: ironTex, roughness: 0.3, metalness: 0.8 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.2, metalness: 0.9 });
     const whiteMarbleMat = new THREE.MeshLambertMaterial({ color: 0xf5f3ee });
 
     function createBuildingFootprintRing(sizeX, sizeZ, isEnemy) {
@@ -1461,18 +1678,25 @@ import * as THREE from './lib/three.module.min.js';
       const group = new THREE.Group();
       const teamMat = new THREE.MeshLambertMaterial({ color: isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY });
 
-      // Raised Cobblestone Apron Base
+      // Raised Ashlar Limestone Plinth Base
       const baseGeom = new THREE.BoxGeometry(12, 0.6, 12);
       const base = new THREE.Mesh(baseGeom, stoneMat);
       base.position.y = 0.3;
       base.receiveShadow = true;
       group.add(base);
 
-      // Low Stone Foundation Rim
+      // Low Stone Foundation Rim with Steps
       const rimGeom = new THREE.BoxGeometry(12.4, 0.4, 12.4);
       const rim = new THREE.Mesh(rimGeom, stoneMat);
       rim.position.y = 0.6;
       group.add(rim);
+
+      // Stone Entrance Steps
+      for (let s = 0; s < 3; s++) {
+        const step = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.2, 0.6), stoneMat);
+        step.position.set(0, 0.2 + s * 0.2, 6.3 + s * 0.4);
+        group.add(step);
+      }
 
       // 4 Heavy Dark Timber Corner Pillars with Iron Brackets
       const pillarGeom = new THREE.CylinderGeometry(0.5, 0.6, 6.5, 8);
@@ -1487,6 +1711,12 @@ import * as THREE from './lib/three.module.min.js';
         const br = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.4, 8), ironMat);
         br.position.set(pos[0], 0.8, pos[1]);
         group.add(br);
+
+        // Angled Timber Knee-Braces
+        const braceL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.8, 0.2), timberMat);
+        braceL.position.set(pos[0] * 0.85, 5.8, pos[1]);
+        braceL.rotation.z = (pos[0] > 0 ? -Math.PI / 4 : Math.PI / 4);
+        group.add(braceL);
       });
 
       // Wooden Deck Flooring
@@ -1507,6 +1737,19 @@ import * as THREE from './lib/three.module.min.js';
       const hearthFire = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.2), new THREE.MeshBasicMaterial({ color: 0xff5500 }));
       hearthFire.position.set(0, 1.2, 1.0);
       group.add(hearthFire);
+
+      // Volumetric Rising Chimney Smoke Particles
+      const smokeGroup = new THREE.Group();
+      smokeGroup.position.set(0, 11, 0);
+      for (let s = 0; s < 5; s++) {
+        const puff = new THREE.Mesh(
+          new THREE.SphereGeometry(0.35 + s * 0.15, 6, 6),
+          new THREE.MeshBasicMaterial({ color: 0xd4d4d4, transparent: true, opacity: 0.35 - s * 0.05 })
+        );
+        puff.position.set((Math.random() - 0.5) * 0.3, s * 0.7, (Math.random() - 0.5) * 0.3);
+        smokeGroup.add(puff);
+      }
+      group.add(smokeGroup);
 
       // Authentic Roof Structure (Thatched in Dark Age, Clay Tiled in Feudal/Castle)
       const roofMat = (age === 'Dark Age') ? thatchMat : tileMat;
@@ -1544,10 +1787,22 @@ import * as THREE from './lib/three.module.min.js';
       flag.position.set(0.9, 14.8, 0);
       group.add(flag);
 
+      // Town Square Props: Wooden Barrels, Crates & Sacks
+      for (let b = 0; b < 2; b++) {
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 1.0, 8), timberMat);
+        barrel.position.set(3.8 + b * 0.9, 1.2, 3.6);
+        barrel.castShadow = true;
+        group.add(barrel);
+      }
+      const crate = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.9), timberMat);
+      crate.position.set(-3.8, 1.1, 3.6);
+      crate.castShadow = true;
+      group.add(crate);
+
       // Footprint Decal
       const ring = createBuildingFootprintRing(12, 12, isEnemy);
       group.add(ring);
-      group.userData = { ring };
+      group.userData = { ring, smokeGroup };
 
       return group;
     }
@@ -1581,10 +1836,20 @@ import * as THREE from './lib/three.module.min.js';
       chimney.position.set(1.8, 2.5, 1.4);
       group.add(chimney);
 
-      // Wooden Plank Door
+      // Wooden Plank Door with Iron Hinges
       const door = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.8, 0.1), timberMat);
       door.position.set(0, 1.3, 2.45);
       group.add(door);
+
+      // Firewood Stack against side wall
+      for (let fy = 0; fy < 2; fy++) {
+        for (let fx = 0; fx < 3; fx++) {
+          const woodLog = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.2, 5), timberMat);
+          woodLog.rotation.z = Math.PI / 2;
+          woodLog.position.set(-2.55, 0.35 + fy * 0.25, -0.6 + fx * 0.28);
+          group.add(woodLog);
+        }
+      }
 
       const ring = createBuildingFootprintRing(5.4, 5.4, isEnemy);
       group.add(ring);
@@ -1597,11 +1862,16 @@ import * as THREE from './lib/three.module.min.js';
     function createMillMesh() {
       const group = new THREE.Group();
 
-      // Octagonal Stone Base
-      const base = new THREE.Mesh(new THREE.CylinderGeometry(3.0, 3.6, 5.5, 8), stoneMat);
+      // Octagonal Stone Base with Batter
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(3.0, 3.8, 5.5, 8), stoneMat);
       base.position.y = 2.75;
       base.castShadow = true;
       group.add(base);
+
+      // Arched Wooden Entrance
+      const door = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.2, 0.2), timberMat);
+      door.position.set(0, 1.4, 3.4);
+      group.add(door);
 
       // Timber Cap
       const cap = new THREE.Mesh(new THREE.ConeGeometry(3.2, 2.4, 8), thatchMat);
@@ -1612,7 +1882,7 @@ import * as THREE from './lib/three.module.min.js';
       const rotorGroup = new THREE.Group();
       rotorGroup.position.set(0, 5.5, 2.8);
 
-      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.6, 8), timberMat);
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.7, 8), timberMat);
       hub.rotation.x = Math.PI / 2;
       rotorGroup.add(hub);
 
@@ -1620,17 +1890,27 @@ import * as THREE from './lib/three.module.min.js';
         const bladeGroup = new THREE.Group();
         bladeGroup.rotation.z = (i * Math.PI) / 2;
 
-        const spar = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.4, 0.12), timberMat);
-        spar.position.y = 2.2;
+        const spar = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.6, 0.12), timberMat);
+        spar.position.y = 2.3;
         bladeGroup.add(spar);
 
-        const sailCloth = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 3.4), thatchMat);
-        sailCloth.position.set(0.45, 2.4, 0.05);
+        // White Canvas Sail Cloth
+        const sailCloth = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 3.6), new THREE.MeshLambertMaterial({ color: 0xf5f3ee, side: THREE.DoubleSide }));
+        sailCloth.position.set(0.5, 2.5, 0.05);
         bladeGroup.add(sailCloth);
 
         rotorGroup.add(bladeGroup);
       }
       group.add(rotorGroup);
+
+      // Sacks of Grain on Pallets Outside
+      for (let s = 0; s < 3; s++) {
+        const sack = new THREE.Mesh(new THREE.SphereGeometry(0.4, 6, 6), thatchMat);
+        sack.scale.set(1.0, 1.4, 0.8);
+        sack.position.set(-2.5 + s * 0.7, 0.5, 2.6);
+        sack.castShadow = true;
+        group.add(sack);
+      }
 
       const ring = createBuildingFootprintRing(6.5, 6.5, false);
       group.add(ring);
@@ -1643,7 +1923,6 @@ import * as THREE from './lib/three.module.min.js';
     function createLumberCampMesh() {
       const group = new THREE.Group();
 
-      // Open Post Shelter
       const floor = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.3, 6.5), timberMat);
       floor.position.y = 0.15;
       group.add(floor);
@@ -1662,15 +1941,24 @@ import * as THREE from './lib/three.module.min.js';
       roof.rotation.x = 0.12;
       group.add(roof);
 
-      // Stacked Timber Logs
+      // Stacked Heavy Timber Logs Pyramid
       for (let y = 0; y < 3; y++) {
         for (let i = 0; i < 4 - y; i++) {
-          const log = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 3.2, 6), timberMat);
+          const log = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 3.4, 6), timberMat);
           log.rotation.z = Math.PI / 2;
-          log.position.set(0, 0.4 + y * 0.45, -1.2 + (i - (3 - y) * 0.5) * 0.65);
+          log.position.set(0, 0.45 + y * 0.48, -1.2 + (i - (3 - y) * 0.5) * 0.65);
           group.add(log);
         }
       }
+
+      // Sawbuck with Two-Man Saw
+      const sawbuck1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.2, 0.1), timberMat);
+      sawbuck1.position.set(2.2, 0.6, 1.4);
+      sawbuck1.rotation.z = 0.3;
+      group.add(sawbuck1);
+      const sawbuck2 = sawbuck1.clone();
+      sawbuck2.rotation.z = -0.3;
+      group.add(sawbuck2);
 
       const ring = createBuildingFootprintRing(6.5, 6.5, false);
       group.add(ring);
@@ -1679,7 +1967,7 @@ import * as THREE from './lib/three.module.min.js';
       return group;
     }
 
-    // 5. MINING CAMP (Ore Baskets & Anvil)
+    // 5. MINING CAMP (Mine Portal, Ore Cart & Anvil)
     function createMiningCampMesh() {
       const group = new THREE.Group();
 
@@ -1687,19 +1975,36 @@ import * as THREE from './lib/three.module.min.js';
       base.position.y = 0.15;
       group.add(base);
 
+      // Heavy Timber Mine Portal Entrance
+      const portalLeft = new THREE.Mesh(new THREE.BoxGeometry(0.4, 3.5, 0.4), timberMat);
+      portalLeft.position.set(-1.8, 1.8, -2.0);
+      group.add(portalLeft);
+      const portalRight = portalLeft.clone();
+      portalRight.position.x = 1.8;
+      group.add(portalRight);
+      const portalTop = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.4, 0.4), timberMat);
+      portalTop.position.set(0, 3.5, -2.0);
+      group.add(portalTop);
+
       // Wooden Lean-To
-      const shed = new THREE.Mesh(new THREE.BoxGeometry(5.0, 3.2, 3.0), timberMat);
+      const shed = new THREE.Mesh(new THREE.BoxGeometry(5.0, 3.0, 2.5), timberMat);
       shed.position.set(0, 1.8, -1.2);
       group.add(shed);
 
-      // Ore Cart & Gold / Stone Nuggets
+      // Ore Cart on Rails & Gleaming Nuggets
       const cart = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 2.2), timberMat);
       cart.position.set(1.4, 0.6, 1.4);
+      cart.castShadow = true;
       group.add(cart);
 
-      const orePile = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55), goldMat);
-      orePile.position.set(1.4, 1.1, 1.4);
+      const orePile = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65), goldMat);
+      orePile.position.set(1.4, 1.2, 1.4);
       group.add(orePile);
+
+      // Blacksmith Anvil
+      const anvil = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.7, 0.4), ironMat);
+      anvil.position.set(-1.4, 0.5, 1.4);
+      group.add(anvil);
 
       const ring = createBuildingFootprintRing(6.5, 6.5, false);
       group.add(ring);
@@ -1708,24 +2013,42 @@ import * as THREE from './lib/three.module.min.js';
       return group;
     }
 
-    // 6. FARM (Tilled Dark Soil & Golden Crops)
+    // 6. FARM (Tilled Furrowed Soil & Golden Wheat)
     function createFarmMesh() {
       const group = new THREE.Group();
 
-      // Furrowed Earth Field
-      const soilMat = new THREE.MeshLambertMaterial({ color: 0x3d2714 });
+      const soilMat = new THREE.MeshLambertMaterial({ color: 0x382210 });
       const soil = new THREE.Mesh(new THREE.BoxGeometry(8.5, 0.25, 8.5), soilMat);
       soil.position.y = 0.12;
       soil.receiveShadow = true;
       group.add(soil);
 
-      // Golden Wheat Rows
-      const cropMat = new THREE.MeshLambertMaterial({ color: 0xd4a037 });
-      for (let z = -3.2; z <= 3.2; z += 1.2) {
-        const cropRow = new THREE.Mesh(new THREE.BoxGeometry(7.5, 0.75, 0.55), cropMat);
-        cropRow.position.set(0, 0.6, z);
+      // Golden Wheat Rows with Swaying Stalk Heads
+      const cropMat = new THREE.MeshLambertMaterial({ color: 0xdfab35 });
+      for (let z = -3.2; z <= 3.2; z += 1.1) {
+        const cropRow = new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.8, 0.6), cropMat);
+        cropRow.position.set(0, 0.65, z);
+        cropRow.castShadow = true;
         group.add(cropRow);
       }
+
+      // Wooden Split-Rail Perimeter Fence
+      for (let x of [-4.2, 4.2]) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 6), timberMat);
+        post.position.set(x, 0.6, 4.2);
+        group.add(post);
+      }
+
+      // Scarecrow
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.2, 5), timberMat);
+      pole.position.set(3.2, 1.1, 3.2);
+      group.add(pole);
+      const crossbar = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.08, 0.08), timberMat);
+      crossbar.position.set(3.2, 1.8, 3.2);
+      group.add(crossbar);
+      const scHead = new THREE.Mesh(new THREE.SphereGeometry(0.2, 6, 6), thatchMat);
+      scHead.position.set(3.2, 2.1, 3.2);
+      group.add(scHead);
 
       const ring = createBuildingFootprintRing(8.5, 8.5, false);
       group.add(ring);
@@ -1734,36 +2057,43 @@ import * as THREE from './lib/three.module.min.js';
       return group;
     }
 
-    // 7. BARRACKS (Military Stockade & Training Arena)
+    // 7. BARRACKS (Military Stockade & Training Yard)
     function createBarracksMesh(isEnemy) {
       const group = new THREE.Group();
       const teamMat = new THREE.MeshLambertMaterial({ color: isEnemy ? COLOR_ENEMY_PRIMARY : COLOR_PLAYER_PRIMARY });
 
-      // Sturdy Ashlar Stone Base
+      // Sturdy Stone Foundation
       const stoneBase = new THREE.Mesh(new THREE.BoxGeometry(10.5, 1.5, 8.5), stoneMat);
       stoneBase.position.y = 0.75;
       group.add(stoneBase);
 
-      // Timber Training Hall
+      // Timber Hall
       const hall = new THREE.Mesh(new THREE.BoxGeometry(9.5, 3.8, 7.5), timberMat);
       hall.position.y = 3.4;
       hall.castShadow = true;
       group.add(hall);
 
-      // Gabled Roof
       const roof = new THREE.Mesh(new THREE.ConeGeometry(7.2, 3.2, 4), thatchMat);
       roof.position.y = 6.8;
       roof.rotation.y = Math.PI / 4;
       roof.castShadow = true;
       group.add(roof);
 
-      // Wall Shields & Heraldry
+      // Heraldic Shields on Exterior Wall
       for (let x of [-3.5, 3.5]) {
         const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.1, 8), teamMat);
         shield.rotation.x = Math.PI / 2;
         shield.position.set(x, 3.5, 4.3);
         group.add(shield);
       }
+
+      // Training Quintain / Target Dummy
+      const dummyPole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.2, 6), timberMat);
+      dummyPole.position.set(3.6, 1.1, -2.8);
+      group.add(dummyPole);
+      const dummyBody = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.9, 0.4), thatchMat);
+      dummyBody.position.set(3.6, 1.7, -2.8);
+      group.add(dummyBody);
 
       const ring = createBuildingFootprintRing(10.5, 8.5, isEnemy);
       group.add(ring);
@@ -1785,6 +2115,7 @@ import * as THREE from './lib/three.module.min.js';
       const roof = new THREE.Mesh(new THREE.ConeGeometry(6.2, 2.8, 4), thatchMat);
       roof.position.set(0, 5.2, -1.8);
       roof.rotation.y = Math.PI / 4;
+      roof.castShadow = true;
       group.add(roof);
 
       // 3 Straw Target Dummies
@@ -1818,9 +2149,9 @@ import * as THREE from './lib/three.module.min.js';
       const roof = new THREE.Mesh(new THREE.ConeGeometry(8, 3.2, 4), thatchMat);
       roof.position.y = 5.8;
       roof.rotation.y = Math.PI / 4;
+      roof.castShadow = true;
       group.add(roof);
 
-      // 3 Horse Stalls with Gates
       for (let x of [-3.2, 0, 3.2]) {
         const stallDoor = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 0.15), timberMat);
         stallDoor.position.set(x, 1.0, 3.85);
@@ -1914,14 +2245,14 @@ import * as THREE from './lib/three.module.min.js';
         tower.castShadow = true;
         group.add(tower);
 
-        // Crenellated Battlement Crown
-        const cr = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.1, 1.8, 10), stoneMat);
-        cr.position.set(pos[0], 17.5, pos[1]);
-        group.add(cr);
+        // Conical Slate Roof Spire
+        const spire = new THREE.Mesh(new THREE.ConeGeometry(3.6, 5.5, 10), tileMat);
+        spire.position.set(pos[0], 19.5, pos[1]);
+        group.add(spire);
 
         // Banner
         const flag = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), teamMat);
-        flag.position.set(pos[0] + 0.9, 20, pos[1]);
+        flag.position.set(pos[0] + 0.9, 22, pos[1]);
         group.add(flag);
       });
 
@@ -1945,13 +2276,11 @@ import * as THREE from './lib/three.module.min.js';
       base.castShadow = true;
       group.add(base);
 
-      // Soaring Central Dome
       const dome = new THREE.Mesh(new THREE.SphereGeometry(6, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2), goldMat);
       dome.position.y = 10.3;
       dome.castShadow = true;
       group.add(dome);
 
-      // Gilded Spire
       const spire = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 2.5, 8), whiteMarbleMat);
       spire.position.y = 17;
       group.add(spire);
@@ -4079,7 +4408,7 @@ import * as THREE from './lib/three.module.min.js';
     
 
     // =========================================================================
-    // PHASE 1 WORLD INITIALIZATION, HIGH REALISM SCENE, BIOMES & 60 FPS ENGINE
+    // PHASE 1 WORLD INITIALIZATION, REALISTIC NATURE, BIOMES & 60 FPS ENGINE
     // =========================================================================
 
     let terrainMesh = null;
@@ -4090,6 +4419,7 @@ import * as THREE from './lib/three.module.min.js';
     let waterfallMistGroup = null;
     let rainGroup = null;
     let globalSimTime = 0;
+    const chimneySmokes = [];
 
     function initAoEWorld() {
       // 1. Grassy Rolling Mountain Terrain (200x200 World Grid: -100m to +100m)
@@ -4108,7 +4438,41 @@ import * as THREE from './lib/three.module.min.js';
       terrainMesh.receiveShadow = true;
       scene.add(terrainMesh);
 
-      // 2. Classify River Water & Obstacles into 100x100 Tilemap
+      // 2. Cobblestone Civic Plaza around Town Center
+      const plazaGeom = new THREE.PlaneGeometry(18, 18, 8, 8);
+      plazaGeom.rotateX(-Math.PI / 2);
+      const plazaPos = plazaGeom.attributes.position;
+      for (let i = 0; i < plazaPos.count; i++) {
+        const px = plazaPos.getX(i);
+        const pz = plazaPos.getZ(i);
+        plazaPos.setY(i, getTerrainHeight(px, pz) + 0.05);
+      }
+      plazaGeom.computeVertexNormals();
+      const plazaMat = new THREE.MeshLambertMaterial({ map: stoneTex });
+      const plazaMesh = new THREE.Mesh(plazaGeom, plazaMat);
+      plazaMesh.receiveShadow = true;
+      scene.add(plazaMesh);
+
+      // 3. Paved Dirt Road Paths Connecting Town Center to Bridge & Camps
+      createPavedDirtPath([
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(-12, 0),
+        new THREE.Vector2(-25, 0) // Road to bridge
+      ], 4.2);
+
+      createPavedDirtPath([
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(10, 8),
+        new THREE.Vector2(20, 16) // Road to oak lumber grove
+      ], 3.4);
+
+      createPavedDirtPath([
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(8, -6),
+        new THREE.Vector2(18, -10) // Road to gold mine
+      ], 3.4);
+
+      // 4. Classify River Water & Obstacles into 100x100 Tilemap
       for (let gx = 0; gx < GRID_SIZE; gx++) {
         for (let gz = 0; gz < GRID_SIZE; gz++) {
           const w = gridToWorld(gx, gz);
@@ -4127,13 +4491,13 @@ import * as THREE from './lib/three.module.min.js';
         }
       }
 
-      // 3. Shimmering River Water Ribbon at x = -25
+      // 5. Shimmering River Water Ribbon at x = -25
       const waterGeom = new THREE.PlaneGeometry(18, 200);
       waterGeom.rotateX(-Math.PI / 2);
       const waterMat = new THREE.MeshStandardMaterial({
         map: waterTex,
         roughness: 0.1,
-        metalness: 0.8,
+        metalness: 0.85,
         transparent: true,
         opacity: 0.88
       });
@@ -4141,21 +4505,21 @@ import * as THREE from './lib/three.module.min.js';
       waterMesh.position.set(-25, -1.8, 0);
       scene.add(waterMesh);
 
-      // 4. Mountain Creek Water flowing from Waterfall
+      // 6. Mountain Creek Water flowing from Waterfall
       const creekGeom = new THREE.PlaneGeometry(72, 6.5);
       creekGeom.rotateX(-Math.PI / 2);
       creekMesh = new THREE.Mesh(creekGeom, waterMat);
       creekMesh.position.set(20, -1.35, -33);
       scene.add(creekMesh);
 
-      // 5. Woodland Lake Water Surface at (-20, 60)
+      // 7. Woodland Lake Water Surface at (-20, 60)
       const lakeGeom = new THREE.CircleGeometry(13.5, 32);
       lakeGeom.rotateX(-Math.PI / 2);
       lakeMesh = new THREE.Mesh(lakeGeom, waterMat);
       lakeMesh.position.set(-20, -1.75, 60);
       scene.add(lakeMesh);
 
-      // 6. Roaring Mountain Waterfall (Descending from x = 60, y = 5.0, z = -33)
+      // 8. Roaring Mountain Waterfall (Descending from x = 60, y = 5.0, z = -33)
       const wfGeom = new THREE.PlaneGeometry(7.5, 7.2);
       const wfMat = new THREE.MeshStandardMaterial({
         map: waterTex,
@@ -4173,7 +4537,7 @@ import * as THREE from './lib/three.module.min.js';
 
       // Waterfall Splash Mist Particles at Foot
       waterfallMistGroup = new THREE.Group();
-      for (let i = 0; i < 18; i++) {
+      for (let i = 0; i < 22; i++) {
         const mist = new THREE.Mesh(
           new THREE.SphereGeometry(0.5 + Math.random() * 0.4, 6, 6),
           new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 })
@@ -4183,7 +4547,7 @@ import * as THREE from './lib/three.module.min.js';
       }
       scene.add(waterfallMistGroup);
 
-      // 7. Arched Cobblestone River Bridge at (x: -25, z: 0)
+      // 9. Arched Cobblestone River Bridge at (x: -25, z: 0)
       const bridgeGroup = new THREE.Group();
       bridgeGroup.position.set(-25, -0.4, 0);
 
@@ -4192,6 +4556,13 @@ import * as THREE from './lib/three.module.min.js';
       span.castShadow = true;
       span.receiveShadow = true;
       bridgeGroup.add(span);
+
+      // 2 Arched Substructure Piers with Cutwaters
+      for (let px of [-6, 6]) {
+        const pier = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.5, 8.2), stoneMat);
+        pier.position.set(px, -1.4, 0);
+        bridgeGroup.add(pier);
+      }
 
       // Stone Balustrades with Lantern Posts
       for (let z of [-3.6, 3.6]) {
@@ -4211,7 +4582,7 @@ import * as THREE from './lib/three.module.min.js';
       }
       scene.add(bridgeGroup);
 
-      // Bridge tiles Walkable
+      // Bridge tiles Walkable across the river!
       for (let x = -35; x <= -15; x += 2) {
         for (let z = -4; z <= 4; z += 2) {
           const g = worldToGrid(x, z);
@@ -4219,43 +4590,52 @@ import * as THREE from './lib/three.module.min.js';
         }
       }
 
-      // 8. Natural Forests (Oak Groves, Pine Jungles & Birch Trees)
+      // 10. Natural 3D Forests (Multi-Canopy Oaks, Pines & Birch Groves)
       spawnForestGrove(24, 18, 14);
       spawnForestGrove(-6, -28, 12);
       spawnForestGrove(35, -16, 15);
       spawnForestGrove(-68, 25, 14);
       spawnForestGrove(45, 35, 12);
 
-      // 9. Mineral Deposits (Gold Veins & Stone Quarries)
+      // 11. 3D Riverbank Boulders & Stones
+      spawnRiverbankBoulders();
+
+      // 12. 3D Wildflower Meadow Clumps
+      spawnWildflowerClumps();
+
+      // 13. Mineral Deposits (Gold Veins & Stone Quarries)
       spawnMineralDeposit('gold', 18, -10, 4);
       spawnMineralDeposit('stone', 26, 12, 4);
       spawnMineralDeposit('gold', -55, -12, 4);
       spawnMineralDeposit('stone', -75, -35, 4);
       spawnMineralDeposit('gold', 42, -26, 3);
 
-      // 10. Forage Berry Bushes
+      // 14. Forage Berry Bushes
       spawnForageBushes(10, 20, 5);
       spawnForageBushes(-52, -25, 4);
       spawnForageBushes(28, 40, 4);
 
-      // 11. Domestic Sheep & Wild Game (Huntable Boars & Deer)
+      // 15. Domestic Sheep & Wild Game (Huntable Boars & Deer)
       spawnSheepFlock(-10, -8, 4);
       spawnWildBoar(35, 25);
       spawnWildBoar(-50, 35);
       spawnWildDeer(38, -20);
       spawnWildDeer(-15, 50);
 
-      // 12. Holy Relics
+      // 16. Holy Relics
       spawnRelic(0, 45);
       spawnRelic(-25, -45);
       spawnRelic(62, -10);
 
-      // 13. Initial Player Town Base (Team Blue)
+      // 17. Initial Player Town Base (Team Blue)
       // Town Center at (0, 0)
-      spawnBuilding('town_center', 0, 0, 'player');
+      const tc = spawnBuilding('town_center', 0, 0, 'player');
       occupyGridArea(0, 0, 7, 7);
+      if (tc && tc.mesh.userData && tc.mesh.userData.smokeGroup) {
+        chimneySmokes.push(tc.mesh.userData.smokeGroup);
+      }
 
-      spawnBuilding('house', -16, 12, 'player');
+      const house1 = spawnBuilding('house', -16, 12, 'player');
       occupyGridArea(-16, 12, 3, 3);
 
       // Start Units OPEN IN THE MEADOW (Never inside Town Center)
@@ -4264,7 +4644,7 @@ import * as THREE from './lib/three.module.min.js';
       spawnUnit('villager', 8, 18, 'player');  // Near berry bushes & deer
       spawnUnit('villager', 16, -8, 'player'); // Near gold vein
 
-      // 14. Initial Rival Red Base Across the River (Automated Opponent)
+      // 18. Initial Rival Red Base Across the River (Automated Opponent)
       spawnBuilding('town_center', -65, -15, 'enemy');
       occupyGridArea(-65, -15, 7, 7);
       spawnBuilding('barracks', -55, -5, 'enemy');
@@ -4279,7 +4659,7 @@ import * as THREE from './lib/three.module.min.js';
       spawnUnit('villager', -68, -20, 'enemy');
       spawnUnit('militia', -48, -4, 'enemy');
 
-      // 15. Setup Rain Particle System for Overcast Weather
+      // 19. Setup Rain Particle System for Overcast Weather
       rainGroup = new THREE.Group();
       const rainGeom = new THREE.BufferGeometry();
       const rainCount = 1200;
@@ -4306,6 +4686,105 @@ import * as THREE from './lib/three.module.min.js';
       showAoENotice('[EMPIRE FOUNDED] Britons civilization established. Lead your people to glory!');
     }
 
+    // Helper: Paved Dirt Road Mesh Generator
+    function createPavedDirtPath(points, width = 3.5) {
+      const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, 0, p.y)));
+      const divisions = 24;
+      const pts = curve.getPoints(divisions);
+
+      const pathGeom = new THREE.BufferGeometry();
+      const vertices = [];
+      const uvs = [];
+      const indices = [];
+
+      for (let i = 0; i <= divisions; i++) {
+        const pt = pts[i];
+        const h = getTerrainHeight(pt.x, pt.z) + 0.04;
+        const tangent = curve.getTangent(i / divisions);
+        const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+
+        const pL = new THREE.Vector3(pt.x + normal.x * width * 0.5, h, pt.z + normal.z * width * 0.5);
+        const pR = new THREE.Vector3(pt.x - normal.x * width * 0.5, h, pt.z - normal.z * width * 0.5);
+
+        vertices.push(pL.x, pL.y, pL.z);
+        vertices.push(pR.x, pR.y, pR.z);
+
+        uvs.push(0, i / 2);
+        uvs.push(1, i / 2);
+
+        if (i < divisions) {
+          const base = i * 2;
+          indices.push(base, base + 1, base + 2);
+          indices.push(base + 1, base + 3, base + 2);
+        }
+      }
+
+      pathGeom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      pathGeom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      pathGeom.setIndex(indices);
+      pathGeom.computeVertexNormals();
+
+      const pathMat = new THREE.MeshLambertMaterial({
+        color: 0x8b6538,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
+      });
+      const roadMesh = new THREE.Mesh(pathGeom, pathMat);
+      roadMesh.receiveShadow = true;
+      scene.add(roadMesh);
+    }
+
+    // Helper: 3D Riverbank Boulders
+    function spawnRiverbankBoulders() {
+      const stoneMatLocal = new THREE.MeshLambertMaterial({ color: 0x6e685f });
+      const rockLocations = [
+        [-15, -4], [-15, 6], [-14, 20], [-14, -25], [-15, 45],
+        [-35, -5], [-35, 8], [-36, 18], [-34, -20], [-35, -45],
+        [20, -30], [35, -30], [50, -30]
+      ];
+
+      rockLocations.forEach(pos => {
+        const h = getTerrainHeight(pos[0], pos[1]);
+        const r = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8 + Math.random() * 0.6), stoneMatLocal);
+        r.position.set(pos[0] + (Math.random() - 0.5) * 3, h + 0.3, pos[1] + (Math.random() - 0.5) * 3);
+        r.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+        r.castShadow = true;
+        r.receiveShadow = true;
+        scene.add(r);
+      });
+    }
+
+    // Helper: 3D Wildflower Meadow Clumps
+    function spawnWildflowerClumps() {
+      const flowerColors = [0xef4444, 0x3b82f6, 0xfacc15, 0xffffff, 0xa855f7];
+      for (let i = 0; i < 40; i++) {
+        const fx = (Math.random() - 0.5) * 90;
+        const fz = (Math.random() - 0.5) * 90;
+        if (fx > -36 && fx < -14) continue; // Skip river
+        const fh = getTerrainHeight(fx, fz);
+        if (fh < -0.5 || fh > 6.0) continue;
+
+        const clump = new THREE.Group();
+        clump.position.set(fx, fh, fz);
+
+        const col = flowerColors[Math.floor(Math.random() * flowerColors.length)];
+        const flMat = new THREE.MeshLambertMaterial({ color: col });
+        const stemMat = new THREE.MeshLambertMaterial({ color: 0x2e6930 });
+
+        for (let fl = 0; fl < 5; fl++) {
+          const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.45, 4), stemMat);
+          stem.position.set((Math.random() - 0.5) * 0.8, 0.22, (Math.random() - 0.5) * 0.8);
+          clump.add(stem);
+
+          const blossom = new THREE.Mesh(new THREE.SphereGeometry(0.12, 5, 5), flMat);
+          blossom.position.set(stem.position.x, 0.48, stem.position.z);
+          clump.add(blossom);
+        }
+        scene.add(clump);
+      }
+    }
+
     // Spawners with Selection Footprints
     function createResourceSelectionRing(radius = 1.8) {
       const geom = new THREE.RingGeometry(radius * 0.85, radius, 20);
@@ -4317,27 +4796,76 @@ import * as THREE from './lib/three.module.min.js';
       return ring;
     }
 
+    // High-Fidelity Multi-Canopy Tree Spawner
     function spawnForestGrove(cx, cz, count) {
       for (let i = 0; i < count; i++) {
-        const ox = cx + (Math.random() - 0.5) * 16;
-        const oz = cz + (Math.random() - 0.5) * 16;
+        const ox = cx + (Math.random() - 0.5) * 18;
+        const oz = cz + (Math.random() - 0.5) * 18;
         const h = getTerrainHeight(ox, oz);
         if (h < -1.0) continue;
 
         const group = new THREE.Group();
-        const trunkH = 2.8 + Math.random() * 1.5;
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, trunkH, 7), timberMat);
-        trunk.position.y = trunkH / 2;
-        trunk.castShadow = true;
-        group.add(trunk);
+        const treeType = Math.random();
 
-        // Multi-tier lush foliage canopy
-        const leafMat = new THREE.MeshLambertMaterial({ color: Math.random() > 0.4 ? 0x2e6930 : 0x1e4620 });
-        for (let t = 0; t < 3; t++) {
-          const cone = new THREE.Mesh(new THREE.ConeGeometry(2.4 - t * 0.55, 2.8, 7), leafMat);
-          cone.position.y = trunkH + 0.8 + t * 1.5;
-          cone.castShadow = true;
-          group.add(cone);
+        if (treeType < 0.6) {
+          // 1. Mighty Broadleaf Oak
+          const trunkH = 3.2 + Math.random() * 1.6;
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.55, trunkH, 8), timberMat);
+          trunk.position.y = trunkH / 2;
+          trunk.castShadow = true;
+          group.add(trunk);
+
+          // 4 Root flares
+          for (let r = 0; r < 4; r++) {
+            const root = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.25, 1.2, 5), timberMat);
+            root.position.set(Math.cos(r * Math.PI / 2) * 0.55, 0.3, Math.sin(r * Math.PI / 2) * 0.55);
+            root.rotation.z = Math.cos(r * Math.PI / 2) * 0.4;
+            root.rotation.x = Math.sin(r * Math.PI / 2) * 0.4;
+            group.add(root);
+          }
+
+          // Multi-cluster leafy canopy spheres
+          const leafColors = [0x2e6930, 0x367c39, 0x235324];
+          for (let c = 0; c < 5; c++) {
+            const leafMat = new THREE.MeshLambertMaterial({ color: leafColors[c % leafColors.length] });
+            const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.6 + Math.random() * 0.6, 7, 7), leafMat);
+            const ox = (c === 0 ? 0 : Math.cos(c * 1.5) * 1.2);
+            const oz = (c === 0 ? 0 : Math.sin(c * 1.5) * 1.2);
+            sphere.position.set(ox, trunkH + 1.2 + (c === 0 ? 1.0 : Math.random() * 0.6), oz);
+            sphere.castShadow = true;
+            group.add(sphere);
+          }
+        } else if (treeType < 0.85) {
+          // 2. Tall Scotch Pine
+          const trunkH = 4.5 + Math.random() * 2.0;
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.4, trunkH, 7), timberMat);
+          trunk.position.y = trunkH / 2;
+          trunk.castShadow = true;
+          group.add(trunk);
+
+          const pineMat = new THREE.MeshLambertMaterial({ color: 0x1a4321 });
+          for (let t = 0; t < 5; t++) {
+            const cone = new THREE.Mesh(new THREE.ConeGeometry(2.5 - t * 0.4, 2.2, 7), pineMat);
+            cone.position.y = trunkH - 0.5 + t * 1.2;
+            cone.castShadow = true;
+            group.add(cone);
+          }
+        } else {
+          // 3. Golden Autumn Birch
+          const trunkH = 3.8 + Math.random() * 1.4;
+          const birchTrunkMat = new THREE.MeshLambertMaterial({ color: 0xf5f3ee });
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, trunkH, 7), birchTrunkMat);
+          trunk.position.y = trunkH / 2;
+          trunk.castShadow = true;
+          group.add(trunk);
+
+          const birchLeafMat = new THREE.MeshLambertMaterial({ color: 0xd97706 });
+          for (let c = 0; c < 4; c++) {
+            const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.4 + Math.random() * 0.4, 7, 7), birchLeafMat);
+            sphere.position.set((Math.random() - 0.5) * 1.4, trunkH + 1.0 + Math.random() * 1.0, (Math.random() - 0.5) * 1.4);
+            sphere.castShadow = true;
+            group.add(sphere);
+          }
         }
 
         const ring = createResourceSelectionRing(2.0);
@@ -4348,7 +4876,7 @@ import * as THREE from './lib/three.module.min.js';
         const resObj = {
           id: nextEntityId++,
           type: 'tree',
-          name: 'Oak Tree',
+          name: 'Ancient Forest Tree',
           resType: 'wood',
           amount: 100,
           maxAmount: 100,
@@ -4715,6 +5243,20 @@ import * as THREE from './lib/three.module.min.js';
           m.position.y = -1.0 + Math.sin(globalSimTime * 4 + idx) * 0.4;
         });
       }
+
+      // Animate Rising Chimney Smoke Puffs
+      chimneySmokes.forEach(sg => {
+        sg.children.forEach((puff, idx) => {
+          puff.position.y += dt * 1.6;
+          if (puff.position.y > 6.0) {
+            puff.position.y = 0.2;
+            puff.position.x = (Math.random() - 0.5) * 0.3;
+            puff.position.z = (Math.random() - 0.5) * 0.3;
+          }
+          const scale = 1.0 + puff.position.y * 0.35;
+          puff.scale.set(scale, scale, scale);
+        });
+      });
 
       // Animate Rain Particles
       if (rainGroup && rainGroup.visible) {

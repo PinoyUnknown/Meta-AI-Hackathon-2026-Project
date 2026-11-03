@@ -1,7 +1,7 @@
 def get_aoe_world_director_js():
     return """
     // =========================================================================
-    // PHASE 1 WORLD INITIALIZATION, HIGH REALISM SCENE, BIOMES & 60 FPS ENGINE
+    // PHASE 1 WORLD INITIALIZATION, REALISTIC NATURE, BIOMES & 60 FPS ENGINE
     // =========================================================================
 
     let terrainMesh = null;
@@ -12,6 +12,7 @@ def get_aoe_world_director_js():
     let waterfallMistGroup = null;
     let rainGroup = null;
     let globalSimTime = 0;
+    const chimneySmokes = [];
 
     function initAoEWorld() {
       // 1. Grassy Rolling Mountain Terrain (200x200 World Grid: -100m to +100m)
@@ -30,7 +31,41 @@ def get_aoe_world_director_js():
       terrainMesh.receiveShadow = true;
       scene.add(terrainMesh);
 
-      // 2. Classify River Water & Obstacles into 100x100 Tilemap
+      // 2. Cobblestone Civic Plaza around Town Center
+      const plazaGeom = new THREE.PlaneGeometry(18, 18, 8, 8);
+      plazaGeom.rotateX(-Math.PI / 2);
+      const plazaPos = plazaGeom.attributes.position;
+      for (let i = 0; i < plazaPos.count; i++) {
+        const px = plazaPos.getX(i);
+        const pz = plazaPos.getZ(i);
+        plazaPos.setY(i, getTerrainHeight(px, pz) + 0.05);
+      }
+      plazaGeom.computeVertexNormals();
+      const plazaMat = new THREE.MeshLambertMaterial({ map: stoneTex });
+      const plazaMesh = new THREE.Mesh(plazaGeom, plazaMat);
+      plazaMesh.receiveShadow = true;
+      scene.add(plazaMesh);
+
+      // 3. Paved Dirt Road Paths Connecting Town Center to Bridge & Camps
+      createPavedDirtPath([
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(-12, 0),
+        new THREE.Vector2(-25, 0) // Road to bridge
+      ], 4.2);
+
+      createPavedDirtPath([
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(10, 8),
+        new THREE.Vector2(20, 16) // Road to oak lumber grove
+      ], 3.4);
+
+      createPavedDirtPath([
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(8, -6),
+        new THREE.Vector2(18, -10) // Road to gold mine
+      ], 3.4);
+
+      // 4. Classify River Water & Obstacles into 100x100 Tilemap
       for (let gx = 0; gx < GRID_SIZE; gx++) {
         for (let gz = 0; gz < GRID_SIZE; gz++) {
           const w = gridToWorld(gx, gz);
@@ -49,13 +84,13 @@ def get_aoe_world_director_js():
         }
       }
 
-      // 3. Shimmering River Water Ribbon at x = -25
+      // 5. Shimmering River Water Ribbon at x = -25
       const waterGeom = new THREE.PlaneGeometry(18, 200);
       waterGeom.rotateX(-Math.PI / 2);
       const waterMat = new THREE.MeshStandardMaterial({
         map: waterTex,
         roughness: 0.1,
-        metalness: 0.8,
+        metalness: 0.85,
         transparent: true,
         opacity: 0.88
       });
@@ -63,21 +98,21 @@ def get_aoe_world_director_js():
       waterMesh.position.set(-25, -1.8, 0);
       scene.add(waterMesh);
 
-      // 4. Mountain Creek Water flowing from Waterfall
+      // 6. Mountain Creek Water flowing from Waterfall
       const creekGeom = new THREE.PlaneGeometry(72, 6.5);
       creekGeom.rotateX(-Math.PI / 2);
       creekMesh = new THREE.Mesh(creekGeom, waterMat);
       creekMesh.position.set(20, -1.35, -33);
       scene.add(creekMesh);
 
-      // 5. Woodland Lake Water Surface at (-20, 60)
+      // 7. Woodland Lake Water Surface at (-20, 60)
       const lakeGeom = new THREE.CircleGeometry(13.5, 32);
       lakeGeom.rotateX(-Math.PI / 2);
       lakeMesh = new THREE.Mesh(lakeGeom, waterMat);
       lakeMesh.position.set(-20, -1.75, 60);
       scene.add(lakeMesh);
 
-      // 6. Roaring Mountain Waterfall (Descending from x = 60, y = 5.0, z = -33)
+      // 8. Roaring Mountain Waterfall (Descending from x = 60, y = 5.0, z = -33)
       const wfGeom = new THREE.PlaneGeometry(7.5, 7.2);
       const wfMat = new THREE.MeshStandardMaterial({
         map: waterTex,
@@ -95,7 +130,7 @@ def get_aoe_world_director_js():
 
       // Waterfall Splash Mist Particles at Foot
       waterfallMistGroup = new THREE.Group();
-      for (let i = 0; i < 18; i++) {
+      for (let i = 0; i < 22; i++) {
         const mist = new THREE.Mesh(
           new THREE.SphereGeometry(0.5 + Math.random() * 0.4, 6, 6),
           new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 })
@@ -105,7 +140,7 @@ def get_aoe_world_director_js():
       }
       scene.add(waterfallMistGroup);
 
-      // 7. Arched Cobblestone River Bridge at (x: -25, z: 0)
+      // 9. Arched Cobblestone River Bridge at (x: -25, z: 0)
       const bridgeGroup = new THREE.Group();
       bridgeGroup.position.set(-25, -0.4, 0);
 
@@ -114,6 +149,13 @@ def get_aoe_world_director_js():
       span.castShadow = true;
       span.receiveShadow = true;
       bridgeGroup.add(span);
+
+      // 2 Arched Substructure Piers with Cutwaters
+      for (let px of [-6, 6]) {
+        const pier = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.5, 8.2), stoneMat);
+        pier.position.set(px, -1.4, 0);
+        bridgeGroup.add(pier);
+      }
 
       // Stone Balustrades with Lantern Posts
       for (let z of [-3.6, 3.6]) {
@@ -133,7 +175,7 @@ def get_aoe_world_director_js():
       }
       scene.add(bridgeGroup);
 
-      // Bridge tiles Walkable
+      // Bridge tiles Walkable across the river!
       for (let x = -35; x <= -15; x += 2) {
         for (let z = -4; z <= 4; z += 2) {
           const g = worldToGrid(x, z);
@@ -141,43 +183,52 @@ def get_aoe_world_director_js():
         }
       }
 
-      // 8. Natural Forests (Oak Groves, Pine Jungles & Birch Trees)
+      // 10. Natural 3D Forests (Multi-Canopy Oaks, Pines & Birch Groves)
       spawnForestGrove(24, 18, 14);
       spawnForestGrove(-6, -28, 12);
       spawnForestGrove(35, -16, 15);
       spawnForestGrove(-68, 25, 14);
       spawnForestGrove(45, 35, 12);
 
-      // 9. Mineral Deposits (Gold Veins & Stone Quarries)
+      // 11. 3D Riverbank Boulders & Stones
+      spawnRiverbankBoulders();
+
+      // 12. 3D Wildflower Meadow Clumps
+      spawnWildflowerClumps();
+
+      // 13. Mineral Deposits (Gold Veins & Stone Quarries)
       spawnMineralDeposit('gold', 18, -10, 4);
       spawnMineralDeposit('stone', 26, 12, 4);
       spawnMineralDeposit('gold', -55, -12, 4);
       spawnMineralDeposit('stone', -75, -35, 4);
       spawnMineralDeposit('gold', 42, -26, 3);
 
-      // 10. Forage Berry Bushes
+      // 14. Forage Berry Bushes
       spawnForageBushes(10, 20, 5);
       spawnForageBushes(-52, -25, 4);
       spawnForageBushes(28, 40, 4);
 
-      // 11. Domestic Sheep & Wild Game (Huntable Boars & Deer)
+      // 15. Domestic Sheep & Wild Game (Huntable Boars & Deer)
       spawnSheepFlock(-10, -8, 4);
       spawnWildBoar(35, 25);
       spawnWildBoar(-50, 35);
       spawnWildDeer(38, -20);
       spawnWildDeer(-15, 50);
 
-      // 12. Holy Relics
+      // 16. Holy Relics
       spawnRelic(0, 45);
       spawnRelic(-25, -45);
       spawnRelic(62, -10);
 
-      // 13. Initial Player Town Base (Team Blue)
+      // 17. Initial Player Town Base (Team Blue)
       // Town Center at (0, 0)
-      spawnBuilding('town_center', 0, 0, 'player');
+      const tc = spawnBuilding('town_center', 0, 0, 'player');
       occupyGridArea(0, 0, 7, 7);
+      if (tc && tc.mesh.userData && tc.mesh.userData.smokeGroup) {
+        chimneySmokes.push(tc.mesh.userData.smokeGroup);
+      }
 
-      spawnBuilding('house', -16, 12, 'player');
+      const house1 = spawnBuilding('house', -16, 12, 'player');
       occupyGridArea(-16, 12, 3, 3);
 
       // Start Units OPEN IN THE MEADOW (Never inside Town Center)
@@ -186,7 +237,7 @@ def get_aoe_world_director_js():
       spawnUnit('villager', 8, 18, 'player');  // Near berry bushes & deer
       spawnUnit('villager', 16, -8, 'player'); // Near gold vein
 
-      // 14. Initial Rival Red Base Across the River (Automated Opponent)
+      // 18. Initial Rival Red Base Across the River (Automated Opponent)
       spawnBuilding('town_center', -65, -15, 'enemy');
       occupyGridArea(-65, -15, 7, 7);
       spawnBuilding('barracks', -55, -5, 'enemy');
@@ -201,7 +252,7 @@ def get_aoe_world_director_js():
       spawnUnit('villager', -68, -20, 'enemy');
       spawnUnit('militia', -48, -4, 'enemy');
 
-      // 15. Setup Rain Particle System for Overcast Weather
+      // 19. Setup Rain Particle System for Overcast Weather
       rainGroup = new THREE.Group();
       const rainGeom = new THREE.BufferGeometry();
       const rainCount = 1200;
@@ -228,6 +279,105 @@ def get_aoe_world_director_js():
       showAoENotice('[EMPIRE FOUNDED] Britons civilization established. Lead your people to glory!');
     }
 
+    // Helper: Paved Dirt Road Mesh Generator
+    function createPavedDirtPath(points, width = 3.5) {
+      const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, 0, p.y)));
+      const divisions = 24;
+      const pts = curve.getPoints(divisions);
+
+      const pathGeom = new THREE.BufferGeometry();
+      const vertices = [];
+      const uvs = [];
+      const indices = [];
+
+      for (let i = 0; i <= divisions; i++) {
+        const pt = pts[i];
+        const h = getTerrainHeight(pt.x, pt.z) + 0.04;
+        const tangent = curve.getTangent(i / divisions);
+        const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+
+        const pL = new THREE.Vector3(pt.x + normal.x * width * 0.5, h, pt.z + normal.z * width * 0.5);
+        const pR = new THREE.Vector3(pt.x - normal.x * width * 0.5, h, pt.z - normal.z * width * 0.5);
+
+        vertices.push(pL.x, pL.y, pL.z);
+        vertices.push(pR.x, pR.y, pR.z);
+
+        uvs.push(0, i / 2);
+        uvs.push(1, i / 2);
+
+        if (i < divisions) {
+          const base = i * 2;
+          indices.push(base, base + 1, base + 2);
+          indices.push(base + 1, base + 3, base + 2);
+        }
+      }
+
+      pathGeom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      pathGeom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      pathGeom.setIndex(indices);
+      pathGeom.computeVertexNormals();
+
+      const pathMat = new THREE.MeshLambertMaterial({
+        color: 0x8b6538,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
+      });
+      const roadMesh = new THREE.Mesh(pathGeom, pathMat);
+      roadMesh.receiveShadow = true;
+      scene.add(roadMesh);
+    }
+
+    // Helper: 3D Riverbank Boulders
+    function spawnRiverbankBoulders() {
+      const stoneMatLocal = new THREE.MeshLambertMaterial({ color: 0x6e685f });
+      const rockLocations = [
+        [-15, -4], [-15, 6], [-14, 20], [-14, -25], [-15, 45],
+        [-35, -5], [-35, 8], [-36, 18], [-34, -20], [-35, -45],
+        [20, -30], [35, -30], [50, -30]
+      ];
+
+      rockLocations.forEach(pos => {
+        const h = getTerrainHeight(pos[0], pos[1]);
+        const r = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8 + Math.random() * 0.6), stoneMatLocal);
+        r.position.set(pos[0] + (Math.random() - 0.5) * 3, h + 0.3, pos[1] + (Math.random() - 0.5) * 3);
+        r.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+        r.castShadow = true;
+        r.receiveShadow = true;
+        scene.add(r);
+      });
+    }
+
+    // Helper: 3D Wildflower Meadow Clumps
+    function spawnWildflowerClumps() {
+      const flowerColors = [0xef4444, 0x3b82f6, 0xfacc15, 0xffffff, 0xa855f7];
+      for (let i = 0; i < 40; i++) {
+        const fx = (Math.random() - 0.5) * 90;
+        const fz = (Math.random() - 0.5) * 90;
+        if (fx > -36 && fx < -14) continue; // Skip river
+        const fh = getTerrainHeight(fx, fz);
+        if (fh < -0.5 || fh > 6.0) continue;
+
+        const clump = new THREE.Group();
+        clump.position.set(fx, fh, fz);
+
+        const col = flowerColors[Math.floor(Math.random() * flowerColors.length)];
+        const flMat = new THREE.MeshLambertMaterial({ color: col });
+        const stemMat = new THREE.MeshLambertMaterial({ color: 0x2e6930 });
+
+        for (let fl = 0; fl < 5; fl++) {
+          const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.45, 4), stemMat);
+          stem.position.set((Math.random() - 0.5) * 0.8, 0.22, (Math.random() - 0.5) * 0.8);
+          clump.add(stem);
+
+          const blossom = new THREE.Mesh(new THREE.SphereGeometry(0.12, 5, 5), flMat);
+          blossom.position.set(stem.position.x, 0.48, stem.position.z);
+          clump.add(blossom);
+        }
+        scene.add(clump);
+      }
+    }
+
     // Spawners with Selection Footprints
     function createResourceSelectionRing(radius = 1.8) {
       const geom = new THREE.RingGeometry(radius * 0.85, radius, 20);
@@ -239,27 +389,76 @@ def get_aoe_world_director_js():
       return ring;
     }
 
+    // High-Fidelity Multi-Canopy Tree Spawner
     function spawnForestGrove(cx, cz, count) {
       for (let i = 0; i < count; i++) {
-        const ox = cx + (Math.random() - 0.5) * 16;
-        const oz = cz + (Math.random() - 0.5) * 16;
+        const ox = cx + (Math.random() - 0.5) * 18;
+        const oz = cz + (Math.random() - 0.5) * 18;
         const h = getTerrainHeight(ox, oz);
         if (h < -1.0) continue;
 
         const group = new THREE.Group();
-        const trunkH = 2.8 + Math.random() * 1.5;
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, trunkH, 7), timberMat);
-        trunk.position.y = trunkH / 2;
-        trunk.castShadow = true;
-        group.add(trunk);
+        const treeType = Math.random();
 
-        // Multi-tier lush foliage canopy
-        const leafMat = new THREE.MeshLambertMaterial({ color: Math.random() > 0.4 ? 0x2e6930 : 0x1e4620 });
-        for (let t = 0; t < 3; t++) {
-          const cone = new THREE.Mesh(new THREE.ConeGeometry(2.4 - t * 0.55, 2.8, 7), leafMat);
-          cone.position.y = trunkH + 0.8 + t * 1.5;
-          cone.castShadow = true;
-          group.add(cone);
+        if (treeType < 0.6) {
+          // 1. Mighty Broadleaf Oak
+          const trunkH = 3.2 + Math.random() * 1.6;
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.55, trunkH, 8), timberMat);
+          trunk.position.y = trunkH / 2;
+          trunk.castShadow = true;
+          group.add(trunk);
+
+          // 4 Root flares
+          for (let r = 0; r < 4; r++) {
+            const root = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.25, 1.2, 5), timberMat);
+            root.position.set(Math.cos(r * Math.PI / 2) * 0.55, 0.3, Math.sin(r * Math.PI / 2) * 0.55);
+            root.rotation.z = Math.cos(r * Math.PI / 2) * 0.4;
+            root.rotation.x = Math.sin(r * Math.PI / 2) * 0.4;
+            group.add(root);
+          }
+
+          // Multi-cluster leafy canopy spheres
+          const leafColors = [0x2e6930, 0x367c39, 0x235324];
+          for (let c = 0; c < 5; c++) {
+            const leafMat = new THREE.MeshLambertMaterial({ color: leafColors[c % leafColors.length] });
+            const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.6 + Math.random() * 0.6, 7, 7), leafMat);
+            const ox = (c === 0 ? 0 : Math.cos(c * 1.5) * 1.2);
+            const oz = (c === 0 ? 0 : Math.sin(c * 1.5) * 1.2);
+            sphere.position.set(ox, trunkH + 1.2 + (c === 0 ? 1.0 : Math.random() * 0.6), oz);
+            sphere.castShadow = true;
+            group.add(sphere);
+          }
+        } else if (treeType < 0.85) {
+          // 2. Tall Scotch Pine
+          const trunkH = 4.5 + Math.random() * 2.0;
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.4, trunkH, 7), timberMat);
+          trunk.position.y = trunkH / 2;
+          trunk.castShadow = true;
+          group.add(trunk);
+
+          const pineMat = new THREE.MeshLambertMaterial({ color: 0x1a4321 });
+          for (let t = 0; t < 5; t++) {
+            const cone = new THREE.Mesh(new THREE.ConeGeometry(2.5 - t * 0.4, 2.2, 7), pineMat);
+            cone.position.y = trunkH - 0.5 + t * 1.2;
+            cone.castShadow = true;
+            group.add(cone);
+          }
+        } else {
+          // 3. Golden Autumn Birch
+          const trunkH = 3.8 + Math.random() * 1.4;
+          const birchTrunkMat = new THREE.MeshLambertMaterial({ color: 0xf5f3ee });
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, trunkH, 7), birchTrunkMat);
+          trunk.position.y = trunkH / 2;
+          trunk.castShadow = true;
+          group.add(trunk);
+
+          const birchLeafMat = new THREE.MeshLambertMaterial({ color: 0xd97706 });
+          for (let c = 0; c < 4; c++) {
+            const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.4 + Math.random() * 0.4, 7, 7), birchLeafMat);
+            sphere.position.set((Math.random() - 0.5) * 1.4, trunkH + 1.0 + Math.random() * 1.0, (Math.random() - 0.5) * 1.4);
+            sphere.castShadow = true;
+            group.add(sphere);
+          }
         }
 
         const ring = createResourceSelectionRing(2.0);
@@ -270,7 +469,7 @@ def get_aoe_world_director_js():
         const resObj = {
           id: nextEntityId++,
           type: 'tree',
-          name: 'Oak Tree',
+          name: 'Ancient Forest Tree',
           resType: 'wood',
           amount: 100,
           maxAmount: 100,
@@ -637,6 +836,20 @@ def get_aoe_world_director_js():
           m.position.y = -1.0 + Math.sin(globalSimTime * 4 + idx) * 0.4;
         });
       }
+
+      // Animate Rising Chimney Smoke Puffs
+      chimneySmokes.forEach(sg => {
+        sg.children.forEach((puff, idx) => {
+          puff.position.y += dt * 1.6;
+          if (puff.position.y > 6.0) {
+            puff.position.y = 0.2;
+            puff.position.x = (Math.random() - 0.5) * 0.3;
+            puff.position.z = (Math.random() - 0.5) * 0.3;
+          }
+          const scale = 1.0 + puff.position.y * 0.35;
+          puff.scale.set(scale, scale, scale);
+        });
+      });
 
       // Animate Rain Particles
       if (rainGroup && rainGroup.visible) {

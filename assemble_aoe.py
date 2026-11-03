@@ -19,12 +19,11 @@ def build():
         "import * as THREE from './lib/three.module.min.js';",
         """
     // =========================================================================
-    // THREE.JS SETUP & LIGHTING
+    // THREE.JS SETUP, ACES FILMIC TONE MAPPING & ATMOSPHERIC LIGHTING
     // =========================================================================
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb);
-    scene.fog = new THREE.FogExp2(0xb0d8f0, 0.0022);
+    scene.fog = new THREE.FogExp2(0xc2daf0, 0.0028);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
     camera.position.set(0, 28, 38);
@@ -33,29 +32,67 @@ def build():
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.22;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    // Sun & Atmosphere Lights
-    const hemiLight = new THREE.HemisphereLight(0xfff7e6, 0x556b2f, 0.65);
+    // Atmospheric Sky Dome with Horizon Gradient & Clouds
+    const skyGeom = new THREE.SphereGeometry(450, 32, 16);
+    const skyCanvas = document.createElement('canvas');
+    skyCanvas.width = 512;
+    skyCanvas.height = 512;
+    const skyCtx = skyCanvas.getContext('2d');
+    const skyGrad = skyCtx.createLinearGradient(0, 0, 0, 512);
+    skyGrad.addColorStop(0, '#1e40af');    // Deep royal blue zenith
+    skyGrad.addColorStop(0.45, '#3b82f6'); // Mid-sky
+    skyGrad.addColorStop(0.82, '#93c5fd'); // Atmospheric haze
+    skyGrad.addColorStop(1, '#ffedd5');    // Warm golden horizon
+    skyCtx.fillStyle = skyGrad;
+    skyCtx.fillRect(0, 0, 512, 512);
+
+    // Soft cumulus cloud wisps
+    for (let c = 0; c < 30; c++) {
+      const cx = Math.random() * 512;
+      const cy = 180 + Math.random() * 220;
+      const cr = 35 + Math.random() * 65;
+      const cloudGrad = skyCtx.createRadialGradient(cx, cy, 4, cx, cy, cr);
+      cloudGrad.addColorStop(0, 'rgba(255, 255, 255, 0.42)');
+      cloudGrad.addColorStop(0.6, 'rgba(255, 255, 255, 0.18)');
+      cloudGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      skyCtx.fillStyle = cloudGrad;
+      skyCtx.beginPath();
+      skyCtx.arc(cx, cy, cr, 0, Math.PI * 2);
+      skyCtx.fill();
+    }
+
+    const skyTex = new THREE.CanvasTexture(skyCanvas);
+    const skyMat = new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide });
+    const skyDome = new THREE.Mesh(skyGeom, skyMat);
+    scene.add(skyDome);
+
+    // Realistic Sun & Atmospheric Bounce Lighting
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x3f3528, 0.85);
     scene.add(hemiLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfffaed, 1.45);
-    sunLight.position.set(60, 90, 50);
+    const sunLight = new THREE.DirectionalLight(0xfff7ed, 1.95);
+    sunLight.position.set(70, 95, 60);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
     sunLight.shadow.camera.near = 10;
-    sunLight.shadow.camera.far = 280;
-    sunLight.shadow.camera.left = -120;
-    sunLight.shadow.camera.right = 120;
-    sunLight.shadow.camera.top = 120;
-    sunLight.shadow.camera.bottom = -120;
-    sunLight.shadow.bias = -0.0005;
+    sunLight.shadow.camera.far = 300;
+    sunLight.shadow.camera.left = -115;
+    sunLight.shadow.camera.right = 115;
+    sunLight.shadow.camera.top = 115;
+    sunLight.shadow.camera.bottom = -115;
+    sunLight.shadow.bias = -0.0004;
+    sunLight.shadow.normalBias = 0.02;
     scene.add(sunLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.45);
+    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.35);
     scene.add(ambientLight);
 
     window.addEventListener('resize', () => {
@@ -75,6 +112,7 @@ def build():
     const plasterTex = generatePlasterTexture();
     const ironTex = generateIronTexture();
     const waterTex = generateWaterTexture();
+    const cliffTex = generateCliffTexture();
         """,
         get_aoe_models_js(),
         get_aoe_units_combat_js(),

@@ -1,7 +1,7 @@
 def get_aoe_audio_textures_js():
     return """
     // =========================================================================
-    // PROCEDURAL TEXTURE GENERATION (HIGH FIDELITY VIBRANT AGE OF EMPIRES)
+    // PROCEDURAL TEXTURE GENERATION (REALISTIC AGE OF EMPIRES VISUALS)
     // =========================================================================
     function createProceduralCanvas(width, height) {
       const c = document.createElement('canvas');
@@ -10,194 +10,374 @@ def get_aoe_audio_textures_js():
       return c;
     }
 
+    // 1. Natural Lush Meadow Grass with Dirt Blending
     function generateGrassTexture() {
       const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#559933';
+
+      // Base meadow gradient with organic hue shifts
+      const grad = ctx.createLinearGradient(0, 0, 512, 512);
+      grad.addColorStop(0, '#3e6b28');
+      grad.addColorStop(0.5, '#4a7d32');
+      grad.addColorStop(1, '#3b6625');
+      ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 512, 512);
 
-      // Grass blades
-      for (let i = 0; i < 2000; i++) {
+      // Subtle rich earth patches
+      for (let i = 0; i < 30; i++) {
         const x = Math.random() * 512;
         const y = Math.random() * 512;
-        ctx.strokeStyle = Math.random() > 0.5 ? '#6eb53e' : '#468028';
-        ctx.lineWidth = 1.6;
+        const r = 15 + Math.random() * 35;
+        const earthGrad = ctx.createRadialGradient(x, y, 2, x, y, r);
+        earthGrad.addColorStop(0, 'rgba(74, 53, 31, 0.45)');
+        earthGrad.addColorStop(1, 'rgba(74, 53, 31, 0)');
+        ctx.fillStyle = earthGrad;
         ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + (Math.random() - 0.5) * 5, y - 4 - Math.random() * 5);
-        ctx.stroke();
-      }
-
-      // Small wildflowers
-      for (let i = 0; i < 150; i++) {
-        const x = Math.random() * 512;
-        const y = Math.random() * 512;
-        ctx.fillStyle = Math.random() > 0.4 ? '#fef08a' : '#ffffff';
-        ctx.beginPath();
-        ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+        ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      const tex = new THREE.CanvasTexture(c);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(40, 40);
-      return tex;
-    }
-
-    function generateWoodTexture() {
-      const c = createProceduralCanvas(256, 256);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#8b5a2b';
-      ctx.fillRect(0, 0, 256, 256);
-
-      ctx.fillStyle = '#6d421d';
-      for (let i = 0; i < 256; i += 16) {
-        ctx.fillRect(0, i, 256, 2);
-      }
-      for (let i = 0; i < 50; i++) {
-        ctx.strokeStyle = 'rgba(60, 35, 15, 0.4)';
-        ctx.lineWidth = 2;
+      // 4000 Individual layered blades of grass
+      for (let i = 0; i < 4000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const shades = ['#559138', '#63a841', '#427429', '#6ebc48', '#385e23'];
+        ctx.strokeStyle = shades[Math.floor(Math.random() * shades.length)];
+        ctx.lineWidth = 1.2 + Math.random() * 1.0;
         ctx.beginPath();
-        ctx.arc(Math.random() * 256, Math.random() * 256, Math.random() * 20, 0, Math.PI * 2);
+        ctx.moveTo(x, y);
+        const curve = (Math.random() - 0.5) * 6;
+        ctx.quadraticCurveTo(x + curve * 0.5, y - 4, x + curve, y - 7 - Math.random() * 7);
         ctx.stroke();
       }
-      const tex = new THREE.CanvasTexture(c);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      return tex;
-    }
 
-    function generateStoneTexture() {
-      const c = createProceduralCanvas(256, 256);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#7a7a7a';
-      ctx.fillRect(0, 0, 256, 256);
-
-      // Ashlar stone brick joints
-      ctx.strokeStyle = '#4a4a4a';
-      ctx.lineWidth = 2;
-      for (let y = 0; y < 256; y += 32) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(256, y);
-        ctx.stroke();
-
-        const offset = (y / 32) % 2 === 0 ? 0 : 32;
-        for (let x = offset; x < 256; x += 64) {
+      // Clover clusters & Meadow wildflowers
+      for (let i = 0; i < 80; i++) {
+        const cx = Math.random() * 512;
+        const cy = Math.random() * 512;
+        // 3 clover leaves
+        ctx.fillStyle = '#2d531e';
+        for (let a = 0; a < 3; a++) {
+          const ang = (a * Math.PI * 2) / 3;
           ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(x, y + 32);
-          ctx.stroke();
+          ctx.arc(cx + Math.cos(ang) * 2.8, cy + Math.sin(ang) * 2.8, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Occasional flower center
+        if (Math.random() > 0.5) {
+          ctx.fillStyle = Math.random() > 0.4 ? '#fef08a' : (Math.random() > 0.5 ? '#ef4444' : '#60a5fa');
+          ctx.beginPath();
+          ctx.arc(cx, cy, 1.8, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
 
-      for (let i = 0; i < 1000; i++) {
-        const x = Math.random() * 256;
-        const y = Math.random() * 256;
-        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)';
-        ctx.fillRect(x, y, 2, 2);
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(24, 24);
+      return tex;
+    }
+
+    // 2. Medieval Ashlar Stone Texture (Hand-Dressed Limestone Blocks)
+    function generateStoneTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      // Aged limestone base
+      ctx.fillStyle = '#827f78';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Block rows with irregular ashlar courses
+      const rowHeights = [36, 44, 40, 48, 38, 42, 46, 38, 42, 44, 40, 48, 46];
+      let curY = 0;
+
+      for (let r = 0; r < rowHeights.length; r++) {
+        const h = rowHeights[r];
+        let curX = (r % 2 === 0 ? 0 : -28);
+
+        while (curX < 512) {
+          const w = 55 + Math.random() * 35;
+          // Block face with subtle gradient
+          const stoneLight = 110 + Math.floor(Math.random() * 35);
+          ctx.fillStyle = `rgb(${stoneLight}, ${stoneLight - 4}, ${stoneLight - 8})`;
+          ctx.fillRect(curX + 2, curY + 2, w - 4, h - 4);
+
+          // Top highlight bevel
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+          ctx.fillRect(curX + 2, curY + 2, w - 4, 3);
+          ctx.fillRect(curX + 2, curY + 2, 3, h - 4);
+
+          // Bottom shadow bevel
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+          ctx.fillRect(curX + 2, curY + h - 4, w - 4, 3);
+          ctx.fillRect(curX + w - 4, curY + 2, 3, h - 4);
+
+          // Mortar joint
+          ctx.fillStyle = '#47443e';
+          ctx.fillRect(curX, curY, w, 2);
+          ctx.fillRect(curX, curY, 2, h);
+
+          curX += w;
+        }
+        curY += h;
       }
+
+      // Weathering stains & Chisel marks
+      for (let i = 0; i < 1500; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.08)';
+        ctx.fillRect(x, y, 1 + Math.random() * 2, 1 + Math.random() * 2);
+      }
+
       const tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
       return tex;
     }
 
-    function generateThatchTexture() {
-      const c = createProceduralCanvas(256, 256);
+    // 3. Rich Oak Timber Texture with Wood Grain & Planks
+    function generateWoodTexture() {
+      const c = createProceduralCanvas(512, 512);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#c89d55';
-      ctx.fillRect(0, 0, 256, 256);
 
-      ctx.strokeStyle = '#9e7330';
-      ctx.lineWidth = 1.5;
-      for (let i = 0; i < 600; i++) {
-        const x = Math.random() * 256;
-        const y = Math.random() * 256;
+      // Deep heartwood base
+      ctx.fillStyle = '#7a4b22';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Distinct plank grooves
+      const plankW = 42;
+      for (let x = 0; x < 512; x += plankW) {
+        // Plank tone variation
+        const varTone = (Math.random() - 0.5) * 18;
+        ctx.fillStyle = `rgba(${Math.floor(100 + varTone)}, ${Math.floor(65 + varTone)}, ${Math.floor(30 + varTone)}, 0.4)`;
+        ctx.fillRect(x, 0, plankW, 512);
+
+        // Wood grain lines
+        for (let g = 0; g < 18; g++) {
+          const gx = x + Math.random() * plankW;
+          ctx.strokeStyle = 'rgba(55, 30, 12, 0.35)';
+          ctx.lineWidth = 1.0 + Math.random() * 1.5;
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.bezierCurveTo(gx + (Math.random() - 0.5) * 8, 170, gx + (Math.random() - 0.5) * 8, 340, gx, 512);
+          ctx.stroke();
+        }
+
+        // Dark plank seam
+        ctx.fillStyle = '#3a1f0a';
+        ctx.fillRect(x, 0, 3, 512);
+
+        // Iron nail studs
+        for (let y = 30; y < 512; y += 95) {
+          ctx.fillStyle = '#1e1e1e';
+          ctx.beginPath();
+          ctx.arc(x + plankW * 0.5, y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // 4. Terracotta Clay Roof Tiles (Shaded Curved Barrel Tiles)
+    function generateTileTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = '#8f3518';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const tileH = 28;
+      const tileW = 38;
+
+      for (let y = 0; y < 512; y += tileH) {
+        const offset = (y / tileH) % 2 === 0 ? 0 : tileW * 0.5;
+        for (let x = -tileW; x < 512 + tileW; x += tileW) {
+          const rx = x + offset;
+
+          // Curved 3D tile shading
+          const tileGrad = ctx.createLinearGradient(rx, y, rx + tileW, y);
+          tileGrad.addColorStop(0, '#66220e');
+          tileGrad.addColorStop(0.3, '#b84d2a');
+          tileGrad.addColorStop(0.7, '#cf5e38');
+          tileGrad.addColorStop(1, '#5a1d0b');
+          ctx.fillStyle = tileGrad;
+          ctx.fillRect(rx + 2, y + 2, tileW - 4, tileH - 4);
+
+          // Scalloped bottom rim
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+          ctx.fillRect(rx + 2, y + 2, tileW - 4, 3);
+
+          // Overlap shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.fillRect(rx, y + tileH - 3, tileW, 3);
+        }
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // 5. Tudor Half-Timbered Plaster (Fachwerk White Stucco & Dark Oak Framing)
+    function generatePlasterTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      // Textured lime plaster base
+      ctx.fillStyle = '#f0eae0';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Stucco grain
+      for (let i = 0; i < 2000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)';
+        ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
+      }
+
+      // Dark aged timber framing beams
+      ctx.fillStyle = '#422814';
+
+      // Perimeter frame
+      const bw = 24;
+      ctx.fillRect(0, 0, 512, bw);
+      ctx.fillRect(0, 512 - bw, 512, bw);
+      ctx.fillRect(0, 0, bw, 512);
+      ctx.fillRect(512 - bw, 0, bw, 512);
+      // Center upright & cross braces
+      ctx.fillRect(256 - bw * 0.5, 0, bw, 512);
+
+      // Diagonal cross beams
+      ctx.lineWidth = bw;
+      ctx.strokeStyle = '#422814';
+      ctx.beginPath();
+      ctx.moveTo(bw, bw);
+      ctx.lineTo(256 - bw * 0.5, 512 - bw);
+      ctx.moveTo(512 - bw, bw);
+      ctx.lineTo(256 + bw * 0.5, 512 - bw);
+      ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // 6. Thatched Straw Roof Texture
+    function generateThatchTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = '#b88942';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Thousands of individual reed fibers
+      for (let i = 0; i < 3000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const shades = ['#cca058', '#996e2b', '#e0b56e', '#80591e'];
+        ctx.strokeStyle = shades[Math.floor(Math.random() * shades.length)];
+        ctx.lineWidth = 1.4;
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x + (Math.random() - 0.5) * 4, y + 8 + Math.random() * 8);
+        ctx.lineTo(x + (Math.random() - 0.5) * 5, y + 14 + Math.random() * 16);
         ctx.stroke();
       }
+
       const tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
       return tex;
     }
 
-    function generateTileTexture() {
-      const c = createProceduralCanvas(256, 256);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#a8432a';
-      ctx.fillRect(0, 0, 256, 256);
-
-      ctx.strokeStyle = '#6e2716';
-      ctx.lineWidth = 2;
-      for (let y = 0; y < 256; y += 16) {
-        ctx.strokeRect(0, y, 256, 16);
-      }
-      const tex = new THREE.CanvasTexture(c);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      return tex;
-    }
-
-    function generatePlasterTexture() {
-      const c = createProceduralCanvas(256, 256);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#eae2cf';
-      ctx.fillRect(0, 0, 256, 256);
-
-      // Timber framing cross-beams
-      ctx.fillStyle = '#5c3818';
-      ctx.fillRect(0, 0, 256, 12);
-      ctx.fillRect(0, 244, 256, 12);
-      ctx.fillRect(0, 0, 12, 256);
-      ctx.fillRect(244, 0, 12, 256);
-      ctx.fillRect(122, 0, 12, 256);
-      const tex = new THREE.CanvasTexture(c);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      return tex;
-    }
-
-    function generateIronTexture() {
-      const c = createProceduralCanvas(128, 128);
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#4a5568';
-      ctx.fillRect(0, 0, 128, 128);
-      for (let i = 0; i < 400; i++) {
-        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)';
-        ctx.fillRect(Math.random() * 128, Math.random() * 128, 2, 2);
-      }
-      return new THREE.CanvasTexture(c);
-    }
-
+    // 7. Shimmering Water Caustics Texture
     function generateWaterTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+
+      // Deep aquatic gradient
+      const grad = ctx.createLinearGradient(0, 0, 512, 512);
+      grad.addColorStop(0, '#105670');
+      grad.addColorStop(0.5, '#196f8c');
+      grad.addColorStop(1, '#124d63');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Wave ripple rings
+      for (let i = 0; i < 90; i++) {
+        const cx = Math.random() * 512;
+        const cy = Math.random() * 512;
+        const r = 10 + Math.random() * 45;
+
+        ctx.strokeStyle = 'rgba(180, 235, 255, 0.28)';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, r, r * 0.45, Math.random() * Math.PI, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Wave crest highlight
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.3, 0, Math.PI);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(4, 18);
+      return tex;
+    }
+
+    // 8. Hammered Iron Metal Texture
+    function generateIronTexture() {
       const c = createProceduralCanvas(256, 256);
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#1e6f9f';
+      ctx.fillStyle = '#475569';
       ctx.fillRect(0, 0, 256, 256);
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-      ctx.lineWidth = 1.8;
-      for (let i = 0; i < 60; i++) {
-        const y = Math.random() * 256;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.bezierCurveTo(64, y + 8, 192, y - 8, 256, y);
-        ctx.stroke();
+      for (let i = 0; i < 800; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.2)';
+        ctx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
       }
       const tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(6, 60);
+      return tex;
+    }
+
+    // 9. Rocky Mountain Cliff Texture
+    function generateCliffTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#645d54';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Stratified horizontal strata layers
+      for (let y = 0; y < 512; y += 18 + Math.random() * 12) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.fillRect(0, y, 512, 3);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fillRect(0, y + 3, 512, 2);
+      }
+      for (let i = 0; i < 1200; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? '#7a7065' : '#4a443d';
+        ctx.fillRect(Math.random() * 512, Math.random() * 512, 3, 3);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
       return tex;
     }
 
     // =========================================================================
-    // WEB AUDIO SYNTHESIZER (PROCEDURAL VOICE BARKS, FANFARE & SFX)
+    // WEB AUDIO SYNTHESIZER (PROCEDURAL VOICE BARKS, AMBIENCE & COMBAT SFX)
     // =========================================================================
     let audioCtx = null;
     let masterGain = null;
@@ -208,7 +388,7 @@ def get_aoe_audio_textures_js():
         if (AudioClass) {
           audioCtx = new AudioClass();
           masterGain = audioCtx.createGain();
-          masterGain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+          masterGain.gain.setValueAtTime(0.75, audioCtx.currentTime);
           masterGain.connect(audioCtx.destination);
         }
       }
@@ -237,13 +417,13 @@ def get_aoe_audio_textures_js():
       filter.Q.value = 4.0;
 
       if (type === 'select') {
-        // "Mandatum?" - Rising question inflection
+        // "Mandatum?" - Rising vocal inflection
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(140, t);
         osc.frequency.exponentialRampToValueAtTime(220, t + 0.18);
         filter.frequency.setValueAtTime(750, t);
         filter.frequency.exponentialRampToValueAtTime(1400, t + 0.18);
-        gain.gain.setValueAtTime(0.18, t);
+        gain.gain.setValueAtTime(0.2, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
         osc.connect(filter);
         filter.connect(gain);
@@ -256,7 +436,7 @@ def get_aoe_audio_textures_js():
         osc.frequency.setValueAtTime(180, t);
         osc.frequency.linearRampToValueAtTime(120, t + 0.2);
         filter.frequency.setValueAtTime(950, t);
-        gain.gain.setValueAtTime(0.16, t);
+        gain.gain.setValueAtTime(0.18, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
         osc.connect(filter);
         filter.connect(gain);
@@ -269,7 +449,7 @@ def get_aoe_audio_textures_js():
         osc.frequency.setValueAtTime(160, t);
         osc.frequency.exponentialRampToValueAtTime(110, t + 0.22);
         filter.frequency.setValueAtTime(1100, t);
-        gain.gain.setValueAtTime(0.16, t);
+        gain.gain.setValueAtTime(0.18, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
         osc.connect(filter);
         filter.connect(gain);
@@ -283,7 +463,7 @@ def get_aoe_audio_textures_js():
         osc.frequency.linearRampToValueAtTime(170, t + 0.15);
         osc.frequency.linearRampToValueAtTime(120, t + 0.3);
         filter.frequency.setValueAtTime(800, t);
-        gain.gain.setValueAtTime(0.16, t);
+        gain.gain.setValueAtTime(0.18, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
         osc.connect(filter);
         filter.connect(gain);
@@ -311,7 +491,7 @@ def get_aoe_audio_textures_js():
         osc.frequency.exponentialRampToValueAtTime(280, t + 0.14);
         osc.frequency.exponentialRampToValueAtTime(160, t + 0.28);
         filter.frequency.setValueAtTime(1500, t);
-        gain.gain.setValueAtTime(0.22, t);
+        gain.gain.setValueAtTime(0.24, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
         osc.connect(filter);
         filter.connect(gain);
@@ -327,7 +507,6 @@ def get_aoe_audio_textures_js():
       initAudio();
       const t = audioCtx.currentTime;
 
-      // Two-step harmonic formant frequency transition
       const tones = [
         { f1: 330, f2: 660, start: 0, dur: 0.24 },
         { f1: 260, f2: 520, start: 0.24, dur: 0.24 },
@@ -352,58 +531,59 @@ def get_aoe_audio_textures_js():
         g.connect(masterGain);
 
         o1.start(t + tone.start);
-        o1.stop(t + tone.start + tone.dur);
         o2.start(t + tone.start);
+        o1.stop(t + tone.start + tone.dur);
         o2.stop(t + tone.start + tone.dur);
       });
     }
 
-    // Town Bell Alarm
+    // Heavy Bronze Town Bell Toll
     function playTownBellSound() {
       if (!audioCtx) return;
       initAudio();
       const t = audioCtx.currentTime;
-      const freqs = [440, 880, 1320, 1760];
-      freqs.forEach((freq, idx) => {
+
+      [130, 260, 520, 780].forEach((freq, idx) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, t);
-        gain.gain.setValueAtTime(0.2 / (idx + 1), t);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+        gain.gain.setValueAtTime(0.25 / (idx + 1), t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
         osc.connect(gain);
         gain.connect(masterGain);
         osc.start(t);
-        osc.stop(t + 2.2);
+        osc.stop(t + 2.5);
       });
     }
 
-    // Age Advancement Fanfare
+    // Royal Age Advancement Trumpet Fanfare
     function playAdvanceAgeFanfare() {
       if (!audioCtx) return;
       initAudio();
       const t = audioCtx.currentTime;
+
       const notes = [
-        { f: 261.63, start: 0.0, dur: 0.25 }, // C4
-        { f: 329.63, start: 0.22, dur: 0.25 }, // E4
-        { f: 392.00, start: 0.44, dur: 0.35 }, // G4
-        { f: 523.25, start: 0.75, dur: 0.80 }  // C5
+        { f: 293.66, start: 0, dur: 0.18 }, // D4
+        { f: 369.99, start: 0.18, dur: 0.18 }, // F#4
+        { f: 440.00, start: 0.36, dur: 0.22 }, // A4
+        { f: 587.33, start: 0.58, dur: 0.55 }  // D5
       ];
-      notes.forEach(n => {
+
+      notes.forEach(note => {
         const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
+        const gain = audioCtx.createGain();
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(n.f, t + n.start);
-        g.gain.setValueAtTime(0.2, t + n.start);
-        g.gain.exponentialRampToValueAtTime(0.001, t + n.start + n.dur);
-        osc.connect(g);
-        g.connect(masterGain);
-        osc.start(t + n.start);
-        osc.stop(t + n.start + n.dur);
+        osc.frequency.setValueAtTime(note.f, t + note.start);
+        gain.gain.setValueAtTime(0.22, t + note.start);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + note.start + note.dur);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(t + note.start);
+        osc.stop(t + note.start + note.dur);
       });
     }
 
-    // Combat Sounds
     function playSwordClashSound() {
       if (!audioCtx) return;
       initAudio();
@@ -411,8 +591,8 @@ def get_aoe_audio_textures_js():
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(1800, t);
-      osc.frequency.exponentialRampToValueAtTime(200, t + 0.12);
+      osc.frequency.setValueAtTime(800, t);
+      osc.frequency.exponentialRampToValueAtTime(180, t + 0.12);
       gain.gain.setValueAtTime(0.25, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
       osc.connect(gain);
@@ -458,7 +638,6 @@ def get_aoe_audio_textures_js():
       if (!audioCtx) return;
       initAudio();
       const t = audioCtx.currentTime;
-      // Soft atmospheric thunder rumble
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
