@@ -1,23 +1,24 @@
 def get_aoe_world_director_js():
     return """
     // =========================================================================
-    // WORLD ENVIRONMENT, COMBAT FSM, AGGRO RADIUS & ENGINE LOOP
+    // PHASE 1 WORLD INITIALIZATION, SCREEN-EDGE PANNING & 60 FPS ENGINE LOOP
     // =========================================================================
 
     let terrainMesh = null;
     let waterMesh = null;
 
     function initAoEWorld() {
-      // 1. Grassy Terrain (400x400)
-      const terrainGeom = new THREE.PlaneGeometry(400, 400, 64, 64);
+      // 1. Grassy Terrain (200x200 World Grid: -100m to +100m)
+      const terrainGeom = new THREE.PlaneGeometry(200, 200, 64, 64);
       terrainGeom.rotateX(-Math.PI / 2);
       const posAttr = terrainGeom.attributes.position;
       for (let i = 0; i < posAttr.count; i++) {
         const x = posAttr.getX(i);
         const z = posAttr.getZ(i);
-        let h = Math.sin(x * 0.02) * Math.cos(z * 0.02) * 2.2;
-        if (x > -55 && x < -25) {
-          h -= 4.2 * (1 - Math.abs(x + 40) / 15);
+        let h = Math.sin(x * 0.03) * Math.cos(z * 0.03) * 1.8;
+        // River gorge around x = -25
+        if (x > -35 && x < -15) {
+          h -= 3.5 * (1 - Math.abs(x + 25) / 10);
         }
         posAttr.setY(i, h);
       }
@@ -28,8 +29,18 @@ def get_aoe_world_director_js():
       terrainMesh.receiveShadow = true;
       scene.add(terrainMesh);
 
-      // 2. River Water Ribbon (x: -40)
-      const waterGeom = new THREE.PlaneGeometry(24, 400);
+      // 2. Classify River Water into Tilemap (-32 to -18)
+      for (let gx = 0; gx < GRID_SIZE; gx++) {
+        for (let gz = 0; gz < GRID_SIZE; gz++) {
+          const w = gridToWorld(gx, gz);
+          if (w.x >= -34 && w.x <= -16) {
+            tilemapGrid[gz * GRID_SIZE + gx] = TILE_WATER;
+          }
+        }
+      }
+
+      // 3. River Water Mesh at x = -25
+      const waterGeom = new THREE.PlaneGeometry(18, 200);
       waterGeom.rotateX(-Math.PI / 2);
       const waterMat = new THREE.MeshStandardMaterial({
         map: waterTex,
@@ -39,88 +50,96 @@ def get_aoe_world_director_js():
         opacity: 0.88
       });
       waterMesh = new THREE.Mesh(waterGeom, waterMat);
-      waterMesh.position.set(-40, -2.1, 0);
+      waterMesh.position.set(-25, -1.8, 0);
       scene.add(waterMesh);
 
-      // 3. Arched Cobblestone River Bridge at (x: -40, z: 0)
+      // 4. Arched Cobblestone River Bridge at (x: -25, z: 0)
       const bridgeGroup = new THREE.Group();
-      bridgeGroup.position.set(-40, -0.6, 0);
-      const spanGeom = new THREE.BoxGeometry(26, 1.2, 8);
+      bridgeGroup.position.set(-25, -0.4, 0);
+      const spanGeom = new THREE.BoxGeometry(22, 1.0, 7);
       const span = new THREE.Mesh(spanGeom, stoneMat);
       span.castShadow = true;
       span.receiveShadow = true;
       bridgeGroup.add(span);
-      for (let z of [-3.8, 3.8]) {
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(26, 0.9, 0.4), stoneMat);
-        rail.position.set(0, 0.9, z);
+      for (let z of [-3.4, 3.4]) {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(22, 0.8, 0.35), stoneMat);
+        rail.position.set(0, 0.8, z);
         bridgeGroup.add(rail);
       }
       scene.add(bridgeGroup);
 
-      // 4. Forests (Oak & Pine clumps)
-      spawnForestGrove(18, 16, 14);
-      spawnForestGrove(-15, -28, 12);
-      spawnForestGrove(32, -18, 16);
-      spawnForestGrove(-85, 25, 14);
+      // Mark bridge tiles as Walkable across the river!
+      for (let x = -35; x <= -15; x += 2) {
+        for (let z = -4; z <= 4; z += 2) {
+          const g = worldToGrid(x, z);
+          tilemapGrid[g.z * GRID_SIZE + g.x] = TILE_WALKABLE;
+        }
+      }
 
-      // 5. Mineral Veins (Gold & Stone Outcrops)
+      // 5. Forests (Oak & Pine clumps)
+      spawnForestGrove(18, 16, 12);
+      spawnForestGrove(-5, -28, 10);
+      spawnForestGrove(30, -18, 14);
+      spawnForestGrove(-65, 25, 12);
+
+      // 6. Mineral Veins (Gold & Stone Outcrops)
       spawnMineralDeposit('gold', 15, -8, 4);
       spawnMineralDeposit('stone', 22, 10, 4);
-      spawnMineralDeposit('gold', -75, -12, 4);
-      spawnMineralDeposit('stone', -95, -35, 4);
+      spawnMineralDeposit('gold', -55, -12, 4);
+      spawnMineralDeposit('stone', -75, -35, 4);
 
-      // 6. Forage Berry Bushes
+      // 7. Forage Berry Bushes
       spawnForageBushes(8, 12, 5);
-      spawnForageBushes(-70, -25, 4);
+      spawnForageBushes(-50, -25, 4);
 
-      // 7. Wildlife & Domestic Sheep
+      // 8. Wildlife & Domestic Sheep
       spawnSheepFlock(4, 3, 4);
-      spawnWildBoar(35, 20);
-      spawnWildBoar(-65, 30);
+      spawnWildBoar(32, 20);
+      spawnWildBoar(-45, 30);
 
-      // 8. Holy Relics
+      // 9. Holy Relics
       spawnRelic(0, 45);
-      spawnRelic(-40, -50);
-      spawnRelic(-20, -75);
+      spawnRelic(-25, -45);
+      spawnRelic(-15, -65);
 
-      // 9. Initial Player Town Base (Team Blue)
+      // 10. Initial Player Town Base (Team Blue)
       spawnBuilding('town_center', 0, 0, 'player');
-      setGridBlocked(0, 0, 2, true);
+      occupyGridArea(0, 0, 7, 7);
       spawnBuilding('house', -10, 8, 'player');
-      setGridBlocked(-10, 8, 1, true);
+      occupyGridArea(-10, 8, 3, 3);
 
       spawnUnit('scout', 6, 4, 'player');
       spawnUnit('villager', 2, 6, 'player');
       spawnUnit('villager', -4, 4, 'player');
       spawnUnit('villager', 0, 8, 'player');
 
-      // 10. Initial Rival Red Base Across the River (Automated Opponent)
-      spawnBuilding('town_center', -90, -20, 'enemy');
-      setGridBlocked(-90, -20, 2, true);
-      spawnBuilding('barracks', -78, -10, 'enemy');
-      setGridBlocked(-78, -10, 2, true);
-      spawnBuilding('archery_range', -82, -32, 'enemy');
-      setGridBlocked(-82, -32, 2, true);
-      spawnBuilding('castle', -105, -20, 'enemy');
-      setGridBlocked(-105, -20, 3, true);
-      spawnBuilding('watchtower', -65, -8, 'enemy');
-      setGridBlocked(-65, -8, 1, true);
+      // 11. Initial Rival Red Base Across the River (Automated Opponent)
+      spawnBuilding('town_center', -65, -15, 'enemy');
+      occupyGridArea(-65, -15, 7, 7);
+      spawnBuilding('barracks', -55, -5, 'enemy');
+      occupyGridArea(-55, -5, 5, 5);
+      spawnBuilding('archery_range', -58, -25, 'enemy');
+      occupyGridArea(-58, -25, 5, 5);
+      spawnBuilding('castle', -80, -15, 'enemy');
+      occupyGridArea(-80, -15, 10, 10);
+      spawnBuilding('watchtower', -42, -5, 'enemy');
+      occupyGridArea(-42, -5, 3, 3);
 
-      spawnUnit('scout', -72, -16, 'enemy');
-      spawnUnit('villager', -86, -15, 'enemy');
-      spawnUnit('villager', -94, -25, 'enemy');
-      spawnUnit('militia', -75, -5, 'enemy');
-      spawnUnit('archer', -76, -14, 'enemy');
+      spawnUnit('scout', -50, -12, 'enemy');
+      spawnUnit('villager', -62, -10, 'enemy');
+      spawnUnit('villager', -68, -20, 'enemy');
+      spawnUnit('militia', -52, 0, 'enemy');
+      spawnUnit('archer', -54, -8, 'enemy');
 
       updateFogOfWar();
       updateResourceUI();
     }
 
-    // Helper Spawners
+    // Spawners
     function spawnForestGrove(cx, cz, count) {
       for (let i = 0; i < count; i++) {
-        const x = cx + (Math.random() - 0.5) * 22;
-        const z = cz + (Math.random() - 0.5) * 22;
+        const x = cx + (Math.random() - 0.5) * 18;
+        const z = cz + (Math.random() - 0.5) * 18;
         const trunkGeom = new THREE.CylinderGeometry(0.35, 0.5, 4.5, 6);
         const trunk = new THREE.Mesh(trunkGeom, timberMat);
         trunk.position.set(x, 2.25, z);
@@ -137,14 +156,14 @@ def get_aoe_world_director_js():
         treeGroup.add(canopy);
         scene.add(treeGroup);
 
-        setGridBlocked(x, z, 1, true);
+        occupyGridArea(x, z, 1, 1);
 
         const resObj = {
           id: nextEntityId++,
           name: 'Oak Tree',
           isResource: true,
           resType: 'wood',
-          amount: 125,
+          amount: 200,
           mesh: treeGroup
         };
         treeGroup.userData.entityRef = resObj;
@@ -168,11 +187,11 @@ def get_aoe_world_director_js():
         mesh.receiveShadow = true;
         scene.add(mesh);
 
-        setGridBlocked(x, z, 1, true);
+        occupyGridArea(x, z, 1, 1);
 
         const resObj = {
           id: nextEntityId++,
-          name: isGold ? 'Gold Mine' : 'Stone Quarry',
+          name: isGold ? 'Gold Vein' : 'Stone Outcropping',
           isResource: true,
           resType: type,
           amount: 800,
@@ -205,7 +224,7 @@ def get_aoe_world_director_js():
 
         const resObj = {
           id: nextEntityId++,
-          name: 'Forage Bush',
+          name: 'Berry Bush',
           isResource: true,
           resType: 'food',
           amount: 150,
@@ -389,9 +408,7 @@ def get_aoe_world_director_js():
       });
     }
 
-    // =========================================================================
-    // RIVAL WAVE DIRECTOR (AUTOMATED OPPONENT)
-    // =========================================================================
+    // Rival Automated Opponent Director
     let rivalGameTime = 0;
     let lastWaveIndex = 0;
 
@@ -401,9 +418,9 @@ def get_aoe_world_director_js():
       // Wave 1 at 120s (2m): 2 Militia
       if (rivalGameTime > 120 && lastWaveIndex < 1) {
         lastWaveIndex = 1;
-        showAoENotice('[ALERT] Rival Clan raiding party spotted crossing the river gorge!');
-        const r1 = spawnUnit('militia', -40, 5, 'enemy');
-        const r2 = spawnUnit('militia', -40, -5, 'enemy');
+        showAoENotice('[ALERT] Rival Clan raiding party spotted crossing the river bridge!');
+        const r1 = spawnUnit('militia', -25, 4, 'enemy');
+        const r2 = spawnUnit('militia', -25, -4, 'enemy');
         r1.dest = new THREE.Vector3(0, 0, 0);
         r1.state = 'attacking';
         r2.dest = new THREE.Vector3(0, 0, 0);
@@ -415,12 +432,12 @@ def get_aoe_world_director_js():
         lastWaveIndex = 2;
         showAoENotice('[WAR ALERT] Rival Feudal Army advancing toward your settlement!');
         for (let i = 0; i < 3; i++) {
-          const a = spawnUnit('archer', -40, (i - 1) * 4, 'enemy');
+          const a = spawnUnit('archer', -25, (i - 1) * 3, 'enemy');
           a.dest = new THREE.Vector3(0, 0, 0);
           a.state = 'attacking';
         }
         for (let i = 0; i < 2; i++) {
-          const s = spawnUnit('spearman', -40, (i - 0.5) * 6, 'enemy');
+          const s = spawnUnit('spearman', -25, (i - 0.5) * 4, 'enemy');
           s.dest = new THREE.Vector3(0, 0, 0);
           s.state = 'attacking';
         }
@@ -431,18 +448,18 @@ def get_aoe_world_director_js():
         lastWaveIndex = 3;
         showAoENotice('[IMPERIAL SIEGE] Rival Knights and Trebuchet assault incoming!');
         for (let i = 0; i < 4; i++) {
-          const k = spawnUnit('knight', -40, (i - 1.5) * 4, 'enemy');
+          const k = spawnUnit('knight', -25, (i - 1.5) * 3, 'enemy');
           k.dest = new THREE.Vector3(0, 0, 0);
           k.state = 'attacking';
         }
-        const treb = spawnUnit('trebuchet', -40, 0, 'enemy');
-        treb.dest = new THREE.Vector3(-10, 0, 0);
+        const treb = spawnUnit('trebuchet', -25, 0, 'enemy');
+        treb.dest = new THREE.Vector3(-5, 0, 0);
         treb.state = 'attacking';
       }
     }
 
     // =========================================================================
-    // MAIN SIMULATION UPDATE (60 FPS LOOP)
+    // MAIN SIMULATION UPDATE (PHASE 1 CAMERA & MOVEMENT CONSTRAINTS)
     // =========================================================================
     let lastTime = performance.now();
 
@@ -451,20 +468,29 @@ def get_aoe_world_director_js():
       const dt = Math.min(0.1, (now - lastTime) / 1000);
       lastTime = now;
 
-      // 1. Camera Keyboard Navigation & Boundary Clamping
-      const panSpeed = 30 * dt;
+      // 1. WASD Panning & Screen-Edge Mouse Panning
+      const panSpeed = 35 * dt;
       if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) cameraTargetPos.x -= panSpeed;
       if (keysPressed['KeyD'] || keysPressed['ArrowRight']) cameraTargetPos.x += panSpeed;
       if (keysPressed['KeyW'] || keysPressed['ArrowUp']) cameraTargetPos.z -= panSpeed;
       if (keysPressed['KeyS'] || keysPressed['ArrowDown']) cameraTargetPos.z += panSpeed;
 
-      // Clamp camera target within map boundaries
-      cameraTargetPos.x = Math.max(-170, Math.min(170, cameraTargetPos.x));
-      cameraTargetPos.z = Math.max(-170, Math.min(170, cameraTargetPos.z));
+      // Screen-Edge Mouse Panning (when cursor hits within 25px of viewport edge)
+      const edgeMargin = 25;
+      const edgeSpeed = 38 * dt;
+      if (lastMouseScreen.x < edgeMargin && lastMouseScreen.x >= 0) cameraTargetPos.x -= edgeSpeed;
+      if (lastMouseScreen.x > window.innerWidth - edgeMargin && lastMouseScreen.x <= window.innerWidth) cameraTargetPos.x += edgeSpeed;
+      if (lastMouseScreen.y < edgeMargin && lastMouseScreen.y >= 0) cameraTargetPos.z -= edgeSpeed;
+      if (lastMouseScreen.y > window.innerHeight - edgeMargin && lastMouseScreen.y <= window.innerHeight) cameraTargetPos.z += edgeSpeed;
 
+      // Constrain Camera to 200x200 World Grid (-85m to +85m target bounds)
+      cameraTargetPos.x = Math.max(-85, Math.min(85, cameraTargetPos.x));
+      cameraTargetPos.z = Math.max(-85, Math.min(85, cameraTargetPos.z));
+
+      // Isometric Top-Down Camera Perspective
       camera.position.x = cameraTargetPos.x;
+      camera.position.y = cameraZoom * 0.75;
       camera.position.z = cameraTargetPos.z + cameraZoom;
-      camera.position.y = 28;
       camera.lookAt(cameraTargetPos.x, 0, cameraTargetPos.z);
 
       // 2. Animate Mill Rotors
@@ -487,7 +513,7 @@ def get_aoe_world_director_js():
           }
           if (item.progress >= item.totalTime) {
             b.queue.shift();
-            spawnUnit(item.type, b.mesh.position.x + (Math.random() - 0.5) * 8, b.mesh.position.z + 7, 'player');
+            spawnUnit(item.type, b.mesh.position.x + (Math.random() - 0.5) * 6, b.mesh.position.z + 5, 'player');
             playBuildingHammerSound();
             showAoENotice(`[UNIT READY] ${item.proto.name} trained!`);
             if (b.queue.length === 0 && aoeState.selectedEntity === b) {
@@ -497,7 +523,7 @@ def get_aoe_world_director_js():
         }
       });
 
-      // 4. Update Friendly & Enemy Units (FSM & A* Path Navigation)
+      // 4. Update Friendly & Enemy Units (FSM & A* Navigation)
       const allActiveUnits = friendlyUnits.concat(enemyUnits);
       allActiveUnits.forEach(u => {
         if (u.hp <= 0 || u.state === 'garrisoned') return;
@@ -523,11 +549,11 @@ def get_aoe_world_director_js():
           }
         }
 
-        // AGGRO RADIUS & COMBAT FSM (Chase & Attack)
+        // AGGRO RADIUS & COMBAT FSM (14m Aggro Sphere)
         if (u.stance === 'aggressive' && u.state === 'idle' && u.type !== 'villager') {
           const opponents = (u.team === 'player' ? enemyUnits : friendlyUnits);
           let closestOpponent = null;
-          let closestDist = 14; // 14m Aggro Radius
+          let closestDist = 14;
           opponents.forEach(opp => {
             if (opp.hp > 0 && opp.state !== 'garrisoned') {
               const d = u.mesh.position.distanceTo(opp.mesh.position);
@@ -543,7 +569,7 @@ def get_aoe_world_director_js():
           }
         }
 
-        // Villager Gathering Routine
+        // Villager Gathering Routine (FSM)
         if (u.type === 'villager' && u.state === 'gathering' && u.target) {
           const tgtPos = u.target.mesh.position;
           const dist = u.mesh.position.distanceTo(tgtPos);
@@ -567,10 +593,10 @@ def get_aoe_world_director_js():
           }
         }
 
-        // Villager Depositing Routine
+        // Villager Depositing Routine (FSM)
         if (u.type === 'villager' && u.state === 'depositing' && u.dest) {
           const dist = u.mesh.position.distanceTo(u.dest);
-          if (dist <= 4.0) {
+          if (dist <= 3.5) {
             if (u.team === 'player' && u.carryType) {
               aoeState.resources[u.carryType] += u.carryAmount;
             }
@@ -685,6 +711,12 @@ def get_aoe_world_director_js():
     function destroyEntity(entity) {
       if (entity.mesh) scene.remove(entity.mesh);
       showAoENotice(`[FALLEN] ${entity.name} destroyed!`);
+      // Free grid area if building
+      if (entity.isBuilding) {
+        const bDef = BUILDING_TYPES[entity.type];
+        const sizeTiles = Math.max(1, Math.round((bDef ? bDef.size : 4) / TILE_SIZE));
+        freeGridArea(entity.mesh.position.x, entity.mesh.position.z, sizeTiles, sizeTiles);
+      }
       if (entity.team === 'enemy' && (entity.type === 'town_center' || entity.type === 'castle')) {
         const remainingDef = enemyBuildings.filter(b => (b.type === 'town_center' || b.type === 'castle') && b.hp > 0);
         if (remainingDef.length === 0) {
@@ -700,7 +732,6 @@ def get_aoe_world_director_js():
       alert('[VICTORY!] ' + msg);
     }
 
-    // 3D Hover Tooltip
     function updateHoverTooltip(e) {
       const tip = document.getElementById('hover-tooltip');
       const title = document.getElementById('tip-title');
@@ -734,60 +765,59 @@ def get_aoe_world_director_js():
       tip.style.display = 'none';
     }
 
-    // Render Minimap Radar with Fog of War
+    // Render Minimap Radar (200x200 World Grid)
     function renderMinimapCanvas() {
       const cvs = document.getElementById('minimap-canvas');
       const ctx = cvs.getContext('2d');
       const w = cvs.width;
       const h = cvs.height;
 
-      // Dark Green Land Base
       ctx.fillStyle = '#223816';
       ctx.fillRect(0, 0, w, h);
 
-      // River Ribbon
+      // River Ribbon around x = -25
       ctx.fillStyle = '#1e5f8f';
-      const riverX = (( -40 + 200 ) / 400) * w;
-      ctx.fillRect(riverX - 4, 0, 8, h);
+      const riverX = (( -25 + 100 ) / 200) * w;
+      ctx.fillRect(riverX - 5, 0, 10, h);
 
       // Bridge
       ctx.fillStyle = '#7a7a7a';
-      ctx.fillRect(riverX - 6, h / 2 - 4, 12, 8);
+      ctx.fillRect(riverX - 7, h / 2 - 4, 14, 8);
 
-      // Resources (Green trees, Yellow gold, Gray stone)
+      // Resources
       naturalResources.forEach(r => {
         if (!r.mesh) return;
-        const rx = ((r.mesh.position.x + 200) / 400) * w;
-        const rz = ((r.mesh.position.z + 200) / 400) * h;
+        const rx = ((r.mesh.position.x + 100) / 200) * w;
+        const rz = ((r.mesh.position.z + 100) / 200) * h;
         ctx.fillStyle = r.resType === 'wood' ? '#14532d' : (r.resType === 'gold' ? '#eab308' : '#94a3b8');
         ctx.fillRect(rx - 1, rz - 1, 2, 2);
       });
 
-      // Player Buildings (Blue Box) & Units (Cyan Dot)
+      // Player Buildings (Blue) & Units (Cyan)
       ctx.fillStyle = '#2563eb';
       friendlyBuildings.forEach(b => {
         if (b.hp <= 0) return;
-        const bx = ((b.mesh.position.x + 200) / 400) * w;
-        const bz = ((b.mesh.position.z + 200) / 400) * h;
+        const bx = ((b.mesh.position.x + 100) / 200) * w;
+        const bz = ((b.mesh.position.z + 100) / 200) * h;
         ctx.fillRect(bx - 3, bz - 3, 6, 6);
       });
 
       ctx.fillStyle = '#38bdf8';
       friendlyUnits.forEach(u => {
         if (u.hp <= 0 || u.state === 'garrisoned') return;
-        const ux = ((u.mesh.position.x + 200) / 400) * w;
-        const uz = ((u.mesh.position.z + 200) / 400) * h;
+        const ux = ((u.mesh.position.x + 100) / 200) * w;
+        const uz = ((u.mesh.position.z + 100) / 200) * h;
         ctx.fillRect(ux - 1.5, uz - 1.5, 3, 3);
       });
 
-      // Enemy Buildings (Red Box) & Units (Crimson Dot - Only if inside Fog of War sight!)
+      // Enemy Buildings (Red) & Units (Crimson)
       ctx.fillStyle = '#dc2626';
       enemyBuildings.forEach(b => {
         if (b.hp <= 0) return;
         const g = worldToGrid(b.mesh.position.x, b.mesh.position.z);
-        if (fogOfWarGrid[g.z * GRID_SIZE + g.x] > 0) { // Explored or visible
-          const bx = ((b.mesh.position.x + 200) / 400) * w;
-          const bz = ((b.mesh.position.z + 200) / 400) * h;
+        if (fogOfWarGrid[g.z * GRID_SIZE + g.x] > 0) {
+          const bx = ((b.mesh.position.x + 100) / 200) * w;
+          const bz = ((b.mesh.position.z + 100) / 200) * h;
           ctx.fillRect(bx - 3, bz - 3, 6, 6);
         }
       });
@@ -795,27 +825,27 @@ def get_aoe_world_director_js():
       ctx.fillStyle = '#f87171';
       enemyUnits.forEach(u => {
         if (u.hp <= 0 || !u.mesh.visible) return;
-        const ux = ((u.mesh.position.x + 200) / 400) * w;
-        const uz = ((u.mesh.position.z + 200) / 400) * h;
+        const ux = ((u.mesh.position.x + 100) / 200) * w;
+        const uz = ((u.mesh.position.z + 100) / 200) * h;
         ctx.fillRect(ux - 1.5, uz - 1.5, 3, 3);
       });
 
       // Camera Frustum Box
-      const camX = ((cameraTargetPos.x + 200) / 400) * w;
-      const camZ = ((cameraTargetPos.z + 200) / 400) * h;
+      const camX = ((cameraTargetPos.x + 100) / 200) * w;
+      const camZ = ((cameraTargetPos.z + 100) / 200) * h;
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1.5;
       ctx.strokeRect(camX - 16, camZ - 12, 32, 24);
     }
 
-    // Minimap Click-to-Pan
+    // Minimap Click-to-Pan (200x200 World Grid)
     const minimapWrapper = document.getElementById('minimap-wrapper');
     minimapWrapper.addEventListener('click', e => {
       const rect = minimapWrapper.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
-      const worldX = (clickX / rect.width) * 400 - 200;
-      const worldZ = (clickY / rect.height) * 400 - 200;
+      const worldX = (clickX / rect.width) * 200 - 100;
+      const worldZ = (clickY / rect.height) * 200 - 100;
       cameraTargetPos.set(worldX, 0, worldZ);
     });
 

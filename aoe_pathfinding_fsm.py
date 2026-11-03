@@ -1,16 +1,22 @@
 def get_aoe_pathfinding_fsm_js():
     return """
     // =========================================================================
-    // PHASE 1, 2, 3 & 5: MAP GRID, A* PATHFINDING, FSM & FOG OF WAR
+    // PHASE 1: ENGINE INITIALIZATION, CAMERA & WORLD GRID SYSTEM
     // =========================================================================
 
-    // Grid Dimensions: 100x100 tiles, each 4x4m (World: -200 to +200)
+    // Grid: 100x100 tiles, each 2x2m (Exact 200x200m World Grid: -100m to +100m)
     const GRID_SIZE = 100;
-    const TILE_SIZE = 4;
-    const GRID_OFFSET = 200; // grid(0,0) is world(-200, -200)
+    const TILE_SIZE = 2;
+    const GRID_OFFSET = 100; // grid(0,0) is world(-100, -100)
 
-    // Pathfinding Grid: 0 = Walkable, 1 = Blocked
-    const pathGrid = new Uint8Array(GRID_SIZE * GRID_SIZE);
+    // Tile Classifications
+    const TILE_WALKABLE = 0;       // Open grass/meadow: Walkable & Buildable
+    const TILE_WATER = 1;          // River/Lake: Unwalkable, Non-buildable
+    const TILE_CLIFF = 2;          // Steep rocks/Cliffs: Unwalkable, Non-buildable
+    const TILE_OCCUPIED = 3;       // Building, wall, or tree: Unwalkable, Non-buildable
+
+    // 100x100 Tilemap Classification Array
+    const tilemapGrid = new Uint8Array(GRID_SIZE * GRID_SIZE);
 
     function worldToGrid(x, z) {
       const gx = Math.floor((x + GRID_OFFSET) / TILE_SIZE);
@@ -28,25 +34,61 @@ def get_aoe_pathfinding_fsm_js():
       };
     }
 
-    function setGridBlocked(worldX, worldZ, radiusTiles = 1, blocked = true) {
+    function getTileType(gx, gz) {
+      if (gx < 0 || gx >= GRID_SIZE || gz < 0 || gz >= GRID_SIZE) return TILE_CLIFF;
+      return tilemapGrid[gz * GRID_SIZE + gx];
+    }
+
+    function isTileWalkable(gx, gz) {
+      return getTileType(gx, gz) === TILE_WALKABLE;
+    }
+
+    function isTileBuildable(gx, gz, sizeX = 1, sizeZ = 1) {
+      for (let dx = -Math.floor(sizeX / 2); dx <= Math.floor(sizeX / 2); dx++) {
+        for (let dz = -Math.floor(sizeZ / 2); dz <= Math.floor(sizeZ / 2); dz++) {
+          const nx = gx + dx;
+          const nz = gz + dz;
+          if (nx < 0 || nx >= GRID_SIZE || nz < 0 || nz >= GRID_SIZE) return false;
+          if (tilemapGrid[nz * GRID_SIZE + nx] !== TILE_WALKABLE) return false;
+        }
+      }
+      return true;
+    }
+
+    // Dynamic Grid Obstacle Occupy & Free Methods
+    function occupyGridArea(worldX, worldZ, sizeTilesX = 1, sizeTilesZ = 1) {
       const g = worldToGrid(worldX, worldZ);
-      for (let dx = -radiusTiles; dx <= radiusTiles; dx++) {
-        for (let dz = -radiusTiles; dz <= radiusTiles; dz++) {
+      const hx = Math.floor(sizeTilesX / 2);
+      const hz = Math.floor(sizeTilesZ / 2);
+      for (let dx = -hx; dx <= hx; dx++) {
+        for (let dz = -hz; dz <= hz; dz++) {
           const nx = g.x + dx;
           const nz = g.z + dz;
           if (nx >= 0 && nx < GRID_SIZE && nz >= 0 && nz < GRID_SIZE) {
-            pathGrid[nz * GRID_SIZE + nx] = blocked ? 1 : 0;
+            tilemapGrid[nz * GRID_SIZE + nx] = TILE_OCCUPIED;
           }
         }
       }
+      onNavMeshUpdated();
     }
 
-    function isGridWalkable(gx, gz) {
-      if (gx < 0 || gx >= GRID_SIZE || gz < 0 || gz >= GRID_SIZE) return false;
-      return pathGrid[gz * GRID_SIZE + gx] === 0;
+    function freeGridArea(worldX, worldZ, sizeTilesX = 1, sizeTilesZ = 1) {
+      const g = worldToGrid(worldX, worldZ);
+      const hx = Math.floor(sizeTilesX / 2);
+      const hz = Math.floor(sizeTilesZ / 2);
+      for (let dx = -hx; dx <= hx; dx++) {
+        for (let dz = -hz; dz <= hz; dz++) {
+          const nx = g.x + dx;
+          const nz = g.z + dz;
+          if (nx >= 0 && nx < GRID_SIZE && nz >= 0 && nz < GRID_SIZE) {
+            tilemapGrid[nz * GRID_SIZE + nx] = TILE_WALKABLE;
+          }
+        }
+      }
+      onNavMeshUpdated();
     }
 
-    // A* Pathfinding Algorithm (Fast 4-directional / 8-directional search)
+    // Dynamic A* Pathfinding with 8-directional navigation & diagonal smoothing
     function findAStarPath(startX, startZ, endX, endZ) {
       const start = worldToGrid(startX, startZ);
       const goal = worldToGrid(endX, endZ);
@@ -55,7 +97,7 @@ def get_aoe_pathfinding_fsm_js():
         return [new THREE.Vector3(endX, 0, endZ)];
       }
 
-      // Priority Queue simulation
+      // Priority queue simulation
       const openSet = [];
       const cameFrom = new Int32Array(GRID_SIZE * GRID_SIZE).fill(-1);
       const gScore = new Float32Array(GRID_SIZE * GRID_SIZE).fill(Infinity);
@@ -69,10 +111,10 @@ def get_aoe_pathfinding_fsm_js():
       openSet.push({ index: startIndex, f: fScore[startIndex] });
 
       const neighbors = [
-        { dx: 1, dz: 0, cost: 1 },
-        { dx: -1, dz: 0, cost: 1 },
-        { dx: 0, dz: 1, cost: 1 },
-        { dx: 0, dz: -1, cost: 1 },
+        { dx: 1, dz: 0, cost: 1.0 },
+        { dx: -1, dz: 0, cost: 1.0 },
+        { dx: 0, dz: 1, cost: 1.0 },
+        { dx: 0, dz: -1, cost: 1.0 },
         { dx: 1, dz: 1, cost: 1.414 },
         { dx: -1, dz: 1, cost: 1.414 },
         { dx: 1, dz: -1, cost: 1.414 },
@@ -80,10 +122,9 @@ def get_aoe_pathfinding_fsm_js():
       ];
 
       let iterations = 0;
-      const maxIterations = 350; // Performance safeguard
+      const maxIterations = 400; // High speed safeguard
 
       while (openSet.length > 0 && iterations++ < maxIterations) {
-        // Find lowest f
         let bestIdx = 0;
         for (let i = 1; i < openSet.length; i++) {
           if (openSet[i].f < openSet[bestIdx].f) bestIdx = i;
@@ -91,7 +132,6 @@ def get_aoe_pathfinding_fsm_js():
         const current = openSet.splice(bestIdx, 1)[0].index;
 
         if (current === goalIndex) {
-          // Reconstruct path
           const path = [];
           let curr = current;
           while (curr !== -1) {
@@ -112,8 +152,9 @@ def get_aoe_pathfinding_fsm_js():
           const nx = cx + n.dx;
           const nz = cz + n.dz;
           if (nx >= 0 && nx < GRID_SIZE && nz >= 0 && nz < GRID_SIZE) {
-            if (pathGrid[nz * GRID_SIZE + nx] === 1 && (nx !== goal.x || nz !== goal.z)) {
-              continue; // Blocked obstacle
+            // Check walkable
+            if (tilemapGrid[nz * GRID_SIZE + nx] !== TILE_WALKABLE && (nx !== goal.x || nz !== goal.z)) {
+              continue;
             }
             const neighborIdx = nz * GRID_SIZE + nx;
             const tentativeG = gScore[current] + n.cost;
@@ -131,12 +172,24 @@ def get_aoe_pathfinding_fsm_js():
         }
       }
 
-      // Direct fallback if path is clear or timeout
+      // Direct fallback if path obstructed or timeout
       return [new THREE.Vector3(endX, 0, endZ)];
     }
 
-    // Formation Calculator (Flocking grid offset so units fan out)
-    function calculateFormationPositions(targetPos, count, spacing = 2.2) {
+    // Instantly reroute moving units when NavMesh changes
+    function onNavMeshUpdated() {
+      friendlyUnits.concat(enemyUnits).forEach(u => {
+        if (u.state === 'moving' && u.path && u.path.length > 0) {
+          const dest = u.path[u.path.length - 1];
+          const newPath = findAStarPath(u.mesh.position.x, u.mesh.position.z, dest.x, dest.z);
+          u.path = newPath;
+          u.dest = newPath.length > 0 ? newPath[0] : dest;
+        }
+      });
+    }
+
+    // Formation Flocking Calculator
+    function calculateFormationPositions(targetPos, count, spacing = 2.4) {
       const positions = [];
       const cols = Math.ceil(Math.sqrt(count));
       for (let i = 0; i < count; i++) {
@@ -156,17 +209,15 @@ def get_aoe_pathfinding_fsm_js():
     const fogOfWarGrid = new Uint8Array(GRID_SIZE * GRID_SIZE);
 
     function updateFogOfWar() {
-      // Degrade visible (2) to explored (1)
       for (let i = 0; i < fogOfWarGrid.length; i++) {
         if (fogOfWarGrid[i] === 2) fogOfWarGrid[i] = 1;
       }
 
-      // Units and buildings emit vision radius (2)
       const visionEntities = friendlyUnits.concat(friendlyBuildings);
       visionEntities.forEach(ent => {
         if (ent.hp <= 0 || ent.state === 'garrisoned') return;
         const g = worldToGrid(ent.mesh.position.x, ent.mesh.position.z);
-        const radius = ent.type === 'scout' ? 6 : (ent.type === 'town_center' || ent.type === 'castle' ? 8 : 4);
+        const radius = ent.type === 'scout' ? 8 : (ent.type === 'town_center' || ent.type === 'castle' ? 10 : 5);
 
         for (let dx = -radius; dx <= radius; dx++) {
           for (let dz = -radius; dz <= radius; dz++) {
@@ -174,14 +225,13 @@ def get_aoe_pathfinding_fsm_js():
               const nx = g.x + dx;
               const nz = g.z + dz;
               if (nx >= 0 && nx < GRID_SIZE && nz >= 0 && nz < GRID_SIZE) {
-                fogOfWarGrid[nz * GRID_SIZE + nx] = 2; // In direct vision!
+                fogOfWarGrid[nz * GRID_SIZE + nx] = 2;
               }
             }
           }
         }
       });
 
-      // Update Enemy Unit Visibility (Only visible if inside a vision tile!)
       enemyUnits.forEach(u => {
         if (!u.mesh) return;
         const g = worldToGrid(u.mesh.position.x, u.mesh.position.z);
@@ -194,7 +244,7 @@ def get_aoe_pathfinding_fsm_js():
     function calculateDamage(attacker, defender) {
       let baseDmg = Math.max(1, attacker.attack - (defender.armor || 0));
 
-      // Rock-Paper-Scissors Bonuses:
+      // Rock-Paper-Scissors:
       // Spearman / Pikeman deals +15 bonus damage vs Cavalry (Scout, Knight)
       if (attacker.type === 'spearman' && (defender.type === 'scout' || defender.type === 'knight')) {
         baseDmg += 15;

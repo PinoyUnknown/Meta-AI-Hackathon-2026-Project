@@ -1,20 +1,22 @@
 def get_aoe_sim_loop_js():
     return """
     // =========================================================================
-    // RTS SELECTION, SMART CONTEXT, BUILDING PLACEMENT & SIMULATION LOOP
+    // RTS CAMERA CONTROLLER, SCREEN-EDGE PANNING & INTERACTION LOOP
     // =========================================================================
 
     let raycaster = new THREE.Raycaster();
     let mouse = new THREE.Vector2();
     let isMouseDown = false;
     let mouseDownScreen = { x: 0, y: 0 };
+    let lastMouseScreen = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     let dragThreshold = 6;
     let isDragging = false;
     let selectionBoxEl = document.getElementById('selection-box');
 
-    // Camera RTS Navigation with Boundary Clamping
+    // RTS Camera Controller (Isometric Top-Down Perspective)
+    // Constrained strictly to the 200x200 world grid (-100m to +100m)
     let cameraTargetPos = new THREE.Vector3(0, 0, 0);
-    let cameraZoom = 38;
+    let cameraZoom = 36; // Clamped height: 16m min, 65m max
     const keysPressed = {};
 
     window.addEventListener('keydown', e => {
@@ -46,12 +48,62 @@ def get_aoe_sim_loop_js():
       keysPressed[e.code] = false;
     });
 
-    // Zoom Clamped between 18m and 85m
+    // Scroll-Wheel Zooming Clamped between Min (16m) and Max (65m) Heights
     window.addEventListener('wheel', e => {
-      cameraZoom = Math.max(18, Math.min(85, cameraZoom + e.deltaY * 0.05));
+      cameraZoom = Math.max(16, Math.min(65, cameraZoom + e.deltaY * 0.04));
     }, { passive: true });
 
-    // Mouse Down (Selection or Move)
+    // Track Screen Coordinates for Screen-Edge Mouse Panning
+    window.addEventListener('mousemove', e => {
+      lastMouseScreen.x = e.clientX;
+      lastMouseScreen.y = e.clientY;
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      // Selection Box Dragging
+      if (isMouseDown) {
+        const dx = Math.abs(e.clientX - mouseDownScreen.x);
+        const dy = Math.abs(e.clientY - mouseDownScreen.y);
+        if (dx > dragThreshold || dy > dragThreshold) {
+          isDragging = true;
+          selectionBoxEl.style.display = 'block';
+          const left = Math.min(e.clientX, mouseDownScreen.x);
+          const top = Math.min(e.clientY, mouseDownScreen.y);
+          const width = Math.abs(e.clientX - mouseDownScreen.x);
+          const height = Math.abs(e.clientY - mouseDownScreen.y);
+          selectionBoxEl.style.left = left + 'px';
+          selectionBoxEl.style.top = top + 'px';
+          selectionBoxEl.style.width = width + 'px';
+          selectionBoxEl.style.height = height + 'px';
+        }
+      }
+
+      // Blueprint Ghost Snapping & Real-time Collision Check
+      if (aoeState.placementGhost) {
+        raycaster.setFromCamera(mouse, camera);
+        const hits = raycaster.intersectObject(terrainMesh);
+        if (hits.length > 0) {
+          const pt = hits[0].point;
+          const snapX = Math.round(pt.x / TILE_SIZE) * TILE_SIZE;
+          const snapZ = Math.round(pt.z / TILE_SIZE) * TILE_SIZE;
+          aoeState.placementGhost.position.set(snapX, 0, snapZ);
+
+          const g = worldToGrid(snapX, snapZ);
+          const bDef = BUILDING_TYPES[aoeState.activePlacementType];
+          const sizeTiles = Math.max(1, Math.round((bDef ? bDef.size : 4) / TILE_SIZE));
+          const isClear = isTileBuildable(g.x, g.z, sizeTiles, sizeTiles);
+
+          aoeState.placementGhost.traverse(c => {
+            if (c.isMesh && c.material) {
+              c.material.color.setHex(isClear ? 0x22c55e : 0xef4444);
+            }
+          });
+        }
+      }
+
+      updateHoverTooltip(e);
+    });
+
     window.addEventListener('mousedown', e => {
       if (e.target.closest('#aoe-top-bar') || e.target.closest('#aoe-bottom-bar') || e.target.closest('.aoe-modal')) {
         return;
@@ -79,55 +131,6 @@ def get_aoe_sim_loop_js():
 
     window.addEventListener('contextmenu', e => e.preventDefault());
 
-    // Mouse Move (Drag Box or Hover)
-    window.addEventListener('mousemove', e => {
-      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-      // Handle Selection Box Drag
-      if (isMouseDown) {
-        const dx = Math.abs(e.clientX - mouseDownScreen.x);
-        const dy = Math.abs(e.clientY - mouseDownScreen.y);
-        if (dx > dragThreshold || dy > dragThreshold) {
-          isDragging = true;
-          selectionBoxEl.style.display = 'block';
-          const left = Math.min(e.clientX, mouseDownScreen.x);
-          const top = Math.min(e.clientY, mouseDownScreen.y);
-          const width = Math.abs(e.clientX - mouseDownScreen.x);
-          const height = Math.abs(e.clientY - mouseDownScreen.y);
-          selectionBoxEl.style.left = left + 'px';
-          selectionBoxEl.style.top = top + 'px';
-          selectionBoxEl.style.width = width + 'px';
-          selectionBoxEl.style.height = height + 'px';
-        }
-      }
-
-      // Handle Ghost Building Placement Follow (Snaps to Grid & Collision Check)
-      if (aoeState.placementGhost) {
-        raycaster.setFromCamera(mouse, camera);
-        const hits = raycaster.intersectObject(terrainMesh);
-        if (hits.length > 0) {
-          const pt = hits[0].point;
-          // Snap to 4m Tile Grid
-          const snapX = Math.round(pt.x / TILE_SIZE) * TILE_SIZE;
-          const snapZ = Math.round(pt.z / TILE_SIZE) * TILE_SIZE;
-          aoeState.placementGhost.position.set(snapX, 0, snapZ);
-
-          // Collision Check
-          const g = worldToGrid(snapX, snapZ);
-          const isClear = isGridWalkable(g.x, g.z);
-          aoeState.placementGhost.traverse(c => {
-            if (c.isMesh) {
-              c.material.color.setHex(isClear ? 0x22c55e : 0xef4444);
-            }
-          });
-        }
-      }
-
-      // 3D Hover Tooltip
-      updateHoverTooltip(e);
-    });
-
     // Mouse Up (Complete Drag Selection)
     window.addEventListener('mouseup', e => {
       if (e.button === 0 && isMouseDown) {
@@ -154,7 +157,6 @@ def get_aoe_sim_loop_js():
           });
 
           if (selected.length > 0) {
-            // Prioritize military units if both present
             const military = selected.filter(u => u.type !== 'villager');
             selectEntities(military.length > 0 ? military : selected);
             playVoiceBark(military.length > 0 ? 'attack' : 'select');
@@ -268,7 +270,7 @@ def get_aoe_sim_loop_js():
           playVoiceBark('build');
         }
       } else if (targetPos) {
-        // FORMATION MOVEMENT (Flocking grid so units fan out)
+        // FORMATION MOVEMENT (Flocking grid offsets)
         const formationSlots = calculateFormationPositions(targetPos, aoeState.selectedEntities.length);
         aoeState.selectedEntities.forEach((unit, idx) => {
           if (unit.state !== 'garrisoned') {
@@ -655,12 +657,14 @@ def get_aoe_sim_loop_js():
       const ghost = aoeState.placementGhost;
       if (!bType || !bDef || !ghost) return;
 
-      // Check Walkable
+      // Coordinate check & buildable test
       const snapX = ghost.position.x;
       const snapZ = ghost.position.z;
       const g = worldToGrid(snapX, snapZ);
-      if (!isGridWalkable(g.x, g.z)) {
-        showAoENotice('[OBSTRUCTED] Cannot place structure on occupied or impassable ground.');
+      const sizeTiles = Math.max(1, Math.round(bDef.size / TILE_SIZE));
+
+      if (!isTileBuildable(g.x, g.z, sizeTiles, sizeTiles)) {
+        showAoENotice('[OBSTRUCTED] Cannot place structure on occupied, water, or cliff ground.');
         return;
       }
 
@@ -679,7 +683,7 @@ def get_aoe_sim_loop_js():
 
       // Spawn Building and mark grid blocked
       spawnBuilding(bType, pos.x, pos.z, 'player');
-      setGridBlocked(pos.x, pos.z, Math.ceil(bDef.size / (TILE_SIZE * 2)), true);
+      occupyGridArea(pos.x, pos.z, sizeTiles, sizeTiles);
 
       playBuildingHammerSound();
       showAoENotice(`[CONSTRUCTED] ${bDef.name} placed!`);
