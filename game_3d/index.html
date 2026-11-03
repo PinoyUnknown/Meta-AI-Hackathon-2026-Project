@@ -167,9 +167,42 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       width: 100%;
       pointer-events: auto;
+    }
+    .dock-filter-bar {
+      display: flex;
+      gap: 6px;
+      background: rgba(255, 252, 245, 0.96);
+      border: 1px solid #c9933b;
+      border-radius: 8px;
+      padding: 3px 8px;
+      box-shadow: 0 2px 8px rgba(60, 40, 20, 0.15);
+      overflow-x: auto;
+      max-width: 95vw;
+    }
+    .filter-tab {
+      padding: 3px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #785223;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .filter-tab:hover {
+      background: #faeed4;
+      color: #3b220c;
+    }
+    .filter-tab.active {
+      background: #c9933b;
+      color: #fffdf5;
+      border-color: #8c5818;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
     }
     .building-dock {
       display: flex;
@@ -181,6 +214,8 @@
       box-shadow: 0 8px 25px rgba(60, 40, 20, 0.25);
       max-width: 95vw;
       overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #c9933b #fdf8ee;
     }
     .b-btn {
       display: flex;
@@ -423,52 +458,123 @@
         <span><kbd>ESC</kbd> Settings & Pause</span>
       </div>
 
-      <div class="building-dock">
-        <div class="b-btn" onclick="selectBuildType('center')">
+      <!-- Kingdom Category Filter Tabs -->
+      <div class="dock-filter-bar">
+        <button class="filter-tab active" onclick="filterBuildings('all', this)">[ALL REALM] (19)</button>
+        <button class="filter-tab" onclick="filterBuildings('civic', this)">[CIVIC & HOMES]</button>
+        <button class="filter-tab" onclick="filterBuildings('industry', this)">[INDUSTRY]</button>
+        <button class="filter-tab" onclick="filterBuildings('food', this)">[FOOD & LIVING]</button>
+        <button class="filter-tab" onclick="filterBuildings('military', this)">[MILITARY]</button>
+        <button class="filter-tab" onclick="filterBuildings('faith', this)">[FAITH & MONUMENT]</button>
+      </div>
+
+      <div class="building-dock" id="building-dock-list">
+        <!-- CIVIC & CORE -->
+        <div class="b-btn" data-cat="civic" onclick="selectBuildType('center')">
           <span class="b-tag">[CORE]</span>
           <span class="b-name">Town Hall</span>
           <span class="b-cost">FREE</span>
         </div>
-        <div class="b-btn" onclick="selectBuildType('lumber')">
-          <span class="b-tag">[PROD]</span>
-          <span class="b-name">Lumber Camp</span>
-          <span class="b-cost">15 Wood</span>
-        </div>
-        <div class="b-btn" onclick="selectBuildType('quarry')">
-          <span class="b-tag">[PROD]</span>
-          <span class="b-name">Stone Quarry</span>
-          <span class="b-cost">20 Wood</span>
-        </div>
-        <div class="b-btn" onclick="selectBuildType('well')">
+        <div class="b-btn" data-cat="civic" onclick="selectBuildType('well')">
           <span class="b-tag">[CIVIC]</span>
           <span class="b-name">Town Well</span>
           <span class="b-cost">10 Stone</span>
         </div>
-        <div class="b-btn" onclick="selectBuildType('cottage')">
+        <div class="b-btn" data-cat="civic" onclick="selectBuildType('cottage')">
           <span class="b-tag">[RES]</span>
           <span class="b-name">Cottage</span>
-          <span class="b-cost">12 Wood, 5 Stone</span>
+          <span class="b-cost">12W, 5S</span>
         </div>
-        <div class="b-btn" onclick="selectBuildType('market')">
+        <div class="b-btn" data-cat="civic" onclick="selectBuildType('apothecary')">
+          <span class="b-tag">[CIVIC]</span>
+          <span class="b-name">Apothecary</span>
+          <span class="b-cost">18W, 12S, 15G</span>
+        </div>
+
+        <!-- INDUSTRY & GATHERING -->
+        <div class="b-btn" data-cat="industry" onclick="selectBuildType('lumber')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Lumber Camp</span>
+          <span class="b-cost">15 Wood</span>
+        </div>
+        <div class="b-btn" data-cat="industry" onclick="selectBuildType('quarry')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Stone Quarry</span>
+          <span class="b-cost">20 Wood</span>
+        </div>
+        <div class="b-btn" data-cat="industry" onclick="selectBuildType('forge')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Blacksmith</span>
+          <span class="b-cost">25W, 30S, 15G</span>
+        </div>
+        <div class="b-btn" data-cat="industry" onclick="selectBuildType('granary')">
+          <span class="b-tag">[LOG]</span>
+          <span class="b-name">Granary</span>
+          <span class="b-cost">35W, 25S, 10G</span>
+        </div>
+
+        <!-- FOOD & SUSTENANCE -->
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('market')">
           <span class="b-tag">[COMM]</span>
           <span class="b-name">Market Stall</span>
-          <span class="b-cost">15 Wood, 5 Gold</span>
+          <span class="b-cost">15W, 5G</span>
         </div>
-        <div class="b-btn" onclick="selectBuildType('windmill')">
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('windmill')">
           <span class="b-tag">[AGRI]</span>
           <span class="b-name">Windmill</span>
-          <span class="b-cost">25 Wood, 10 Stone</span>
+          <span class="b-cost">25W, 10S</span>
         </div>
-        <div class="b-btn" onclick="selectBuildType('church')">
-          <span class="b-tag">[FAITH]</span>
-          <span class="b-name">Rustic Church</span>
-          <span class="b-cost">40 Stone, 20 Wood</span>
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('bakery')">
+          <span class="b-tag">[FOOD]</span>
+          <span class="b-name">Bread Bakery</span>
+          <span class="b-cost">20W, 15S, 10G</span>
         </div>
-        <div class="b-btn" onclick="selectBuildType('keep')">
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('tavern')">
+          <span class="b-tag">[SOC]</span>
+          <span class="b-name">Tavern & Inn</span>
+          <span class="b-cost">35W, 20S, 20G</span>
+        </div>
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('dock')">
+          <span class="b-tag">[FOOD]</span>
+          <span class="b-name">Fishing Pier</span>
+          <span class="b-cost">30W, 10S, 5G</span>
+        </div>
+
+        <!-- MILITARY & DEFENSE -->
+        <div class="b-btn" data-cat="military" onclick="selectBuildType('barracks')">
+          <span class="b-tag">[MIL]</span>
+          <span class="b-name">Barracks</span>
+          <span class="b-cost">40W, 35S, 30G</span>
+        </div>
+        <div class="b-btn" data-cat="military" onclick="selectBuildType('gatehouse')">
+          <span class="b-tag">[DEF]</span>
+          <span class="b-name">Stone Gate</span>
+          <span class="b-cost">20W, 50S, 15G</span>
+        </div>
+        <div class="b-btn" data-cat="military" onclick="selectBuildType('keep')">
           <span class="b-tag">[DEF]</span>
           <span class="b-name">Lord's Keep</span>
-          <span class="b-cost">60 Stone, 40 Wood</span>
+          <span class="b-cost">40W, 60S, 20G</span>
         </div>
+
+        <!-- FAITH & MONUMENTS -->
+        <div class="b-btn" data-cat="faith" onclick="selectBuildType('church')">
+          <span class="b-tag">[FAITH]</span>
+          <span class="b-name">Rustic Church</span>
+          <span class="b-cost">20W, 40S</span>
+        </div>
+        <div class="b-btn" data-cat="faith" onclick="selectBuildType('monastery')">
+          <span class="b-tag">[FAITH]</span>
+          <span class="b-name">Monastery</span>
+          <span class="b-cost">40W, 50S, 25G</span>
+        </div>
+        <div class="b-btn" data-cat="faith" onclick="selectBuildType('cathedral')">
+          <span class="b-tag">[MON]</span>
+          <span class="b-name">Cathedral</span>
+          <span class="b-cost">80W, 120S, 80G</span>
+        </div>
+
+        <!-- ZONING TOOL -->
         <div class="b-btn" onclick="toggleZoningTool()" style="border-color: #15803d;">
           <span class="b-tag" style="color: #15803d;">[ZONE]</span>
           <span class="b-name" id="zone-btn-name">Paint Zone</span>
@@ -724,6 +830,114 @@
       tex.wrapT = THREE.RepeatWrapping;
       tex.repeat.set(8, 8);
       return tex;
+    }
+
+    // Half-Timbered Medieval Plaster & Dark Oak Beams
+    function generatePlasterTimberTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f4ede1';
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.fillStyle = 'rgba(205, 190, 170, 0.25)';
+      for (let i = 0; i < 300; i++) {
+        const px = Math.random() * 512, py = Math.random() * 512;
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5 + Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#3d2510';
+      ctx.fillRect(0, 0, 512, 24);
+      ctx.fillRect(0, 488, 512, 24);
+      ctx.fillRect(0, 0, 24, 512);
+      ctx.fillRect(488, 0, 24, 512);
+      ctx.fillRect(244, 0, 24, 512);
+      ctx.fillRect(0, 244, 512, 24);
+
+      ctx.lineWidth = 18;
+      ctx.strokeStyle = '#3d2510';
+      ctx.beginPath();
+      ctx.moveTo(24, 24); ctx.lineTo(244, 244);
+      ctx.moveTo(488, 24); ctx.lineTo(268, 244);
+      ctx.moveTo(24, 488); ctx.lineTo(244, 268);
+      ctx.moveTo(488, 488); ctx.lineTo(268, 268);
+      ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Coursed Ashlar Stone Brick for Castles, Gates & Cathedrals
+    function generateStoneBrickTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#544d42';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const rowH = 32;
+      const colW = 64;
+      for (let y = 0; y < 512; y += rowH) {
+        const isOdd = (y / rowH) % 2 === 1;
+        const xOffset = isOdd ? colW / 2 : 0;
+        for (let x = -colW; x < 512 + colW; x += colW) {
+          const shade = 142 + Math.floor(Math.sin(x * 15 + y * 9) * 22);
+          ctx.fillStyle = `rgb(${shade + 6}, ${shade}, ${shade - 10})`;
+          ctx.beginPath();
+          ctx.roundRect(x + xOffset + 2, y + 2, colW - 4, rowH - 4, 3);
+          ctx.fill();
+        }
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Ornate Circular Leaded Stained Glass
+    function generateStainedGlassTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#111827';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const colors = ['#dc2626', '#2563eb', '#d97706', '#16a34a', '#9333ea', '#0284c7'];
+      const cx = 256, cy = 256;
+      for (let r = 1; r <= 4; r++) {
+        const rIn = (r - 1) * 55 + 15;
+        const rOut = r * 55 + 15;
+        for (let s = 0; s < 12; s++) {
+          const a1 = (s / 12) * Math.PI * 2;
+          const a2 = ((s + 1) / 12) * Math.PI * 2;
+          ctx.fillStyle = colors[(s + r * 3) % colors.length];
+          ctx.beginPath();
+          ctx.arc(cx, cy, rOut, a1, a2);
+          ctx.arc(cx, cy, rIn, a2, a1, true);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.strokeStyle = '#1e293b';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        }
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Burnished Dark Wrought Iron
+    function generateIronTexture() {
+      const c = createProceduralCanvas(256, 256);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#2b323d';
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      for (let i = 0; i < 200; i++) {
+        ctx.fillRect(Math.random() * 256, Math.random() * 256, 2 + Math.random() * 4, 1);
+      }
+      return new THREE.CanvasTexture(c);
     }
 
     // =========================================================================
@@ -1133,7 +1347,80 @@
         scene.add(rock);
         stoneRocks.push({ mesh: rock, x: x, z: z, hp: 6 });
       }
-      }
+    }
+
+    // =========================================================================
+    // DYNAMIC CHIMNEY SMOKE PARTICLES & SKY BIRDS SYSTEMS
+    // =========================================================================
+    const smokeParticles = [];
+    function addSmokePuff(x, y, z, darkSmoke = false) {
+      const geo = new THREE.SphereGeometry(0.35, 6, 6);
+      const col = darkSmoke ? 0x475569 : 0xe2e8f0;
+      const mat = new THREE.MeshBasicMaterial({
+        color: col,
+        transparent: true,
+        opacity: 0.65
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(x + (Math.random() - 0.5) * 0.3, y, z + (Math.random() - 0.5) * 0.3);
+      scene.add(mesh);
+      smokeParticles.push({
+        mesh: mesh,
+        baseX: x,
+        baseY: y,
+        baseZ: z,
+        age: Math.random() * 2.0,
+        lifetime: 3.5 + Math.random() * 1.5,
+        speedY: 1.2 + Math.random() * 0.6,
+        driftX: 0.35 + Math.random() * 0.25,
+        dark: darkSmoke
+      });
+    }
+
+    const flockOfBirds = [];
+    let flockFlightAngle = 0;
+    function setupFlockOfBirds() {
+      const birdGeo = new THREE.BufferGeometry();
+      const vertices = new Float32Array([
+        // Left wing
+        0, 0, 0.4,
+        -1.2, 0.3, -0.2,
+        0, 0, -0.4,
+        // Right wing
+        0, 0, 0.4,
+        0, 0, -0.4,
+        1.2, 0.3, -0.2
+      ]);
+      birdGeo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+      birdGeo.computeVertexNormals();
+
+      const birdMat = new THREE.MeshStandardMaterial({
+        color: 0x3d2c1e,
+        side: THREE.DoubleSide,
+        roughness: 0.8
+      });
+
+      const formationOffsets = [
+        [0, 0],
+        [-3.5, -2.5],
+        [3.5, -2.5],
+        [-7.0, -5.0],
+        [7.0, -5.0],
+        [-10.5, -7.5],
+        [10.5, -7.5]
+      ];
+
+      formationOffsets.forEach(([ox, oz], idx) => {
+        const mesh = new THREE.Mesh(birdGeo.clone(), birdMat);
+        mesh.castShadow = true;
+        scene.add(mesh);
+        flockOfBirds.push({
+          mesh: mesh,
+          offsetLeaderX: ox,
+          offsetLeaderZ: oz,
+          wingPhase: idx * 0.45
+        });
+      });
     }
 
     // Fluffy Drifting Cumulus Clouds
@@ -1180,16 +1467,40 @@
     let ghostBuilding = null;
     let ghostRotation = 0;
 
+    window.filterBuildings = function(cat, tabEl) {
+      initAudio();
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      if (tabEl) tabEl.classList.add('active');
+      document.querySelectorAll('#building-dock-list .b-btn').forEach(btn => {
+        const bCat = btn.getAttribute('data-cat');
+        if (!bCat || cat === 'all' || bCat === cat) {
+          btn.style.display = 'flex';
+        } else {
+          btn.style.display = 'none';
+        }
+      });
+    };
+
     const buildingCosts = {
-      center:   { gold: 0,   wood: 0,  stone: 0 },
-      lumber:   { gold: 0,   wood: 15, stone: 0 },
-      quarry:   { gold: 0,   wood: 20, stone: 0 },
-      well:     { gold: 0,   wood: 0,  stone: 10 },
-      cottage:  { gold: 0,   wood: 12, stone: 5 },
-      market:   { gold: 5,   wood: 15, stone: 0 },
-      windmill: { gold: 0,   wood: 25, stone: 10 },
-      church:   { gold: 0,   wood: 20, stone: 40 },
-      keep:     { gold: 20,  wood: 40, stone: 60 }
+      center:    { gold: 0,   wood: 0,   stone: 0 },
+      well:      { gold: 0,   wood: 0,   stone: 10 },
+      cottage:   { gold: 0,   wood: 12,  stone: 5 },
+      apothecary:{ gold: 15,  wood: 18,  stone: 12 },
+      lumber:    { gold: 0,   wood: 15,  stone: 0 },
+      quarry:    { gold: 0,   wood: 20,  stone: 0 },
+      forge:     { gold: 15,  wood: 25,  stone: 30 },
+      granary:   { gold: 10,  wood: 35,  stone: 25 },
+      market:    { gold: 5,   wood: 15,  stone: 0 },
+      windmill:  { gold: 0,   wood: 25,  stone: 10 },
+      bakery:    { gold: 10,  wood: 20,  stone: 15 },
+      tavern:    { gold: 20,  wood: 35,  stone: 20 },
+      dock:      { gold: 5,   wood: 30,  stone: 10 },
+      barracks:  { gold: 30,  wood: 40,  stone: 35 },
+      gatehouse: { gold: 15,  wood: 20,  stone: 50 },
+      keep:      { gold: 20,  wood: 40,  stone: 60 },
+      church:    { gold: 0,   wood: 20,  stone: 40 },
+      monastery: { gold: 25,  wood: 40,  stone: 50 },
+      cathedral: { gold: 80,  wood: 80,  stone: 120 }
     };
 
     window.selectBuildType = function(type) {
@@ -1228,9 +1539,23 @@
         opacity: isGhost ? 0.6 : 1.0
       });
 
+      const ashlarStoneMat = new THREE.MeshStandardMaterial({
+        map: generateStoneBrickTexture(),
+        roughness: 0.8,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
       const woodMat = new THREE.MeshStandardMaterial({
         map: generateWoodTexture(),
         roughness: 0.75,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const timberPlasterMat = new THREE.MeshStandardMaterial({
+        map: generatePlasterTimberTexture(),
+        roughness: 0.82,
         transparent: isGhost,
         opacity: isGhost ? 0.6 : 1.0
       });
@@ -1245,6 +1570,25 @@
       const tileMat = new THREE.MeshStandardMaterial({
         map: generateClayTileTexture(),
         roughness: 0.7,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const ironMat = new THREE.MeshStandardMaterial({
+        map: generateIronTexture(),
+        roughness: 0.45,
+        metalness: 0.85,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const stainedGlassMat = new THREE.MeshStandardMaterial({
+        map: generateStainedGlassTexture(),
+        roughness: 0.2,
+        metalness: 0.1,
+        emissive: 0x442211,
+        emissiveIntensity: 0.4,
+        side: THREE.DoubleSide,
         transparent: isGhost,
         opacity: isGhost ? 0.6 : 1.0
       });
@@ -1370,15 +1714,304 @@
         spire.position.set(-8, 17.5, 0); spire.castShadow = !isGhost; group.add(spire);
 
       } else if (type === 'keep') {
-        const citadel = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 14), stoneMat);
+        const citadel = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 14), ashlarStoneMat);
         citadel.position.y = 5; citadel.castShadow = !isGhost; group.add(citadel);
 
         [[-8, -7], [8, -7], [-8, 7], [8, 7]].forEach(([tx, tz]) => {
-          const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 14, 8), stoneMat);
+          const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 14, 8), ashlarStoneMat);
           tower.position.set(tx, 7, tz); tower.castShadow = !isGhost; group.add(tower);
           const roof = new THREE.Mesh(new THREE.ConeGeometry(3.2, 3.5, 8), tileMat);
           roof.position.set(tx, 15.5, tz); group.add(roof);
         });
+
+      } else if (type === 'forge') {
+        // Blacksmith & Armory Workshop
+        const foundation = new THREE.Mesh(new THREE.BoxGeometry(9.0, 0.8, 7.0), stoneMat);
+        foundation.position.y = 0.4; foundation.castShadow = !isGhost; group.add(foundation);
+
+        [[-4, -3], [4, -3], [-4, 3], [4, 3], [0, 3]].forEach(([px, pz]) => {
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.6, 0.5), woodMat);
+          post.position.set(px, 2.2, pz); group.add(post);
+        });
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(6.5, 3.2, 4), tileMat);
+        roof.position.y = 5.2; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost; group.add(roof);
+
+        const hearth = new THREE.Mesh(new THREE.BoxGeometry(2.4, 6.5, 2.2), stoneMat);
+        hearth.position.set(-2.8, 3.25, -1.8); hearth.castShadow = !isGhost; group.add(hearth);
+
+        const coalMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
+        const coals = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 1.2), coalMat);
+        coals.position.set(-2.8, 1.2, -0.6); group.add(coals);
+
+        if (!isGhost) {
+          const forgeGlow = new THREE.PointLight(0xff6600, 1.8, 10);
+          forgeGlow.position.set(-2.8, 2.0, -0.6);
+          group.add(forgeGlow);
+          group.forgeLight = forgeGlow;
+        }
+
+        const anvilBase = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 0.8, 8), woodMat);
+        anvilBase.position.set(0.5, 0.8, 0); group.add(anvilBase);
+        const anvilTop = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 0.5), ironMat);
+        anvilTop.position.set(0.5, 1.3, 0); group.add(anvilTop);
+
+        const trough = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.9, 1.0), woodMat);
+        trough.position.set(2.8, 0.85, 1.5); group.add(trough);
+
+        group.smokeOrigin = new THREE.Vector3(-2.8, 6.6, -1.8);
+        group.smokeIsDark = true;
+
+      } else if (type === 'bakery') {
+        // Bread Bakery with Stone Oven Dome
+        const walls = new THREE.Mesh(new THREE.BoxGeometry(7.5, 3.5, 5.5), timberPlasterMat);
+        walls.position.y = 1.75; walls.castShadow = !isGhost; group.add(walls);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(5.8, 3.2, 4), tileMat);
+        roof.position.y = 4.8; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost; group.add(roof);
+
+        const ovenMat = new THREE.MeshStandardMaterial({ color: 0xa85a32, roughness: 0.9 });
+        const ovenDome = new THREE.Mesh(new THREE.SphereGeometry(1.5, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.55), ovenMat);
+        ovenDome.position.set(3.8, 0.8, 0); group.add(ovenDome);
+
+        const ovenChimney = new THREE.Mesh(new THREE.BoxGeometry(0.8, 4.8, 0.8), stoneMat);
+        ovenChimney.position.set(3.8, 2.8, -0.6); group.add(ovenChimney);
+
+        const table = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.0, 1.2), woodMat);
+        table.position.set(0, 0.5, 3.2); group.add(table);
+
+        const sackMat = new THREE.MeshStandardMaterial({ color: 0xe8deb8, roughness: 0.95 });
+        [-1.8, -1.2].forEach(sx => {
+          const sack = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), sackMat);
+          sack.scale.set(1.0, 1.3, 0.9);
+          sack.position.set(sx, 0.5, 3.0); group.add(sack);
+        });
+
+        group.smokeOrigin = new THREE.Vector3(3.8, 5.2, -0.6);
+        group.smokeIsDark = false;
+
+      } else if (type === 'tavern') {
+        // Two-Story Tavern & Inn
+        const base = new THREE.Mesh(new THREE.BoxGeometry(11, 4.0, 7.5), timberPlasterMat);
+        base.position.y = 2.0; base.castShadow = !isGhost; group.add(base);
+
+        const upper = new THREE.Mesh(new THREE.BoxGeometry(11.6, 3.2, 8.2), timberPlasterMat);
+        upper.position.y = 5.2; upper.castShadow = !isGhost; group.add(upper);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(8.5, 4.2, 4), tileMat);
+        roof.position.y = 8.5; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost; group.add(roof);
+
+        const picnicTable = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.0, 1.6), woodMat);
+        picnicTable.position.set(-2.5, 0.5, 5.0); group.add(picnicTable);
+
+        const barrelMat = new THREE.MeshStandardMaterial({ color: 0x6e3d16, roughness: 0.8 });
+        [-4.5, -3.8].forEach(bx => {
+          const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.55, 1.2, 8), barrelMat);
+          barrel.position.set(bx, 0.6, 4.2); group.add(barrel);
+        });
+
+        const awning = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.2, 2.5), woodMat);
+        awning.position.set(0, 3.8, 4.8); awning.rotation.x = 0.2; group.add(awning);
+
+        if (!isGhost) {
+          const tavernGlow = new THREE.PointLight(0xffaa33, 1.6, 12);
+          tavernGlow.position.set(0, 3.5, 5.2); group.add(tavernGlow);
+        }
+
+        const chimney = new THREE.Mesh(new THREE.BoxGeometry(1.2, 8.2, 1.2), stoneMat);
+        chimney.position.set(4.2, 4.5, -2.5); group.add(chimney);
+
+        group.smokeOrigin = new THREE.Vector3(4.2, 8.8, -2.5);
+        group.smokeIsDark = false;
+
+      } else if (type === 'monastery') {
+        // Cloister Quadrangle Arcade & Herb Garden
+        const quad = new THREE.Mesh(new THREE.BoxGeometry(15, 3.8, 15), ashlarStoneMat);
+        quad.position.y = 1.9; quad.castShadow = !isGhost; group.add(quad);
+
+        const innerGrass = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.MeshStandardMaterial({ color: 0x489620 }));
+        innerGrass.rotation.x = -Math.PI * 0.5;
+        innerGrass.position.y = 0.05; group.add(innerGrass);
+
+        const soilMat = new THREE.MeshStandardMaterial({ color: 0x422a14 });
+        [[-2.2, -2.2], [2.2, -2.2], [-2.2, 2.2], [2.2, 2.2]].forEach(([gx, gz]) => {
+          const bed = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.4, 2.5), soilMat);
+          bed.position.set(gx, 0.25, gz); group.add(bed);
+          const herbPlant = new THREE.Mesh(new THREE.SphereGeometry(0.7, 6, 6), new THREE.MeshStandardMaterial({ color: 0x2e7d32 }));
+          herbPlant.position.set(gx, 0.6, gz); group.add(herbPlant);
+        });
+
+        const belfry = new THREE.Mesh(new THREE.BoxGeometry(4.0, 12.0, 4.0), ashlarStoneMat);
+        belfry.position.set(-6.5, 6.0, -6.5); belfry.castShadow = !isGhost; group.add(belfry);
+
+        const belfrySpire = new THREE.Mesh(new THREE.ConeGeometry(2.8, 5.0, 8), tileMat);
+        belfrySpire.position.set(-6.5, 14.5, -6.5); group.add(belfrySpire);
+
+        const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.15, 0.15), woodMat);
+        crossH.position.set(-6.5, 17.5, -6.5); group.add(crossH);
+        const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.4, 0.15), woodMat);
+        crossV.position.set(-6.5, 17.5, -6.5); group.add(crossV);
+
+      } else if (type === 'barracks') {
+        // Timber Garrison Barracks & Archery Range
+        const barracksHall = new THREE.Mesh(new THREE.BoxGeometry(10, 4.0, 6.5), woodMat);
+        barracksHall.position.y = 2.0; barracksHall.castShadow = !isGhost; group.add(barracksHall);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(7.2, 3.2, 4), thatchMat);
+        roof.position.y = 5.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        const targetMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.9 });
+        [-3.2, 0, 3.2].forEach(tx => {
+          const leg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.5, 5), woodMat);
+          leg1.position.set(tx, 1.2, 5.2); leg1.rotation.z = 0.2; group.add(leg1);
+          const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.2, 16), targetMat);
+          disc.rotation.x = Math.PI * 0.5;
+          disc.position.set(tx, 1.6, 5.0); group.add(disc);
+          const bullseye = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.22, 12), new THREE.MeshBasicMaterial({ color: 0xdc2626 }));
+          bullseye.rotation.x = Math.PI * 0.5;
+          bullseye.position.set(tx, 1.6, 5.02); group.add(bullseye);
+        });
+
+        const rack = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.8, 0.6), woodMat);
+        rack.position.set(-4.0, 0.9, 0); group.add(rack);
+
+        const dummyBody = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.6, 8), thatchMat);
+        dummyBody.position.set(5.5, 1.4, 2.5); group.add(dummyBody);
+        const dummyArm = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.2), woodMat);
+        dummyArm.position.set(5.5, 1.6, 2.5); group.add(dummyArm);
+
+      } else if (type === 'gatehouse') {
+        // Fortified Stone Gatehouse & Walls
+        [-4.5, 4.5].forEach(tx => {
+          const tower = new THREE.Mesh(new THREE.BoxGeometry(4.0, 9.5, 4.5), ashlarStoneMat);
+          tower.position.set(tx, 4.75, 0); tower.castShadow = !isGhost; group.add(tower);
+
+          const parapet = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.2, 4.9), stoneMat);
+          parapet.position.set(tx, 10.0, 0); group.add(parapet);
+        });
+
+        const arch = new THREE.Mesh(new THREE.BoxGeometry(5.5, 7.5, 4.0), ashlarStoneMat);
+        arch.position.set(0, 4.5, 0); arch.castShadow = !isGhost; group.add(arch);
+
+        const portcullis = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 4.0), ironMat);
+        portcullis.position.set(0, 3.8, 0); group.add(portcullis);
+
+        [-9.5, 9.5].forEach(wx => {
+          const wall = new THREE.Mesh(new THREE.BoxGeometry(6.5, 6.0, 2.0), ashlarStoneMat);
+          wall.position.set(wx, 3.0, 0); wall.castShadow = !isGhost; group.add(wall);
+        });
+
+        const banner = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 3.2), canopyMat);
+        banner.position.set(0, 6.8, 2.1); group.add(banner);
+
+      } else if (type === 'cathedral') {
+        // Grand Royal Gothic Cathedral
+        const nave = new THREE.Mesh(new THREE.BoxGeometry(20, 11, 10), ashlarStoneMat);
+        nave.position.y = 5.5; nave.castShadow = !isGhost; group.add(nave);
+
+        const transept = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 18), ashlarStoneMat);
+        transept.position.y = 5.0; transept.castShadow = !isGhost; group.add(transept);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(12, 6.0, 4), tileMat);
+        roof.position.y = 13.5; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        [-7.5, 7.5].forEach(sx => {
+          const tower = new THREE.Mesh(new THREE.BoxGeometry(4.5, 17, 4.5), ashlarStoneMat);
+          tower.position.set(sx, 8.5, 7.0); tower.castShadow = !isGhost; group.add(tower);
+
+          const spire = new THREE.Mesh(new THREE.ConeGeometry(3.2, 10, 8), tileMat);
+          spire.position.set(sx, 22.0, 7.0); spire.castShadow = !isGhost; group.add(spire);
+
+          const cross = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.8, 0.2), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+          cross.position.set(sx, 27.5, 7.0); group.add(cross);
+        });
+
+        const roseWin = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 0.2, 24), stainedGlassMat);
+        roseWin.rotation.x = Math.PI * 0.5;
+        roseWin.position.set(0, 9.2, 5.1); group.add(roseWin);
+
+        [-5, 0, 5].forEach(bx => {
+          [-5.8, 5.8].forEach(bz => {
+            const buttress = new THREE.Mesh(new THREE.BoxGeometry(0.8, 8.0, 1.8), ashlarStoneMat);
+            buttress.position.set(bx, 4.0, bz); group.add(buttress);
+          });
+        });
+
+      } else if (type === 'dock') {
+        // Fishing Pier & Moored Rowboat
+        const pierDeck = new THREE.Mesh(new THREE.BoxGeometry(12, 0.4, 4.2), woodMat);
+        pierDeck.position.set(0, 0.4, 0); pierDeck.castShadow = !isGhost; group.add(pierDeck);
+
+        [-5, -2, 2, 5].forEach(px => {
+          [-1.8, 1.8].forEach(pz => {
+            const stilt = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 4.0, 6), woodMat);
+            stilt.position.set(px, -1.5, pz); group.add(stilt);
+          });
+        });
+
+        const boatMat = new THREE.MeshStandardMaterial({ color: 0x5a3517, roughness: 0.8 });
+        const boat = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.8, 1.8), boatMat);
+        boat.position.set(0, -0.6, 3.5); group.add(boat);
+
+        [-3.5, 3.5].forEach(rx => {
+          const rackFrame = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.8, 0.4), woodMat);
+          rackFrame.position.set(rx, 1.2, -1.2); group.add(rackFrame);
+        });
+
+        const barrelMat = new THREE.MeshStandardMaterial({ color: 0x784419, roughness: 0.8 });
+        const barrel1 = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.9, 8), barrelMat);
+        barrel1.position.set(0, 0.85, -1.2); group.add(barrel1);
+
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.4, 6), woodMat);
+        post.position.set(5.5, 1.4, 1.6); group.add(post);
+
+        if (!isGhost) {
+          const pierGlow = new THREE.PointLight(0xffb74d, 1.2, 8);
+          pierGlow.position.set(5.5, 2.5, 1.6); group.add(pierGlow);
+        }
+
+      } else if (type === 'granary') {
+        // Raised Medieval Stilt Granary
+        [-3.2, 0, 3.2].forEach(sx => {
+          [-2.2, 2.2].forEach(sz => {
+            const stilt = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 2.2, 8), stoneMat);
+            stilt.position.set(sx, 1.1, sz); group.add(stilt);
+            const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.2, 8), stoneMat);
+            cap.position.set(sx, 2.1, sz); group.add(cap);
+          });
+        });
+
+        const storehouse = new THREE.Mesh(new THREE.BoxGeometry(8.5, 4.2, 6.0), woodMat);
+        storehouse.position.y = 4.2; storehouse.castShadow = !isGhost; group.add(storehouse);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(6.5, 3.2, 4), thatchMat);
+        roof.position.y = 7.5; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        const ramp = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 4.5), woodMat);
+        ramp.position.set(0, 1.1, 4.5); ramp.rotation.x = -0.45; group.add(ramp);
+
+      } else if (type === 'apothecary') {
+        // Apothecary & Herbalist Cottage
+        const cottage = new THREE.Mesh(new THREE.BoxGeometry(6.0, 3.2, 5.0), timberPlasterMat);
+        cottage.position.y = 1.6; cottage.castShadow = !isGhost; group.add(cottage);
+
+        const thatchRoof = new THREE.Mesh(new THREE.ConeGeometry(4.8, 3.0, 4), thatchMat);
+        thatchRoof.position.y = 4.3; thatchRoof.rotation.y = Math.PI * 0.25; group.add(thatchRoof);
+
+        const box = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.3, 0.4), woodMat);
+        box.position.set(0, 1.6, 2.6); group.add(box);
+
+        const flowerMat1 = new THREE.MeshStandardMaterial({ color: 0x9333ea });
+        const flowerMat2 = new THREE.MeshStandardMaterial({ color: 0xef4444 });
+        [-0.8, -0.3, 0.3, 0.8].forEach((fx, idx) => {
+          const fl = new THREE.Mesh(new THREE.SphereGeometry(0.2, 6, 6), idx % 2 === 0 ? flowerMat1 : flowerMat2);
+          fl.position.set(fx, 1.85, 2.6); group.add(fl);
+        });
+
+        const pergola = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.8, 2.0), woodMat);
+        pergola.position.set(-3.1, 1.4, 0); group.add(pergola);
+        const vine = new THREE.Mesh(new THREE.SphereGeometry(1.0, 6, 6), new THREE.MeshStandardMaterial({ color: 0x22c55e }));
+        vine.position.set(-3.1, 2.0, 0); group.add(vine);
       }
 
       return group;
@@ -1405,6 +2038,19 @@
       scene.add(building);
 
       playBuildHammerSound();
+
+      if (building.smokeOrigin) {
+        const sx = worldX + building.smokeOrigin.x;
+        const sy = groundY + building.smokeOrigin.y;
+        const sz = worldZ + building.smokeOrigin.z;
+        for (let s = 0; s < 6; s++) {
+          addSmokePuff(sx, sy, sz, building.smokeIsDark || false);
+        }
+      } else if (activeBuildType === 'cottage') {
+        for (let s = 0; s < 5; s++) {
+          addSmokePuff(worldX + 1.8, groundY + 5.8, worldZ + 1.2, false);
+        }
+      }
 
       buildings.push({
         type: activeBuildType,
@@ -1446,6 +2092,45 @@
 
       const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.65, 0.18), limbMat);
       rightLeg.position.set(0.2, 0.35, 0); group.add(rightLeg);
+
+      // VISIBLE 3D CARGO ATTACHMENTS
+      // 1. Cut Timber Log
+      const logMat = new THREE.MeshStandardMaterial({ color: 0x6e3d16, roughness: 0.85 });
+      const logMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 1.1, 6), logMat);
+      logMesh.rotation.z = Math.PI * 0.5;
+      logMesh.position.set(0, 1.1, 0.45);
+      logMesh.visible = false;
+      group.add(logMesh);
+      group.logCargo = logMesh;
+
+      // 2. Chiselled Stone Block
+      const blockMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+      const stoneMesh = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 0.35), blockMat);
+      stoneMesh.position.set(0, 1.05, 0.42);
+      stoneMesh.visible = false;
+      group.add(stoneMesh);
+      group.stoneCargo = stoneMesh;
+
+      // 3. Bread Basket
+      const breadMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.7 });
+      const breadMesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 6), breadMat);
+      breadMesh.scale.set(1.2, 0.8, 1.0);
+      breadMesh.position.set(0, 1.05, 0.42);
+      breadMesh.visible = false;
+      group.add(breadMesh);
+      group.breadCargo = breadMesh;
+
+      // 4. Guard Spear & Shield
+      const guardGroup = new THREE.Group();
+      const spearPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6, 6), limbMat);
+      spearPole.position.set(0.42, 1.3, 0); guardGroup.add(spearPole);
+      const spearTip = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.35, 6), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 }));
+      spearTip.position.set(0.42, 2.7, 0); guardGroup.add(spearTip);
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.7, 0.5), new THREE.MeshStandardMaterial({ color: 0x991b1b }));
+      shield.position.set(-0.42, 1.1, 0); guardGroup.add(shield);
+      guardGroup.visible = false;
+      group.add(guardGroup);
+      group.guardGear = guardGroup;
 
       group.leftLeg = leftLeg;
       group.rightLeg = rightLeg;
@@ -1511,6 +2196,11 @@
             v.walkAnim += delta * 12;
             v.mesh.leftLeg.rotation.x = Math.sin(v.walkAnim) * 0.6;
             v.mesh.rightLeg.rotation.x = -Math.sin(v.walkAnim) * 0.6;
+
+            if (v.mesh.logCargo) v.mesh.logCargo.visible = (v.state === 'chopping');
+            if (v.mesh.stoneCargo) v.mesh.stoneCargo.visible = (v.state === 'quarrying');
+            if (v.mesh.breadCargo) v.mesh.breadCargo.visible = (v.profession === 'Baker' || v.state === 'eating');
+            if (v.mesh.guardGear) v.mesh.guardGear.visible = (v.profession === 'Guard');
 
             // Stamp desire path footprint
             stampVillagerFootstep(v.x, v.z);
@@ -1697,19 +2387,43 @@
       },
       {
         id: 4,
-        title: '4. Spiritual Devotion',
-        desc: 'Erect a Rustic Church to inspire your serfs and satisfy their need for Faith.',
-        check: () => buildings.some(b => b.type === 'church'),
-        progressText: () => `[PROGRESS: Church ${buildings.filter(b => b.type === 'church').length}/1]`,
-        reward: () => { gameState.gold += 300; playChurchBellSound(); spawnVillager('Priest'); }
+        title: '4. Master Craftsmen & Feast',
+        desc: 'Erect a Blacksmith Forge and a Bread Bakery to feed and equip your workforce.',
+        check: () => buildings.some(b => b.type === 'forge') && buildings.some(b => b.type === 'bakery'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'forge' || b.type === 'bakery').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 250; playAnvilClangSound(); spawnVillager('Blacksmith'); spawnVillager('Baker'); }
       },
       {
         id: 5,
-        title: '5. Seat of the Sovereign',
-        desc: 'Erect the fortified Lord\'s Keep citadel to establish your realm\'s military authority!',
-        check: () => buildings.some(b => b.type === 'keep'),
-        progressText: () => `[PROGRESS: Lord's Keep ${buildings.filter(b => b.type === 'keep').length}/1]`,
-        reward: () => { showRealmNotice('[VICTORY] You have forged a grand medieval civilization in Foundation!'); }
+        title: '5. Trade, Sea & Merriment',
+        desc: 'Construct a Fishing Pier, Great Granary and Tavern & Inn to foster realm commerce.',
+        check: () => buildings.some(b => b.type === 'dock') && buildings.some(b => b.type === 'tavern'),
+        progressText: () => `[PROGRESS: Pier ${buildings.filter(b => b.type === 'dock').length}/1, Tavern ${buildings.filter(b => b.type === 'tavern').length}/1]`,
+        reward: () => { gameState.gold += 300; spawnVillager('Fisherman'); spawnVillager('Innkeeper'); }
+      },
+      {
+        id: 6,
+        title: '6. Defenders of the Realm',
+        desc: 'Build Barracks and Fortified Stone Gatehouse walls to guard your borders.',
+        check: () => buildings.some(b => b.type === 'barracks') && buildings.some(b => b.type === 'gatehouse'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'barracks' || b.type === 'gatehouse').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 350; playArcheryWhooshSound(); spawnVillager('Guard'); spawnVillager('Guard'); }
+      },
+      {
+        id: 7,
+        title: '7. Cloister of Sacred Wisdom',
+        desc: 'Erect a Monastery & Scriptorium and Apothecary to cultivate herbs and sacred scrolls.',
+        check: () => buildings.some(b => b.type === 'monastery') && buildings.some(b => b.type === 'apothecary'),
+        progressText: () => `[PROGRESS: Monastery ${buildings.filter(b => b.type === 'monastery').length}/1, Apothecary ${buildings.filter(b => b.type === 'apothecary').length}/1]`,
+        reward: () => { gameState.gold += 400; playChurchBellSound(); spawnVillager('Monk'); spawnVillager('Herbalist'); }
+      },
+      {
+        id: 8,
+        title: '8. Imperial Majesty: Great Cathedral',
+        desc: 'Erect the Great Royal Gothic Cathedral and Lord\'s Keep to ascend into a sovereign kingdom!',
+        check: () => buildings.some(b => b.type === 'cathedral') && buildings.some(b => b.type === 'keep'),
+        progressText: () => `[PROGRESS: Cathedral ${buildings.filter(b => b.type === 'cathedral').length}/1, Keep ${buildings.filter(b => b.type === 'keep').length}/1]`,
+        reward: () => { playCathedralFanfareSound(); showRealmNotice('[SOVEREIGN ASCENSION] Your Grand Kingdom stands eternal!'); }
       }
     ];
 
@@ -1957,6 +2671,7 @@
 
     // MAIN 60 FPS SIMULATION ANIMATION LOOP
     let lastTime = performance.now();
+    let lastEconomyTick = 0;
 
     function animate(currentTime) {
       requestAnimationFrame(animate);
@@ -1967,11 +2682,90 @@
       updateCameraPan(delta);
       updateVillagers(delta);
 
+      // 1. Windmill Sails Rotation & Forge Light Flickering
       buildings.forEach((b) => {
         if (b.type === 'windmill' && b.mesh.sails) {
           b.mesh.sails.rotation.z += delta * 1.2;
         }
+        if (b.type === 'forge' && b.mesh.forgeLight) {
+          b.mesh.forgeLight.intensity = 1.4 + Math.sin(currentTime * 0.012) * 0.4 + (Math.random() - 0.5) * 0.2;
+        }
       });
+
+      // 2. Realistic Drifting Chimney Smoke Puffs
+      for (let i = 0; i < smokeParticles.length; i++) {
+        const p = smokeParticles[i];
+        p.age += delta;
+        p.mesh.position.y += p.speedY * delta;
+        p.mesh.position.x += p.driftX * delta;
+        p.mesh.position.z += Math.sin(p.age * 2) * delta * 0.15;
+        const progress = Math.min(1.0, p.age / p.lifetime);
+        p.mesh.scale.setScalar(1.0 + progress * 2.8);
+        p.mesh.material.opacity = Math.max(0, (1.0 - progress) * 0.65);
+        if (p.age >= p.lifetime) {
+          p.age = 0;
+          p.mesh.position.set(
+            p.baseX + (Math.random() - 0.5) * 0.3,
+            p.baseY,
+            p.baseZ + (Math.random() - 0.5) * 0.3
+          );
+          p.mesh.scale.setScalar(1.0);
+          p.mesh.material.opacity = 0.65;
+        }
+      }
+
+      // 3. Sky Birds V-Formation Flight & Wing Flapping
+      if (flockOfBirds.length > 0) {
+        flockFlightAngle += delta * 0.12;
+        const leaderX = Math.cos(flockFlightAngle) * 120;
+        const leaderZ = Math.sin(flockFlightAngle) * 100;
+        const leaderY = 56 + Math.sin(flockFlightAngle * 2) * 5;
+        const flightYaw = flockFlightAngle + Math.PI * 0.5;
+
+        flockOfBirds.forEach((b) => {
+          const cosY = Math.cos(flightYaw);
+          const sinY = Math.sin(flightYaw);
+          const wx = leaderX + (b.offsetLeaderX * cosY - b.offsetLeaderZ * sinY);
+          const wz = leaderZ + (b.offsetLeaderX * sinY + b.offsetLeaderZ * cosY);
+          b.mesh.position.set(wx, leaderY, wz);
+          b.mesh.rotation.y = flightYaw + Math.PI;
+
+          const flap = Math.sin(currentTime * 0.009 + b.wingPhase) * 0.45;
+          b.mesh.rotation.z = flap * 0.22;
+          const posAttr = b.mesh.geometry.attributes.position;
+          posAttr.setY(1, 0.3 + flap * 0.6);
+          posAttr.setY(4, 0.3 + flap * 0.6);
+          posAttr.needsUpdate = true;
+        });
+      }
+
+      // 4. Dynamic Water Waves & River Texture Offset
+      if (riverMesh && riverMesh.geometry) {
+        const rPos = riverMesh.geometry.attributes.position;
+        for (let i = 0; i < rPos.count; i++) {
+          const z = rPos.getZ(i);
+          rPos.setY(i, -2.4 + Math.sin(currentTime * 0.0022 + z * 0.07) * 0.14);
+        }
+        rPos.needsUpdate = true;
+      }
+      if (riverMesh && riverMesh.material && riverMesh.material.map) {
+        riverMesh.material.map.offset.y += delta * 0.04;
+        riverMesh.material.map.offset.x += delta * 0.01;
+      }
+
+      // 5. Periodic Kingdom Economy Revenue Ticker
+      if (currentTime - lastEconomyTick > 8000) {
+        lastEconomyTick = currentTime;
+        let goldGain = 0;
+        if (buildings.some(b => b.type === 'market')) goldGain += 4;
+        if (buildings.some(b => b.type === 'tavern')) goldGain += 8;
+        if (buildings.some(b => b.type === 'dock')) gameState.berries += 2;
+        if (buildings.some(b => b.type === 'bakery')) gameState.bread += 3;
+        if (goldGain > 0) {
+          gameState.gold += goldGain;
+          updateResourceLedger();
+        }
+      }
 
       clouds.forEach((c) => {
         c.mesh.position.x += c.speed * delta;
@@ -2011,11 +2805,18 @@
       try {
         init3DEnvironment();
         setupControlsAndInput();
+        setupFlockOfBirds();
 
         const centerBuilding = createBuildingMesh('center', false);
-        centerBuilding.position.set(0, getTerrainHeight(0, 0), 0);
+        const centerGroundY = getTerrainHeight(0, 0);
+        centerBuilding.position.set(0, centerGroundY, 0);
         scene.add(centerBuilding);
         buildings.push({ type: 'center', mesh: centerBuilding, x: 0, z: 0 });
+
+        // Town Hall Chimney Smoke Puffs
+        for (let s = 0; s < 6; s++) {
+          addSmokePuff(1.8, centerGroundY + 11.0, 1.2, false);
+        }
 
         // Initial balanced workforce: 2 Woodcutters, 2 Stone Masons, 2 Laborers
         const starterRoles = ['Woodcutter', 'Woodcutter', 'Stone Mason', 'Stone Mason', 'Laborer', 'Laborer'];
