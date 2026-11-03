@@ -919,6 +919,28 @@
       padding: 10px 16px;
       white-space: pre-wrap;
     }
+    #end-screen {
+      display: none;
+    }
+    #end-screen .end-title {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      margin-bottom: 6px;
+    }
+    #end-screen .end-stats {
+      display: flex;
+      gap: 22px;
+      margin: 14px 0;
+      font-size: 12px;
+      font-weight: 800;
+      color: #a5f3fc;
+    }
+    #end-screen .end-stats .num {
+      font-size: 20px;
+      color: #ffffff;
+      display: block;
+    }
     #dash-console {
       position: absolute;
       bottom: 66px;
@@ -1103,6 +1125,54 @@
     </div>
   </div>
   <div id="toast"></div>
+
+  <!-- End Screen: victory or game over -->
+  <div id="end-screen" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-body" style="text-align: center; padding: 30px 24px;">
+        <div id="end-title" class="end-title">[VICTORY]</div>
+        <div id="end-sub" style="font-size: 12px; color: #94a3b8; line-height: 1.6;"></div>
+        <div class="end-stats" style="justify-content: center;">
+          <div><span class="num" id="end-score">0</span>SCORE</div>
+          <div><span class="num" id="end-kills">0</span>KILLS</div>
+          <div><span class="num" id="end-sectors">1/5</span>CHARTED</div>
+          <div><span class="num" id="end-time">0:00</span>TIME</div>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button id="btn-keep-flying" class="hangar-buy" style="padding: 10px 22px;" onclick="keepFlying()">KEEP FLYING</button>
+          <button class="hangar-buy" style="padding: 10px 22px;" onclick="location.reload()">FLY AGAIN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mission Briefing (after each warp) -->
+  <div id="briefing-modal" class="modal-overlay" style="background: rgba(2, 6, 16, 0.55);">
+    <div class="modal-card" style="max-width: 560px;">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <div>
+            <div class="modal-title">[MISSION BRIEFING]</div>
+            <div id="brief-sector" style="font-size: 10px; color: #00f0ff; letter-spacing: 1px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="hangar-row">
+          <div><span class="row-name">OBJECTIVE</span><br><span id="brief-objective" class="row-desc"></span></div>
+        </div>
+        <div class="hangar-row">
+          <div><span class="row-name">HOSTILE FORCES</span><br><span id="brief-intel" class="row-desc"></span></div>
+        </div>
+        <div class="hangar-row">
+          <div><span class="row-name">THEATER</span><br><span id="brief-theater" class="row-desc"></span></div>
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+          <button class="hangar-buy" style="padding: 10px 26px;" onclick="hideBriefing()">LAUNCH</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="cockpit-frame"></div>
   <div id="dash-console">
     <span><span class="dash-label">SPD </span><span id="dash-spd">480</span></span>
@@ -1548,6 +1618,9 @@
     let playerBoltColor = 0xff3d3d, enemyBoltColor = 0x39ff6a;
     let wingOrder = 'attack';
     let capitals = [], capBolts = [], capFireTimer = 0;
+    let blastLight = null, engineTrails = [], trailTick = 0;
+    let kills = 0, gameEnded = false, bossDefeated = false;
+    const gameStartedAt = Date.now();
     let playerMats = {};
     let loadout = 'rapid';
     const LOADOUTS = {
@@ -1714,11 +1787,11 @@
       const ctx = canvas.getContext('2d');
 
       // Base armor plate color
-      ctx.fillStyle = '#1e293b';
+      ctx.fillStyle = '#43536e';
       ctx.fillRect(0, 0, 512, 512);
 
       // Panel grids & seams
-      ctx.strokeStyle = '#0f172a';
+      ctx.strokeStyle = '#232f47';
       ctx.lineWidth = 3;
       for (let x = 64; x < 512; x += 128) {
         ctx.beginPath();
@@ -1734,7 +1807,7 @@
       }
 
       // Rivets & micro-details
-      ctx.fillStyle = '#64748b';
+      ctx.fillStyle = '#9fb0cc';
       for (let x = 60; x < 512; x += 128) {
         for (let y = 16; y < 512; y += 32) {
           ctx.beginPath();
@@ -1892,6 +1965,9 @@
 
       // Celestial Backgrounds
       buildDeepSpaceStarfield();
+      buildDistantNebulae();
+      blastLight = new THREE.PointLight(0xffd9a0, 0, 400, 2);
+      scene.add(blastLight);
       buildRotatingSpiralGalaxy();
       buildSectorCelestialPlanet(SECTORS[0]);
       buildCapitalShips();
@@ -1946,6 +2022,54 @@
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, 64, 64);
       return new THREE.CanvasTexture(c);
+    }
+
+    let glowTexShared = null;
+    function sharedGlowSprite() {
+      if (!glowTexShared) glowTexShared = generateGlowSprite();
+      return glowTexShared;
+    }
+
+    function buildDistantNebulae() {
+      const tex = sharedGlowSprite();
+      [[0x2447a3, -2600, 500, -2400, 3200, 0.16], [0x5b2a86, 2400, -300, -2600, 2800, 0.13], [0x0e5a7a, 300, 900, 2800, 3600, 0.12]].forEach(([col, x, y, z, size, op]) => {
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+        sp.position.set(x, y, z);
+        sp.scale.set(size, size, 1);
+        scene.add(sp);
+      });
+    }
+
+    function updateEngineTrails() {
+      trailTick++;
+      if (trailTick % 3 === 0) {
+        const ships = [player, ...wingmen];
+        ships.forEach((s) => {
+          if (!s) return;
+          [-0.85, 0.85].forEach((x) => {
+            if (engineTrails.length > 130) return;
+            const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: sharedGlowSprite(), color: 0x66d9ff, transparent: true, opacity: 0.26, blending: THREE.AdditiveBlending, depthWrite: false }));
+            sp.position.copy(s.localToWorld(new THREE.Vector3(x, 0, 5.2)));
+            sp.userData = { life: 15 };
+            sp.scale.set(1.0, 1.0, 1);
+            scene.add(sp);
+            engineTrails.push(sp);
+          });
+        });
+      }
+      for (let i = engineTrails.length - 1; i >= 0; i--) {
+        const sp = engineTrails[i];
+        sp.userData.life--;
+        sp.material.opacity *= 0.9;
+        const s = sp.scale.x + 0.045;
+        sp.scale.set(s, s, 1);
+        if (sp.userData.life <= 0 || sp.material.opacity < 0.03) {
+          sp.material.dispose();
+          scene.remove(sp);
+          engineTrails.splice(i, 1);
+        }
+      }
+      if (blastLight && blastLight.intensity > 0) blastLight.intensity *= 0.86;
     }
 
     // High-Density Deep Space Starfield
@@ -2688,23 +2812,24 @@
 
       const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
 
-      // Left Cannon
+      const convergePoint = player.position.clone().add(forward.clone().multiplyScalar(130));
+      // Left Cannon (converged on crosshair)
       const pLeft = new THREE.Mesh(pGeo, pMat);
-      pLeft.quaternion.copy(player.quaternion);
-      pLeft.rotateX(Math.PI / 2);
-      const leftOffset = new THREE.Vector3(-5.1, -0.2, 0.9).applyQuaternion(player.quaternion);
-      pLeft.position.copy(player.position).add(leftOffset);
-      pLeft.userData = { vel: forward.clone().multiplyScalar(load.speed), damage: load.dmg + weaponDamageBonus, life: load.life };
+      const leftMuzzle = new THREE.Vector3(-5.1, -0.2, 0.9).applyQuaternion(player.quaternion).add(player.position);
+      const leftDir = convergePoint.clone().sub(leftMuzzle).normalize();
+      pLeft.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), leftDir);
+      pLeft.position.copy(leftMuzzle);
+      pLeft.userData = { vel: leftDir.multiplyScalar(load.speed), damage: load.dmg + weaponDamageBonus, life: load.life };
       scene.add(pLeft);
       playerProjectiles.push(pLeft);
 
-      // Right Cannon
+      // Right Cannon (converged on crosshair)
       const pRight = new THREE.Mesh(pGeo, pMat);
-      pRight.quaternion.copy(player.quaternion);
-      pRight.rotateX(Math.PI / 2);
-      const rightOffset = new THREE.Vector3(5.1, -0.2, 0.9).applyQuaternion(player.quaternion);
-      pRight.position.copy(player.position).add(rightOffset);
-      pRight.userData = { vel: forward.clone().multiplyScalar(load.speed), damage: load.dmg + weaponDamageBonus, life: load.life };
+      const rightMuzzle = new THREE.Vector3(5.1, -0.2, 0.9).applyQuaternion(player.quaternion).add(player.position);
+      const rightDir = convergePoint.clone().sub(rightMuzzle).normalize();
+      pRight.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), rightDir);
+      pRight.position.copy(rightMuzzle);
+      pRight.userData = { vel: rightDir.multiplyScalar(load.speed), damage: load.dmg + weaponDamageBonus, life: load.life };
       scene.add(pRight);
       playerProjectiles.push(pRight);
     }
@@ -2749,6 +2874,16 @@
       ring.position.copy(pos);
       ring.lookAt(camera.position);
       ring.userData = { scale: 1, maxScale: isHeavy ? 45 : 25 };
+      const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: sharedGlowSprite(), color: color, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false }));
+      flash.position.copy(pos);
+      flash.userData = { scale: isHeavy ? 10 : 5, maxScale: isHeavy ? 55 : 28 };
+      flash.scale.set(flash.userData.scale, flash.userData.scale, 1);
+      scene.add(flash);
+      particles.push(flash);
+      if (isHeavy && blastLight) {
+        blastLight.position.copy(pos);
+        blastLight.intensity = 500;
+      }
       scene.add(ring);
       particles.push(ring);
 
@@ -3051,7 +3186,26 @@
         sec.startMessage,
         `${sec.objectiveText} (0 / ${sec.targetEnemies})`
       );
+      showMissionBriefing(sec);
     };
+    let briefingTimer = null;
+
+    function showMissionBriefing(sec) {
+      document.getElementById('brief-sector').innerText = `${sec.badge} — ${sec.name}`;
+      document.getElementById('brief-objective').innerText = `${sec.objectiveText} (${sec.targetEnemies} targets)`;
+      const intel = { renegade_jet: 'Renegade interceptor jets, fast and aggressive', rocket_ship: 'Heavy rocket gunships, armored, slow', alien_swarm: 'Alien bioships, erratic swarm tactics', mixed: 'Mixed hostile fleet: jets, bioships and siege bombers', boss: 'SUPREME DREADNOUGHT plus alien escorts' };
+      document.getElementById('brief-intel').innerText = intel[sec.enemyType] || 'Unknown contacts';
+      document.getElementById('brief-theater').innerText = `${sec.name}${sec.planetRings ? ' — ringed giant on approach' : ' — deep field engagement'}`;
+      document.getElementById('briefing-modal').style.display = 'flex';
+      if (briefingTimer) clearTimeout(briefingTimer);
+      briefingTimer = setTimeout(hideBriefing, 9000);
+    }
+
+    window.hideBriefing = function() {
+      document.getElementById('briefing-modal').style.display = 'none';
+      if (briefingTimer) { clearTimeout(briefingTimer); briefingTimer = null; }
+    };
+
     // Trader Hangar, Fleet Wingmen, Crew Champions, Salvage & Discovery
     function showToast(msg) {
       const el = document.getElementById('toast');
@@ -3077,6 +3231,41 @@
       document.getElementById('shards-val').innerText = shards;
       return true;
     }
+
+    function fmtTime(ms) {
+      const s = Math.floor(ms / 1000);
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function showEndScreen(won) {
+      if (gameEnded) return;
+      gameEnded = true;
+      document.getElementById('hangar-modal').style.display = 'none';
+      hangarOpen = false;
+      if (!won) {
+        createExplosion(player.position, 0xff3d3d, true);
+        player.visible = false;
+        isPaused = true;
+      }
+      const title = document.getElementById('end-title');
+      title.innerText = won ? '[GALAXY LIBERATED]' : '[SHIP DESTROYED]';
+      title.style.color = won ? '#4ade80' : '#f87171';
+      document.getElementById('end-sub').innerText = won
+        ? 'The Dreadnought is dust. The lanes are open. The fleet owes you a drink.'
+        : 'Your fighter broke apart in the dark. The fleet will remember the fight.';
+      document.getElementById('end-score').innerText = score;
+      document.getElementById('end-kills').innerText = kills;
+      document.getElementById('end-sectors').innerText = `${discoveredSectors.length}/5`;
+      document.getElementById('end-time').innerText = fmtTime(Date.now() - gameStartedAt);
+      document.getElementById('btn-keep-flying').style.display = won ? 'inline-block' : 'none';
+      document.getElementById('end-screen').style.display = 'flex';
+      playSound(won ? 'warp' : 'explosion');
+    }
+
+    window.keepFlying = function() {
+      document.getElementById('end-screen').style.display = 'none';
+      showToast('FREE FLIGHT — THE GALAXY IS YOURS');
+    };
 
     window.cycleLoadout = function() {
       const order = ['rapid', 'heavy', 'lance'];
@@ -3462,6 +3651,10 @@
       document.getElementById('dash-shd').innerText = `${Math.round(playerShield)}%`;
       document.getElementById('dash-hul').innerText = `${Math.round(playerHull)}%`;
       document.getElementById('dash-ord').innerText = wingOrder.toUpperCase();
+      if (!gameEnded && factionChosen) {
+        if (playerHull <= 0) showEndScreen(false);
+        else if (bossDefeated) showEndScreen(true);
+      }
 
       // Apply Rotations to Player Starfighter (Pitch, Yaw, Roll)
       const rotDelta = new THREE.Quaternion();
@@ -3538,6 +3731,7 @@
               createExplosion(e.position, 0xff3b30, true);
               scene.remove(e);
               enemies.splice(j, 1);
+              kills++;
               shardGain(e.userData.shards || 2);
               if (Math.random() < 0.35) spawnSalvagePod(e.position);
               score += 250;
@@ -3649,6 +3843,8 @@
               boss = null;
               bossActive = false;
               score += 10000;
+              kills++;
+              bossDefeated = true;
               document.getElementById('score-val').innerText = score;
 
               updateStoryTransmission(
@@ -3805,6 +4001,7 @@
 
       // 10. Fleet Wingmen, Salvage Pods, Crew Engineer Regen, Capital Battle
       updateWingmen();
+      updateEngineTrails();
       updateSalvagePods();
       updateCapitals();
       if (crewHired.engineer && playerHull < 100) {

@@ -1,0 +1,4309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FOUNDATION: ORGANIC SETTLEMENT SIMULATOR</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #7ec0ee;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      color: #2c2416;
+    }
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Vibrant Medieval Daytime HUD */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px 20px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      pointer-events: auto;
+    }
+
+    /* Daytime Realm Nameplate (Warm Parchment & Gold Trim) */
+    .town-plate {
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 8px 18px;
+      box-shadow: 0 4px 18px rgba(60, 40, 20, 0.18);
+      display: flex;
+      flex-direction: column;
+    }
+    .town-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      color: #5c3818;
+      text-transform: uppercase;
+      font-family: Georgia, serif;
+    }
+    .town-sub {
+      font-size: 10px;
+      color: #8c6838;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+    }
+
+    /* Resource Ledger (Bright Warm Cream) */
+    .resource-ledger {
+      display: flex;
+      gap: 14px;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 8px 18px;
+      box-shadow: 0 4px 18px rgba(60, 40, 20, 0.18);
+    }
+    .res-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #3e2714;
+    }
+    .res-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #8c6838;
+      background: #fdf3e0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #e8cd9b;
+    }
+
+    /* Population & Happiness Badge */
+    .pop-badge {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 8px 16px;
+      color: #3e2714;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 4px 18px rgba(60, 40, 20, 0.18);
+    }
+
+    /* Left Quest & Estate Dispatch Card */
+    .quest-card {
+      position: absolute;
+      top: 75px;
+      left: 20px;
+      width: 290px;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 6px 22px rgba(60, 40, 20, 0.2);
+      pointer-events: auto;
+      font-family: Georgia, serif;
+    }
+    .quest-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #8c6838;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .quest-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #5c3818;
+      margin-bottom: 6px;
+    }
+    .quest-desc {
+      font-size: 11px;
+      color: #5c4530;
+      line-height: 1.45;
+      font-family: 'Segoe UI', sans-serif;
+      margin-bottom: 8px;
+    }
+    .quest-progress {
+      font-size: 11px;
+      font-weight: 700;
+      color: #15803d;
+      font-family: monospace;
+    }
+
+    /* Bottom Building Placement Dock */
+    .dock-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      pointer-events: auto;
+    }
+    .dock-filter-bar {
+      display: flex;
+      gap: 6px;
+      background: rgba(255, 252, 245, 0.96);
+      border: 1px solid #c9933b;
+      border-radius: 8px;
+      padding: 3px 8px;
+      box-shadow: 0 2px 8px rgba(60, 40, 20, 0.15);
+      overflow-x: auto;
+      max-width: 95vw;
+    }
+    .filter-tab {
+      padding: 3px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #785223;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .filter-tab:hover {
+      background: #faeed4;
+      color: #3b220c;
+    }
+    .filter-tab.active {
+      background: #c9933b;
+      color: #fffdf5;
+      border-color: #8c5818;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+    .building-dock {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 12px;
+      padding: 8px 12px;
+      box-shadow: 0 8px 25px rgba(60, 40, 20, 0.25);
+      max-width: 95vw;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #c9933b #fdf8ee;
+    }
+    .b-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: #fdf8ee;
+      border: 1px solid #c9933b;
+      border-radius: 8px;
+      padding: 8px 12px;
+      min-width: 86px;
+      cursor: pointer;
+      color: #4a3420;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .b-btn:hover {
+      background: #fcedd0;
+      border-color: #b87a20;
+      transform: translateY(-2px);
+    }
+    .b-btn.active {
+      background: #e8cd9b;
+      border-color: #8c5818;
+      box-shadow: 0 0 10px rgba(201, 147, 59, 0.6);
+      transform: translateY(-3px);
+    }
+    .b-tag {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #8c6838;
+    }
+    .b-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .b-cost {
+      font-size: 9px;
+      color: #855d38;
+    }
+
+    .controls-hint {
+      background: rgba(255, 252, 245, 0.95);
+      border: 1px solid #c9933b;
+      border-radius: 6px;
+      padding: 4px 14px;
+      font-size: 11px;
+      color: #4a3420;
+      font-weight: 600;
+      display: flex;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(60, 40, 20, 0.12);
+    }
+    .controls-hint kbd {
+      background: #5c3818;
+      color: #f7e6b5;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 10px;
+    }
+
+    /* Villager & Building Inspector Card */
+    #inspector-card {
+      position: absolute;
+      bottom: 120px;
+      right: 20px;
+      width: 270px;
+      background: rgba(255, 252, 245, 0.98);
+      border: 2px solid #c9933b;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 6px 25px rgba(60, 40, 20, 0.22);
+      display: none;
+      pointer-events: auto;
+      font-family: Georgia, serif;
+    }
+    .insp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #c9933b;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .insp-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #5c3818;
+    }
+    .insp-close {
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: bold;
+      color: #8c6838;
+      cursor: pointer;
+    }
+    .insp-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 4px;
+      color: #5c4530;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .insp-val {
+      font-weight: 700;
+      color: #2c2416;
+    }
+
+    /* Settings & Pause Modal (ESC Key) */
+    #settings-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-box {
+      width: 90%;
+      max-width: 620px;
+      background: #fffdf9;
+      border: 3px solid #c9933b;
+      border-radius: 12px;
+      box-shadow: 0 10px 45px rgba(0, 0, 0, 0.35);
+      padding: 24px 28px;
+      color: #3b2818;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      font-family: Georgia, serif;
+      color: #5c3818;
+      border-bottom: 2px solid #c9933b;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .settings-row input[type="range"] {
+      width: 180px;
+      accent-color: #c9933b;
+    }
+    .settings-row select {
+      background: #fdf8ee;
+      border: 1px solid #c9933b;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      color: #3b2818;
+    }
+    .btn-action {
+      background: #c9933b;
+      border: 1px solid #8c5818;
+      border-radius: 6px;
+      color: #fffdf9;
+      padding: 8px 18px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      background: #b87a20;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div id="hud">
+    <!-- Top Bar: Realm Name & Resource Ledger -->
+    <div class="top-bar">
+      <div class="town-plate">
+        <div class="town-title">FOUNDATION: KINGDOM OF THE MISTY FALLS</div>
+        <div class="town-sub">REALISTIC MEDIEVAL REALM STRATEGY & SETTLEMENT SIMULATION</div>
+      </div>
+
+      <!-- Realm Progression & Prestige Bar -->
+      <div class="realm-level-badge">
+        <div class="lvl-title">[LVL <span id="realm-lvl">1</span>: <span id="realm-rank">HAMLET</span>]</div>
+        <div class="lvl-xp-bar"><div id="lvl-xp-fill" class="lvl-xp-fill" style="width: 0%;"></div></div>
+        <div class="lvl-sub">[PRESTIGE: <span id="realm-prestige">0</span> PTS] &bull; [XP: <span id="realm-xp">0</span>/<span id="realm-xp-next">100</span>]</div>
+      </div>
+
+      <div class="resource-ledger">
+        <div class="res-item"><span class="res-tag">[GOLD]</span> <span id="res-gold">300</span></div>
+        <div class="res-item"><span class="res-tag">[WOOD]</span> <span id="res-wood">50</span></div>
+        <div class="res-item"><span class="res-tag">[STONE]</span> <span id="res-stone">30</span></div>
+        <div class="res-item"><span class="res-tag">[IRON]</span> <span id="res-iron">10</span></div>
+        <div class="res-item"><span class="res-tag">[BERRIES]</span> <span id="res-berries">30</span></div>
+        <div class="res-item"><span class="res-tag">[BREAD]</span> <span id="res-bread">20</span></div>
+        <div class="res-item"><span class="res-tag">[FISH]</span> <span id="res-fish">10</span></div>
+      </div>
+
+      <div class="pop-badge">
+        <div>[SERFS: <span id="pop-count" style="color: #0284c7; font-weight: 800;">6</span>]</div>
+        <div>[HAPPINESS: <span id="pop-happy" style="color: #15803d; font-weight: 800;">100%</span>]</div>
+        <button id="btn-craft-hud" class="btn-action" onclick="toggleCraftingModal()" style="padding: 4px 9px; font-size: 10px; background: #d97706; border-color: #b45309;">[CRAFTING]</button>
+        <button id="btn-save-hud" class="btn-action" onclick="saveRealmGame()" style="padding: 4px 9px; font-size: 10px; background: #16a34a; border-color: #15803d;">[SAVE]</button>
+        <button id="btn-load-hud" class="btn-action" onclick="loadRealmGame()" style="padding: 4px 9px; font-size: 10px; background: #2563eb; border-color: #1d4ed8;">[LOAD]</button>
+        <button id="btn-weather-hud" class="btn-action" onclick="cycleWeatherCondition()" style="padding: 4px 8px; font-size: 10px; background: #0284c7; border-color: #0369a1;">[WEATHER: <span id="weather-name">SUNNY</span>]</button>
+        <button id="btn-hints-hud" class="btn-action" onclick="toggleHintsModal()" style="padding: 4px 8px; font-size: 10px; background: #7c3aed; border-color: #6d28d9;">[?] HINTS</button>
+        <button id="btn-settings-hud" class="btn-action" style="padding: 4px 8px; font-size: 10px;">[SETTINGS]</button>
+      </div>
+    </div>
+
+    <!-- Left Quest & Royal Tasks Card -->
+    <div class="quest-card">
+      <div class="quest-tabs">
+        <button id="tab-campaign" class="q-tab active" onclick="switchMissionTab('campaign')">[SOVEREIGN CAMPAIGN]</button>
+        <button id="tab-tasks" class="q-tab" onclick="switchMissionTab('tasks')">[ROYAL TASKS & BOUNTIES]</button>
+      </div>
+
+      <div id="panel-campaign">
+        <div class="quest-tag">[ESTATE CHARTER // REIGN MILESTONES]</div>
+        <div id="quest-title" class="quest-title">1. Lay the Foundation</div>
+        <div id="quest-desc" class="quest-desc">Construct a Lumber Camp and a Town Well to secure vital supplies for your serfs.</div>
+        <div id="quest-progress" class="quest-progress">[PROGRESS: 0/2 BUILDINGS]</div>
+      </div>
+
+      <div id="panel-tasks" style="display: none; max-height: 175px; overflow-y: auto;">
+        <div class="quest-tag">[ACTIVE REALM BOUNTIES]</div>
+        <div id="tasks-list"></div>
+      </div>
+    </div>
+
+    <!-- Villager / Building Inspector Card -->
+    <div id="inspector-card">
+      <div class="insp-header">
+        <div id="insp-title" class="insp-title">Godwin the Woodcutter</div>
+        <button class="insp-close" onclick="closeInspector()">[X]</button>
+      </div>
+      <div class="insp-row"><span>Status:</span> <span id="insp-status" class="insp-val">Serf</span></div>
+      <div class="insp-row"><span>Profession:</span> <span id="insp-job" class="insp-val">Woodcutter</span></div>
+      <div class="insp-row"><span>Current Task:</span> <span id="insp-task" class="insp-val">Harvesting Oak</span></div>
+      <div class="insp-row"><span>Hunger:</span> <span id="insp-hunger" class="insp-val" style="color: #15803d;">Satisfied</span></div>
+      <div class="insp-row"><span>Thirst:</span> <span id="insp-thirst" class="insp-val" style="color: #15803d;">Quenched</span></div>
+      <div class="insp-row"><span>Shelter:</span> <span id="insp-shelter" class="insp-val" style="color: #15803d;">Thatched Cottage</span></div>
+
+      <!-- Worker Reassignment Vocation Panel -->
+      <div class="insp-assign-box">
+        <div class="insp-assign-title">[REASSIGN VOCATION & RESOURCE]</div>
+        <div class="vocation-grid">
+          <button class="voc-btn" onclick="reassignSelectedVillager('Woodcutter')">[WOOD] Woodcutter</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Stone Mason')">[STONE] Stone Mason</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Gold Miner')">[GOLD] Gold Miner</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Forager')">[BERRIES] Forager</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Fisherman')">[FISH] Fisherman</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Farmer')">[CROPS] Farmer</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Baker')">[BREAD] Baker</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Blacksmith')">[IRON] Blacksmith</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Guard')">[DEF] Royal Guard</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Hunter')">[HUNT] Hunter</button>
+          <button class="voc-btn" onclick="reassignSelectedVillager('Laborer')">[ALL] Laborer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Building Placement Dock -->
+    <div class="dock-container">
+      <div class="controls-hint">
+        <span><kbd>WASD / Arrows</kbd> Pan View</span>
+        <span><kbd>Right-Drag</kbd> Rotate Horizon</span>
+        <span><kbd>Mouse Scroll</kbd> Zoom 8m - 260m</span>
+        <span><kbd>R</kbd> Rotate Structure</span>
+        <span><kbd>ESC</kbd> Settings & Pause</span>
+      </div>
+
+      <!-- Kingdom Category Filter Tabs -->
+      <div class="dock-filter-bar">
+        <button class="filter-tab active" onclick="filterBuildings('all', this)">[ALL REALM] (19)</button>
+        <button class="filter-tab" onclick="filterBuildings('civic', this)">[CIVIC & HOMES]</button>
+        <button class="filter-tab" onclick="filterBuildings('industry', this)">[INDUSTRY]</button>
+        <button class="filter-tab" onclick="filterBuildings('food', this)">[FOOD & LIVING]</button>
+        <button class="filter-tab" onclick="filterBuildings('military', this)">[MILITARY]</button>
+        <button class="filter-tab" onclick="filterBuildings('faith', this)">[FAITH & MONUMENT]</button>
+      </div>
+
+      <div class="building-dock" id="building-dock-list">
+        <!-- CIVIC & CORE -->
+        <div class="b-btn" data-cat="civic" onclick="selectBuildType('center')">
+          <span class="b-tag">[CORE]</span>
+          <span class="b-name">Town Hall</span>
+          <span class="b-cost">FREE</span>
+        </div>
+        <div class="b-btn" data-cat="civic" onclick="selectBuildType('well')">
+          <span class="b-tag">[CIVIC]</span>
+          <span class="b-name">Town Well</span>
+          <span class="b-cost">10 Stone</span>
+        </div>
+        <div class="b-btn" data-cat="civic" onclick="selectBuildType('cottage')">
+          <span class="b-tag">[RES]</span>
+          <span class="b-name">Cottage</span>
+          <span class="b-cost">12W, 5S</span>
+        </div>
+        <div class="b-btn" data-cat="civic" onclick="selectBuildType('apothecary')">
+          <span class="b-tag">[CIVIC]</span>
+          <span class="b-name">Apothecary</span>
+          <span class="b-cost">18W, 12S, 15G</span>
+        </div>
+
+        <!-- INDUSTRY & GATHERING -->
+        <div class="b-btn" data-cat="industry" onclick="selectBuildType('lumber')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Lumber Camp</span>
+          <span class="b-cost">15 Wood</span>
+        </div>
+        <div class="b-btn" data-cat="industry" onclick="selectBuildType('quarry')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Stone Quarry</span>
+          <span class="b-cost">20 Wood</span>
+        </div>
+        <div class="b-btn" data-cat="industry" onclick="selectBuildType('forge')">
+          <span class="b-tag">[PROD]</span>
+          <span class="b-name">Blacksmith</span>
+          <span class="b-cost">25W, 30S, 15G</span>
+        </div>
+        <div class="b-btn" data-cat="industry" onclick="selectBuildType('granary')">
+          <span class="b-tag">[LOG]</span>
+          <span class="b-name">Granary</span>
+          <span class="b-cost">35W, 25S, 10G</span>
+        </div>
+
+        <!-- FOOD & SUSTENANCE -->
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('market')">
+          <span class="b-tag">[COMM]</span>
+          <span class="b-name">Market Stall</span>
+          <span class="b-cost">15W, 5G</span>
+        </div>
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('windmill')">
+          <span class="b-tag">[AGRI]</span>
+          <span class="b-name">Windmill</span>
+          <span class="b-cost">25W, 10S</span>
+        </div>
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('bakery')">
+          <span class="b-tag">[FOOD]</span>
+          <span class="b-name">Bread Bakery</span>
+          <span class="b-cost">20W, 15S, 10G</span>
+        </div>
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('tavern')">
+          <span class="b-tag">[SOC]</span>
+          <span class="b-name">Tavern & Inn</span>
+          <span class="b-cost">35W, 20S, 20G</span>
+        </div>
+        <div class="b-btn" data-cat="food" onclick="selectBuildType('dock')">
+          <span class="b-tag">[FOOD]</span>
+          <span class="b-name">Fishing Pier</span>
+          <span class="b-cost">30W, 10S, 5G</span>
+        </div>
+
+        <!-- MILITARY & DEFENSE -->
+        <div class="b-btn" data-cat="military" onclick="selectBuildType('barracks')">
+          <span class="b-tag">[MIL]</span>
+          <span class="b-name">Barracks</span>
+          <span class="b-cost">40W, 35S, 30G</span>
+        </div>
+        <div class="b-btn" data-cat="military" onclick="selectBuildType('gatehouse')">
+          <span class="b-tag">[DEF]</span>
+          <span class="b-name">Stone Gate</span>
+          <span class="b-cost">20W, 50S, 15G</span>
+        </div>
+        <div class="b-btn" data-cat="military" onclick="selectBuildType('keep')">
+          <span class="b-tag">[DEF]</span>
+          <span class="b-name">Lord's Keep</span>
+          <span class="b-cost">40W, 60S, 20G</span>
+        </div>
+
+        <!-- FAITH & MONUMENTS -->
+        <div class="b-btn" data-cat="faith" onclick="selectBuildType('church')">
+          <span class="b-tag">[FAITH]</span>
+          <span class="b-name">Rustic Church</span>
+          <span class="b-cost">20W, 40S</span>
+        </div>
+        <div class="b-btn" data-cat="faith" onclick="selectBuildType('monastery')">
+          <span class="b-tag">[FAITH]</span>
+          <span class="b-name">Monastery</span>
+          <span class="b-cost">40W, 50S, 25G</span>
+        </div>
+        <div class="b-btn" data-cat="faith" onclick="selectBuildType('cathedral')">
+          <span class="b-tag">[MON]</span>
+          <span class="b-name">Cathedral</span>
+          <span class="b-cost">80W, 120S, 80G</span>
+        </div>
+
+        <!-- ZONING TOOL -->
+        <div class="b-btn" onclick="toggleZoningTool()" style="border-color: #15803d;">
+          <span class="b-tag" style="color: #15803d;">[ZONE]</span>
+          <span class="b-name" id="zone-btn-name">Paint Zone</span>
+          <span class="b-cost">Residential</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings & Pause Modal (ESC Key) -->
+  <div id="settings-modal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>[REALM SETTINGS & PAUSE]</span>
+        <span style="font-size: 11px; color: #8c6838; font-family: sans-serif;">PRESS ESC TO RESUME</span>
+      </div>
+
+      <div class="settings-row">
+        <span>Sunlight Brightness:</span>
+        <input type="range" id="slider-brightness" min="0.8" max="2.8" step="0.1" value="1.8">
+        <span id="val-brightness">180%</span>
+      </div>
+
+      <div class="settings-row">
+        <span>Master Audio Volume:</span>
+        <input type="range" id="slider-volume" min="0" max="1" step="0.05" value="0.75">
+        <span id="val-volume">75%</span>
+      </div>
+
+      <div class="settings-row">
+        <span>GPU Quality & Shaders:</span>
+        <select id="select-gpu">
+          <option value="ultra">Ultra (High PBR & Soft Shadows)</option>
+          <option value="high" selected>High (Optimal 60 FPS)</option>
+          <option value="medium">Performance (Low Shadows)</option>
+        </select>
+      </div>
+
+      <div class="settings-row">
+        <span>Resolution Scaling:</span>
+        <select id="select-resolution">
+          <option value="1.0" selected>Native 100% (1080p / 1440p / 4K)</option>
+          <option value="0.75">Balanced 75%</option>
+          <option value="0.5">High Performance 50%</option>
+        </select>
+      </div>
+
+      <div class="settings-row">
+        <span>Display Monitor:</span>
+        <select id="select-monitor">
+          <option value="1">Primary Desktop Display (Default)</option>
+          <option value="2">Secondary Studio Display</option>
+          <option value="vr">Meta Horizon XR Headset Display</option>
+        </select>
+      </div>
+
+      <div style="background: #fdf8ee; border: 1px solid #c9933b; border-radius: 8px; padding: 12px; margin-top: 14px; font-size: 11px; line-height: 1.6;">
+        <div style="font-weight: 800; color: #5c3818; margin-bottom: 2px;">
+          FOUNDATION: ORGANIC SETTLEMENT SIMULATOR (VIBRANT DAYTIME EDITION)
+        </div>
+        <div style="color: #6b4c30; margin-bottom: 6px;">
+          Inspired by Foundation (Polymorph Games). Grid-less organic medieval settlement building, dynamic desire footpaths, autonomous serfs, modular monuments, and estate supply chain economy.
+        </div>
+        <div>
+          <strong>Lead Developer:</strong> <a href="https://github.com/pinoyUnknown" target="_blank" style="color: #855d38; font-weight: bold;">github.com/pinoyUnknown</a> |
+          <a href="https://instagram.com/pinoyunknown" target="_blank" style="color: #855d38; font-weight: bold;">instagram.com/pinoyunknown</a>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+        <button class="btn-action" onclick="togglePauseSettings()">[RESUME REALM]</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from './lib/three.module.min.js';
+
+    // =========================================================================
+    // PROCEDURAL TEXTURE GENERATION (BRIGHT DAYLIGHT REALISM)
+    // =========================================================================
+    function createProceduralCanvas(width, height) {
+      const c = document.createElement('canvas');
+      c.width = width;
+      c.height = height;
+      return c;
+    }
+
+    // Bright Sunlit Meadow Grass with Clover & Wildflowers
+    function generateGrassTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      // Bright vibrant green
+      ctx.fillStyle = '#65a839';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Light grass blade flecks
+      for (let i = 0; i < 1400; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.strokeStyle = Math.random() > 0.5 ? '#7bc445' : '#57962f';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + (Math.random() - 0.5) * 6, y - 5 - Math.random() * 6);
+        ctx.stroke();
+      }
+
+      // Bright Daisies & Golden Buttercups
+      for (let i = 0; i < 120; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        ctx.fillStyle = Math.random() > 0.4 ? '#fef08a' : '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y, 2 + Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(16, 16);
+      return tex;
+    }
+
+    // Cobblestone Paving for Roads & Foundations
+    function generateCobbleTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#8a8275';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const step = 32;
+      for (let x = 0; x < 512; x += step) {
+        for (let y = 0; y < 512; y += step) {
+          ctx.fillStyle = (x + y) % 64 === 0 ? '#aba194' : '#9c9284';
+          ctx.beginPath();
+          ctx.roundRect(x + 2, y + 2, step - 4, step - 4, 6);
+          ctx.fill();
+        }
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Aged Oak Wood Beam Grain
+    function generateWoodTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#85562a';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let y = 0; y < 512; y += 48) {
+        ctx.strokeStyle = '#5a3818';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(512, y);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#9e6734';
+        ctx.lineWidth = 1;
+        for (let j = 0; j < 6; j++) {
+          ctx.beginPath();
+          ctx.moveTo(0, y + j * 8);
+          ctx.lineTo(512, y + j * 8 + Math.sin(j) * 4);
+          ctx.stroke();
+        }
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Golden Straw Thatch Roof
+    function generateThatchTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#d4b059';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let y = 0; y < 512; y += 24) {
+        for (let x = 0; x < 512; x += 12) {
+          ctx.strokeStyle = Math.random() > 0.5 ? '#ecd078' : '#b8943f';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + (Math.random() - 0.5) * 4, y + 22);
+          ctx.stroke();
+        }
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Warm Terracotta Clay Tiles
+    function generateClayTileTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#c25838';
+      ctx.fillRect(0, 0, 512, 512);
+
+      for (let y = 0; y < 512; y += 28) {
+        const offset = (y / 28) % 2 === 0 ? 0 : 16;
+        for (let x = -16; x < 528; x += 32) {
+          ctx.fillStyle = '#d96a48';
+          ctx.beginPath();
+          ctx.arc(x + offset + 16, y + 14, 14, 0, Math.PI);
+          ctx.fill();
+          ctx.strokeStyle = '#9e3f22';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Striped Medieval Market Stall Canopy
+    function generateCanopyTexture() {
+      const c = createProceduralCanvas(256, 256);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fffdf5';
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.fillStyle = '#dc2626'; // Vivid red stripes
+      for (let x = 0; x < 256; x += 64) {
+        ctx.fillRect(x, 0, 32, 256);
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Sparkling Turquoise Azure Water
+    function generateWaterTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 512, 512);
+      g.addColorStop(0, '#0284c7');
+      g.addColorStop(0.5, '#38bdf8');
+      g.addColorStop(1, '#0ea5e9');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.lineWidth = 2.5;
+      for (let i = 0; i < 45; i++) {
+        const y = Math.random() * 512;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(150, y + 20, 350, y - 20, 512, y);
+        ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(8, 8);
+      return tex;
+    }
+
+    // Half-Timbered Medieval Plaster & Dark Oak Beams
+    function generatePlasterTimberTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f4ede1';
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.fillStyle = 'rgba(205, 190, 170, 0.25)';
+      for (let i = 0; i < 300; i++) {
+        const px = Math.random() * 512, py = Math.random() * 512;
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5 + Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#3d2510';
+      ctx.fillRect(0, 0, 512, 24);
+      ctx.fillRect(0, 488, 512, 24);
+      ctx.fillRect(0, 0, 24, 512);
+      ctx.fillRect(488, 0, 24, 512);
+      ctx.fillRect(244, 0, 24, 512);
+      ctx.fillRect(0, 244, 512, 24);
+
+      ctx.lineWidth = 18;
+      ctx.strokeStyle = '#3d2510';
+      ctx.beginPath();
+      ctx.moveTo(24, 24); ctx.lineTo(244, 244);
+      ctx.moveTo(488, 24); ctx.lineTo(268, 244);
+      ctx.moveTo(24, 488); ctx.lineTo(244, 268);
+      ctx.moveTo(488, 488); ctx.lineTo(268, 268);
+      ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Coursed Ashlar Stone Brick for Castles, Gates & Cathedrals
+    function generateStoneBrickTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#544d42';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const rowH = 32;
+      const colW = 64;
+      for (let y = 0; y < 512; y += rowH) {
+        const isOdd = (y / rowH) % 2 === 1;
+        const xOffset = isOdd ? colW / 2 : 0;
+        for (let x = -colW; x < 512 + colW; x += colW) {
+          const shade = 142 + Math.floor(Math.sin(x * 15 + y * 9) * 22);
+          ctx.fillStyle = `rgb(${shade + 6}, ${shade}, ${shade - 10})`;
+          ctx.beginPath();
+          ctx.roundRect(x + xOffset + 2, y + 2, colW - 4, rowH - 4, 3);
+          ctx.fill();
+        }
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Ornate Circular Leaded Stained Glass
+    function generateStainedGlassTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#111827';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const colors = ['#dc2626', '#2563eb', '#d97706', '#16a34a', '#9333ea', '#0284c7'];
+      const cx = 256, cy = 256;
+      for (let r = 1; r <= 4; r++) {
+        const rIn = (r - 1) * 55 + 15;
+        const rOut = r * 55 + 15;
+        for (let s = 0; s < 12; s++) {
+          const a1 = (s / 12) * Math.PI * 2;
+          const a2 = ((s + 1) / 12) * Math.PI * 2;
+          ctx.fillStyle = colors[(s + r * 3) % colors.length];
+          ctx.beginPath();
+          ctx.arc(cx, cy, rOut, a1, a2);
+          ctx.arc(cx, cy, rIn, a2, a1, true);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.strokeStyle = '#1e293b';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        }
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Burnished Dark Wrought Iron
+    function generateIronTexture() {
+      const c = createProceduralCanvas(256, 256);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#2b323d';
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      for (let i = 0; i < 200; i++) {
+        ctx.fillRect(Math.random() * 256, Math.random() * 256, 2 + Math.random() * 4, 1);
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Dynamic White Water Rapids & Waterfall Foam
+    function generateWaterfallFoamTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 0, 512);
+      g.addColorStop(0, '#e0f2fe');
+      g.addColorStop(0.5, '#ffffff');
+      g.addColorStop(1, '#bae6fd');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.lineWidth = 4;
+      for (let i = 0; i < 80; i++) {
+        const x = Math.random() * 512;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + (Math.random() - 0.5) * 20, 512);
+        ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      for (let i = 0; i < 400; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(2, 4);
+      return tex;
+    }
+
+    // Sparkling Gold Vein Quartz Rock
+    function generateGoldVeinTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.fillStyle = '#1e293b';
+      for (let i = 0; i < 60; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * 512, Math.random() * 512, 10 + Math.random() * 25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Gleaming Golden Veins
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 8;
+      for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * 512, 0);
+        ctx.bezierCurveTo(Math.random() * 512, 170, Math.random() * 512, 340, Math.random() * 512, 512);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#fde047';
+      for (let i = 0; i < 150; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * 512, Math.random() * 512, 2 + Math.random() * 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Reddish Metallic Iron Ore Outcrop
+    function generateIronOreTexture() {
+      const c = createProceduralCanvas(512, 512);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.fillStyle = '#78350f';
+      for (let i = 0; i < 90; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * 512, Math.random() * 512, 8 + Math.random() * 22, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.strokeStyle = '#b91c1c';
+      ctx.lineWidth = 5;
+      for (let i = 0; i < 8; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, Math.random() * 512);
+        ctx.lineTo(512, Math.random() * 512);
+        ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Paper White Birch Bark with Dark Charcoal Lenticels
+    function generateBirchBarkTexture() {
+      const c = createProceduralCanvas(256, 256);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.fillStyle = '#0f172a';
+      for (let y = 8; y < 256; y += 14) {
+        if (Math.random() > 0.3) {
+          const x = Math.random() * 200;
+          const w = 12 + Math.random() * 32;
+          ctx.fillRect(x, y, w, 3);
+        }
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // =========================================================================
+    // PROCEDURAL WEB AUDIO SYNTHESIZER
+    // =========================================================================
+    let audioCtx = null;
+    let masterVolume = 0.75;
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioClass();
+        startPastoralAmbiance();
+      } catch (e) {
+        console.warn('AudioContext unavailable:', e);
+      }
+    }
+
+    function startPastoralAmbiance() {
+      if (!audioCtx) return;
+      try {
+        const bufSize = audioCtx.sampleRate * 2;
+        const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.06;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buf;
+        noise.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(340, audioCtx.currentTime);
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.04 * masterVolume, audioCtx.currentTime);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+
+        setInterval(() => {
+          if (audioCtx && Math.random() > 0.35) playBirdChirp();
+        }, 3600);
+      } catch (e) {}
+    }
+
+    function playBirdChirp() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      const baseFreq = 2200 + Math.random() * 800;
+      osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq + 600, audioCtx.currentTime + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq - 200, audioCtx.currentTime + 0.16);
+
+      gain.gain.setValueAtTime(0.02 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.18);
+    }
+
+    function playBuildHammerSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.1);
+
+      gain.gain.setValueAtTime(0.25 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.11);
+    }
+
+    function playWoodChopSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(130, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(45, audioCtx.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.2 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.13);
+    }
+
+    function playStoneChiselSound() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1450, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(480, audioCtx.currentTime + 0.08);
+
+      gain.gain.setValueAtTime(0.18 * masterVolume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playChurchBellSound() {
+      if (!audioCtx) return;
+      [440, 880, 1320].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime((0.15 / (i + 1)) * masterVolume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2.5);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 2.6);
+      });
+    }
+
+    function playQuestCompleteSound() {
+      if (!audioCtx) return;
+      const notes = [392, 523, 659, 784];
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.12);
+
+        gain.gain.setValueAtTime(0.0, audioCtx.currentTime + idx * 0.12);
+        gain.gain.linearRampToValueAtTime(0.15 * masterVolume, audioCtx.currentTime + idx * 0.12 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.12 + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.12);
+        osc.stop(audioCtx.currentTime + idx * 0.12 + 0.38);
+      });
+    }
+
+    // =========================================================================
+    // 3D SCENE, VIBRANT DAYLIGHT ENVIRONMENT & PROCEDURAL LANDSCAPE
+    // =========================================================================
+    let scene, camera, renderer;
+    let ambientLight, sunLight;
+    let terrainMesh, riverMesh;
+    let pathCanvas, pathCtx, pathTexture;
+
+    const trees = [];
+    const stoneRocks = [];
+    const goldVeins = [];
+    const ironOutcrops = [];
+    const berryBushes = [];
+    const wheatFields = [];
+    const riverFishSchools = [];
+    const wildlifeAnimals = [];
+    const clouds = [];
+
+    // Camera Orbit & Pan State
+    let camTarget = new THREE.Vector3(0, 0, 0);
+    let camDistance = 75; // Mouse scroll wheel scales 8m to 260m
+    let camPitch = 0.75;
+    let camYaw = 0.5;
+    let isRightDragging = false;
+    let prevMouseX = 0, prevMouseY = 0;
+
+    // =========================================================================
+    // DYNAMIC WEATHER CONDITIONS & 3D RAIN SYSTEM
+    // =========================================================================
+    const WEATHER_CONDITIONS = [
+      { name: 'SUNNY', sky: 0x7ec0ee, fogCol: 0xdbeafe, fogDensity: 0.0008, sunCol: 0xfffaed, sunInt: 3.8, ambCol: 0xfffaea, ambInt: 2.2, rain: false },
+      { name: 'RAIN', sky: 0x546274, fogCol: 0x788698, fogDensity: 0.0022, sunCol: 0xb0bec5, sunInt: 1.6, ambCol: 0xcfd8dc, ambInt: 1.5, rain: true },
+      { name: 'MIST', sky: 0x94a3b8, fogCol: 0xcfd8dc, fogDensity: 0.0036, sunCol: 0xfff7ed, sunInt: 2.0, ambCol: 0xf1f5f9, ambInt: 1.8, rain: false },
+      { name: 'SUNSET', sky: 0xf97316, fogCol: 0xfb923c, fogDensity: 0.0012, sunCol: 0xfdba74, sunInt: 3.2, ambCol: 0xfed7aa, ambInt: 2.0, rain: false }
+    ];
+    let currentWeatherIdx = 0;
+    let rainParticleSystem = null;
+    let rainTimer = 0;
+
+    function setupRainParticles() {
+      const rainCount = 1400;
+      const rainGeo = new THREE.BufferGeometry();
+      const rainPos = new Float32Array(rainCount * 3);
+
+      for (let i = 0; i < rainCount; i++) {
+        rainPos[i * 3] = (Math.random() - 0.5) * 450;
+        rainPos[i * 3 + 1] = Math.random() * 120;
+        rainPos[i * 3 + 2] = (Math.random() - 0.5) * 450;
+      }
+      rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+
+      const rainMat = new THREE.PointsMaterial({
+        color: 0x93c5fd,
+        size: 0.35,
+        transparent: true,
+        opacity: 0.75
+      });
+      rainParticleSystem = new THREE.Points(rainGeo, rainMat);
+      rainParticleSystem.visible = false;
+      scene.add(rainParticleSystem);
+    }
+
+    window.cycleWeatherCondition = function() {
+      initAudio();
+      currentWeatherIdx = (currentWeatherIdx + 1) % WEATHER_CONDITIONS.length;
+      applyWeatherCondition(WEATHER_CONDITIONS[currentWeatherIdx]);
+    };
+
+    function applyWeatherCondition(w) {
+      if (!scene || !renderer) return;
+      scene.background.setHex(w.sky);
+      scene.fog.color.setHex(w.fogCol);
+      scene.fog.density = w.fogDensity;
+
+      if (sunLight) {
+        sunLight.color.setHex(w.sunCol);
+        sunLight.intensity = w.sunInt;
+      }
+      if (ambientLight) {
+        ambientLight.color.setHex(w.ambCol);
+        ambientLight.intensity = w.ambInt;
+      }
+      if (rainParticleSystem) {
+        rainParticleSystem.visible = w.rain;
+      }
+
+      const el = document.getElementById('weather-name');
+      if (el) el.innerText = w.name;
+      showRealmNotice(`[ATMOSPHERE: ${w.name}] Realm conditions transitioned to ${w.name.toLowerCase()}!`);
+    }
+
+    window.toggleHintsModal = function() {
+      const modal = document.getElementById('hints-modal');
+      if (!modal) return;
+      modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    // =========================================================================
+    // RIVAL ENEMY TRIBAL ENCAMPMENT (THE CRIMSON WOLF MARAUDER CLAN)
+    // =========================================================================
+    const rivalRaiders = [];
+    let raiderAttackTimer = 0;
+
+    function setupRivalEnemyCamp() {
+      const campX = -140, campZ = 20;
+      const campY = getTerrainHeight(campX, campZ);
+      const campGroup = new THREE.Group();
+      campGroup.position.set(campX, campY, campZ);
+
+      const logMat = new THREE.MeshStandardMaterial({ map: generateWoodTexture(), roughness: 0.85 });
+      const tentMat = new THREE.MeshStandardMaterial({ color: 0x3d2716, roughness: 0.9 });
+      const warBannerMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.7 });
+
+      // Spiked Palisade Perimeter Wall
+      for (let angle = 0; angle < Math.PI * 2; angle += 0.28) {
+        if (angle > 0.4 && angle < 0.9) continue; // Camp Entrance Gate
+        const px = Math.cos(angle) * 22;
+        const pz = Math.sin(angle) * 20;
+        const spike = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.28, 4.2, 5), logMat);
+        spike.position.set(px, 2.1, pz);
+        spike.castShadow = true;
+        campGroup.add(spike);
+      }
+
+      // Wooden Barbarian Watchtower
+      const towerBase = new THREE.Mesh(new THREE.BoxGeometry(4.5, 9.0, 4.5), logMat);
+      towerBase.position.set(16, 4.5, 14);
+      campGroup.add(towerBase);
+      const towerPlatform = new THREE.Mesh(new THREE.BoxGeometry(6.0, 0.4, 6.0), logMat);
+      towerPlatform.position.set(16, 9.2, 14);
+      campGroup.add(towerPlatform);
+      const warBanner = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 3.5), warBannerMat);
+      warBanner.position.set(16, 11.5, 17);
+      campGroup.add(warBanner);
+
+      // 3 Conical Leather Teepee Tents
+      [[-8, -6], [8, -8], [-4, 8]].forEach(([tx, tz]) => {
+        const tent = new THREE.Mesh(new THREE.ConeGeometry(3.6, 5.0, 6), tentMat);
+        tent.position.set(tx, 2.5, tz);
+        tent.castShadow = true;
+        campGroup.add(tent);
+      });
+
+      // Tribal Campfire with Glowing Coals & Smoke
+      const coals = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 0.3, 8), new THREE.MeshBasicMaterial({ color: 0xff3b10 }));
+      coals.position.set(0, 0.15, 0);
+      campGroup.add(coals);
+      const fireGlow = new THREE.PointLight(0xff5722, 1.6, 14);
+      fireGlow.position.set(0, 1.4, 0);
+      campGroup.add(fireGlow);
+
+      scene.add(campGroup);
+
+      // Spawn 4 Rival Tribal Raiders
+      const raiderMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.8 });
+      for (let r = 0; r < 4; r++) {
+        const raider = new THREE.Group();
+        const rBody = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.46, 1.25, 8), raiderMat);
+        rBody.position.y = 1.0; raider.add(rBody);
+        const rHead = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), new THREE.MeshStandardMaterial({ color: 0xecd0a8 }));
+        rHead.position.y = 1.85; raider.add(rHead);
+        // Spiked Club weapon
+        const club = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.14, 1.2, 5), logMat);
+        club.position.set(0.5, 1.2, 0.3); club.rotation.x = 0.4; raider.add(club);
+
+        const rx = campX + (Math.random() - 0.5) * 16;
+        const rz = campZ + (Math.random() - 0.5) * 16;
+        raider.position.set(rx, getTerrainHeight(rx, rz), rz);
+        scene.add(raider);
+
+        rivalRaiders.push({
+          mesh: raider,
+          x: rx,
+          z: rz,
+          campX: campX,
+          campZ: campZ,
+          hp: 8,
+          state: 'guarding',
+          attackTimer: 0
+        });
+      }
+    }
+
+    function init3DEnvironment() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+
+      // VIBRANT CRYSTAL BLUE DAYLIGHT SKY (NO DARK COLOR!)
+      scene.background = new THREE.Color(0x7ec0ee);
+      scene.fog = new THREE.FogExp2(0xdbeafe, 0.0012);
+
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+      updateCameraPosition();
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.7; // Bright sunny daylight exposure
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      // SUNNY ILLUMINATION SUITE
+      ambientLight = new THREE.AmbientLight(0xfffaea, 2.2);
+      scene.add(ambientLight);
+
+      const hemi = new THREE.HemisphereLight(0xbae6fd, 0x86efac, 1.8);
+      scene.add(hemi);
+
+      sunLight = new THREE.DirectionalLight(0xfffaed, 3.8);
+      sunLight.position.set(150, 220, 90);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.near = 10;
+      sunLight.shadow.camera.far = 500;
+      sunLight.shadow.camera.left = -180;
+      sunLight.shadow.camera.right = 180;
+      sunLight.shadow.camera.top = 180;
+      sunLight.shadow.camera.bottom = -180;
+      scene.add(sunLight);
+
+      // Radiant Sun Orb in Sky
+      const sunGeo = new THREE.SphereGeometry(18, 16, 16);
+      const sunMat = new THREE.MeshBasicMaterial({ color: 0xfff4b8 });
+      const sunOrb = new THREE.Mesh(sunGeo, sunMat);
+      sunOrb.position.copy(sunLight.position);
+      scene.add(sunOrb);
+
+      setupDesirePathCanvas();
+      setupRollingTerrain();
+      setupWindingRiver();
+      setupFoliageAndRocks();
+      setupSkyClouds();
+
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function onWindowResize() {
+      if (!camera || !renderer) return;
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // Emergent Footpath Texture System
+    function setupDesirePathCanvas() {
+      pathCanvas = createProceduralCanvas(512, 512);
+      pathCtx = pathCanvas.getContext('2d');
+      pathCtx.clearRect(0, 0, 512, 512);
+      pathTexture = new THREE.CanvasTexture(pathCanvas);
+    }
+
+    function stampVillagerFootstep(worldX, worldZ) {
+      const u = ((worldX + 200) / 400) * 512;
+      const v = ((worldZ + 200) / 400) * 512;
+
+      pathCtx.fillStyle = 'rgba(120, 81, 43, 0.07)';
+      pathCtx.beginPath();
+      pathCtx.arc(u, v, 4.5, 0, Math.PI * 2);
+      pathCtx.fill();
+
+      pathTexture.needsUpdate = true;
+    }
+
+    // Procedural Elevation for Rolling Hills
+    function getTerrainHeight(x, z) {
+      const distFromCenter = Math.hypot(x, z);
+      const centerDamp = Math.min(1.0, distFromCenter / 50);
+
+      const h1 = Math.sin(x * 0.02) * Math.cos(z * 0.02) * 8;
+      const h2 = Math.sin(x * 0.045 + 1.2) * Math.sin(z * 0.035) * 4;
+      const h3 = Math.cos(x * 0.01 - z * 0.015) * 6;
+
+      // Northern Mountain Ridge & Cliff Precipice
+      let mountainRise = 0;
+      if (z < -105) {
+        mountainRise = Math.min(26, (-105 - z) * 0.55);
+      }
+
+      let riverDepth = 0;
+      const riverCenter = -22 + Math.sin(z * 0.03) * 14;
+      const distToRiver = Math.abs(x - riverCenter);
+      if (distToRiver < 16) {
+        if (z >= -105) {
+          riverDepth = (1 - distToRiver / 16) * 5.5;
+        } else {
+          riverDepth = (1 - distToRiver / 16) * 3.2;
+        }
+      }
+
+      return (h1 + h2 + h3) * centerDamp + mountainRise - riverDepth;
+    }
+
+    // 800x800 Open-World Vast Terrain
+    function setupRollingTerrain() {
+      const geo = new THREE.PlaneGeometry(800, 800, 160, 160);
+      geo.rotateX(-Math.PI * 0.5);
+
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const z = pos.getZ(i);
+        pos.setY(i, getTerrainHeight(x, z));
+      }
+      geo.computeVertexNormals();
+
+      const grassTex = generateGrassTexture();
+      const mat = new THREE.MeshStandardMaterial({
+        map: grassTex,
+        roughness: 0.8,
+        metalness: 0.05
+      });
+
+      terrainMesh = new THREE.Mesh(geo, mat);
+      terrainMesh.receiveShadow = true;
+      scene.add(terrainMesh);
+
+      // Overlay Desire Path Mesh
+      const pathMat = new THREE.MeshStandardMaterial({
+        map: pathTexture,
+        transparent: true,
+        opacity: 0.95,
+        roughness: 0.95,
+        polygonOffset: true,
+        polygonOffsetFactor: -1
+      });
+      const pathMesh = new THREE.Mesh(geo.clone(), pathMat);
+      scene.add(pathMesh);
+    }
+
+    // =========================================================================
+    // REALISTIC MOUNTAIN WATERFALL, RIVER GORGE & ARCHED STONE BRIDGE
+    // =========================================================================
+    let waterfallMesh = null;
+    let waterfallFoamTex = null;
+    const waterfallMistParticles = [];
+
+    function setupMountainWaterfall() {
+      waterfallFoamTex = generateWaterfallFoamTexture();
+      const fallMat = new THREE.MeshStandardMaterial({
+        map: waterfallFoamTex,
+        roughness: 0.1,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.92,
+        side: THREE.DoubleSide
+      });
+
+      // Cascading Vertical Waterfall Plane (18m drop from mountain plateau)
+      const fallGeo = new THREE.PlaneGeometry(18, 19, 16, 16);
+      waterfallMesh = new THREE.Mesh(fallGeo, fallMat);
+      waterfallMesh.position.set(-22, 7.2, -105.2);
+      scene.add(waterfallMesh);
+
+      // Rocky Cliff Escarpment flanking the waterfall
+      const cliffStoneMat = new THREE.MeshStandardMaterial({ map: generateStoneBrickTexture(), roughness: 0.9 });
+      [-16, 16].forEach(cx => {
+        const bluff = new THREE.Mesh(new THREE.DodecahedronGeometry(8.5, 1), cliffStoneMat);
+        bluff.position.set(-22 + cx, 8.5, -105);
+        bluff.scale.set(1.4, 2.2, 1.2);
+        bluff.castShadow = true;
+        scene.add(bluff);
+      });
+
+      // Plunge Pool Foam Ring at base
+      const poolGeo = new THREE.RingGeometry(4, 11, 24);
+      poolGeo.rotateX(-Math.PI * 0.5);
+      const poolMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.65 });
+      const poolRing = new THREE.Mesh(poolGeo, poolMat);
+      poolRing.position.set(-22, -2.1, -105);
+      scene.add(poolRing);
+
+      // Mist Spray Particles
+      const mistMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 });
+      for (let m = 0; m < 16; m++) {
+        const puff = new THREE.Mesh(new THREE.SphereGeometry(1.2 + Math.random() * 1.5, 6, 6), mistMat.clone());
+        puff.position.set(-22 + (Math.random() - 0.5) * 14, -1.5, -105 + (Math.random() - 0.5) * 8);
+        scene.add(puff);
+        waterfallMistParticles.push({
+          mesh: puff,
+          baseX: puff.position.x,
+          baseY: puff.position.y,
+          baseZ: puff.position.z,
+          age: Math.random() * 2.0,
+          speedY: 1.5 + Math.random() * 1.2,
+          lifetime: 2.2 + Math.random() * 1.0
+        });
+      }
+    }
+
+    // Arched Cobblestone River Bridge with Wooden Railings & Lanterns
+    function setupArchedRiverBridge() {
+      const bridgeGroup = new THREE.Group();
+      const stoneMat = new THREE.MeshStandardMaterial({ map: generateCobbleTexture(), roughness: 0.85 });
+      const woodMat = new THREE.MeshStandardMaterial({ map: generateWoodTexture(), roughness: 0.75 });
+
+      // Main Roadway Arch Span
+      const span = new THREE.Mesh(new THREE.BoxGeometry(26, 0.9, 6.5), stoneMat);
+      span.position.y = 0.45;
+      span.castShadow = true;
+      span.receiveShadow = true;
+      bridgeGroup.add(span);
+
+      // Bridge Abutment Piers on East and West banks
+      [-11, 11].forEach(px => {
+        const pier = new THREE.Mesh(new THREE.BoxGeometry(4.2, 4.0, 7.0), stoneMat);
+        pier.position.set(px, -1.6, 0);
+        pier.castShadow = true;
+        bridgeGroup.add(pier);
+      });
+
+      // Wooden Timber Guard Railings
+      [-2.9, 2.9].forEach(rz => {
+        const topRail = new THREE.Mesh(new THREE.BoxGeometry(26, 0.2, 0.25), woodMat);
+        topRail.position.set(0, 1.4, rz);
+        bridgeGroup.add(topRail);
+
+        for (let postX = -12; postX <= 12; postX += 3) {
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.0, 6), woodMat);
+          post.position.set(postX, 0.9, rz);
+          bridgeGroup.add(post);
+        }
+      });
+
+      // 4 Warm Glowing Bridge Lanterns
+      [[-9, -3.1], [9, -3.1], [-9, 3.1], [9, 3.1]].forEach(([lx, lz]) => {
+        const lPost = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.0, 6), woodMat);
+        lPost.position.set(lx, 1.4, lz);
+        bridgeGroup.add(lPost);
+
+        const glow = new THREE.PointLight(0xffb74d, 1.2, 8);
+        glow.position.set(lx, 2.4, lz);
+        bridgeGroup.add(glow);
+      });
+
+      bridgeGroup.position.set(-22, 0.2, 8);
+      scene.add(bridgeGroup);
+    }
+
+    // Woodcrafts, Farm Wagons, Chopping Stumps & Rustic Furnitures
+    function setupRusticWoodcraftsAndFurnitures() {
+      const woodMat = new THREE.MeshStandardMaterial({ map: generateWoodTexture(), roughness: 0.75 });
+      const ironMat = new THREE.MeshStandardMaterial({ map: generateIronTexture(), roughness: 0.45 });
+
+      // 1. Two-Wheeled Wooden Farm Transport Wagon
+      const wagon = new THREE.Group();
+      const wagonBed = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.0, 2.2), woodMat);
+      wagonBed.position.y = 1.0;
+      wagon.add(wagonBed);
+
+      [-1.2, 1.2].forEach(wz => {
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.25, 12), woodMat);
+        wheel.rotation.x = Math.PI * 0.5;
+        wheel.position.set(0, 0.8, wz);
+        wheel.castShadow = true;
+        wagon.add(wheel);
+      });
+
+      wagon.position.set(6, getTerrainHeight(6, 4), 4);
+      wagon.rotation.y = 0.4;
+      scene.add(wagon);
+
+      // 2. Woodchopping Stumps with Embedded Axes
+      [[-8, 14], [12, -18]].forEach(([sx, sz]) => {
+        const stump = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.8, 1.1, 8), woodMat);
+        stump.position.set(sx, getTerrainHeight(sx, sz) + 0.55, sz);
+        stump.castShadow = true;
+        scene.add(stump);
+
+        const axe = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.8, 0.3), ironMat);
+        axe.position.set(sx, stump.position.y + 0.6, sz);
+        axe.rotation.z = 0.3;
+        scene.add(axe);
+      });
+
+      // 3. Split-Rail Wooden Fences enclosing pastures
+      for (let f = 0; f < 8; f++) {
+        const fx = 18 + f * 3.5;
+        const fz = 18;
+        const fy = getTerrainHeight(fx, fz);
+        const fencePost = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 1.6, 6), woodMat);
+        fencePost.position.set(fx, fy + 0.8, fz);
+        scene.add(fencePost);
+
+        if (f < 7) {
+          const rail1 = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.12, 0.1), woodMat);
+          rail1.position.set(fx + 1.75, fy + 0.7, fz);
+          scene.add(rail1);
+          const rail2 = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.12, 0.1), woodMat);
+          rail2.position.set(fx + 1.75, fy + 1.2, fz);
+          scene.add(rail2);
+        }
+      }
+    }
+
+    // Winding Sparkling Blue River, Creeks & Mountain Lake
+    let mountainLakeMesh = null;
+    let westCreekMesh = null;
+
+    function setupWindingRiver() {
+      const riverGeo = new THREE.PlaneGeometry(28, 800, 16, 128);
+      riverGeo.rotateX(-Math.PI * 0.5);
+
+      const pos = riverGeo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const z = pos.getZ(i);
+        const riverCenter = -22 + Math.sin(z * 0.03) * 14;
+        const x = pos.getX(i);
+        pos.setX(i, x + riverCenter);
+        pos.setY(i, -2.4);
+      }
+      riverGeo.computeVertexNormals();
+
+      const waterTex = generateWaterTexture();
+      const riverMat = new THREE.MeshStandardMaterial({
+        map: waterTex,
+        roughness: 0.1,
+        metalness: 0.25,
+        transparent: true,
+        opacity: 0.9
+      });
+      riverMesh = new THREE.Mesh(riverGeo, riverMat);
+      scene.add(riverMesh);
+
+      // High Glacial Mountain Alpine Lake at North Peak
+      const lakeGeo = new THREE.PlaneGeometry(75, 95, 16, 16);
+      lakeGeo.rotateX(-Math.PI * 0.5);
+      mountainLakeMesh = new THREE.Mesh(lakeGeo, riverMat);
+      mountainLakeMesh.position.set(-22, 14.8, -225);
+      scene.add(mountainLakeMesh);
+
+      // Western Tributary Creek branching towards Rival Bluffs
+      const creekGeo = new THREE.PlaneGeometry(12, 140, 8, 32);
+      creekGeo.rotateX(-Math.PI * 0.5);
+      creekGeo.rotateY(Math.PI * 0.5);
+      westCreekMesh = new THREE.Mesh(creekGeo, riverMat);
+      westCreekMesh.position.set(-80, -1.8, 18);
+      scene.add(westCreekMesh);
+    }
+
+    // Harvestable Oak Trees, Pines & Granite Boulders
+    function setupFoliageAndRocks() {
+      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78481d, roughness: 0.9 });
+      const birchTrunkMat = new THREE.MeshStandardMaterial({ map: generateBirchBarkTexture(), roughness: 0.7 });
+      const pineLeavesMat = new THREE.MeshStandardMaterial({ color: 0x2e6f38, roughness: 0.8 });
+      const oakLeavesMat = new THREE.MeshStandardMaterial({ color: 0x5da61e, roughness: 0.8 });
+      const birchLeavesMat = new THREE.MeshStandardMaterial({ color: 0x86efac, roughness: 0.75 });
+      const stoneMat = new THREE.MeshStandardMaterial({ map: generateCobbleTexture(), roughness: 0.85 });
+      const goldOreMat = new THREE.MeshStandardMaterial({ map: generateGoldVeinTexture(), roughness: 0.4, metalness: 0.7 });
+      const ironOreMat = new THREE.MeshStandardMaterial({ map: generateIronOreTexture(), roughness: 0.6, metalness: 0.5 });
+      const shrubMat = new THREE.MeshStandardMaterial({ color: 0x1e3a1e, roughness: 0.85 });
+      const berryMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3 });
+      const wheatMat = new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.8 });
+      const soilMat = new THREE.MeshStandardMaterial({ color: 0x543618, roughness: 0.95 });
+
+      // 1. Diverse Forest: Oak, Pine & Birch Trees (150 total)
+      for (let i = 0; i < 150; i++) {
+        const x = (Math.random() - 0.5) * 340;
+        const z = (Math.random() - 0.5) * 340;
+        if (Math.hypot(x, z) < 32 || Math.abs(x - (-22)) < 24) continue;
+
+        const y = getTerrainHeight(x, z);
+        const treeGroup = new THREE.Group();
+        const treeType = i % 3; // 0: Oak, 1: Pine, 2: Birch
+
+        if (treeType === 1) {
+          // Pine Conifer
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, 3.5, 6), trunkMat);
+          trunk.position.y = 1.75; trunk.castShadow = true; treeGroup.add(trunk);
+          for (let l = 0; l < 3; l++) {
+            const cone = new THREE.Mesh(new THREE.ConeGeometry(2.4 - l * 0.5, 2.5, 7), pineLeavesMat);
+            cone.position.y = 3.2 + l * 1.5; cone.castShadow = true; treeGroup.add(cone);
+          }
+          treeGroup.species = 'Pine';
+        } else if (treeType === 2) {
+          // Paper Birch
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.36, 4.2, 8), birchTrunkMat);
+          trunk.position.y = 2.1; trunk.castShadow = true; treeGroup.add(trunk);
+          const crown = new THREE.Mesh(new THREE.SphereGeometry(2.1, 8, 8), birchLeavesMat);
+          crown.scale.set(1.0, 1.4, 1.0); crown.position.y = 4.8; crown.castShadow = true; treeGroup.add(crown);
+          treeGroup.species = 'Birch';
+        } else {
+          // Broad Oak
+          const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.52, 3.2, 6), trunkMat);
+          trunk.position.y = 1.6; trunk.castShadow = true; treeGroup.add(trunk);
+          const crown = new THREE.Mesh(new THREE.SphereGeometry(2.4, 8, 8), oakLeavesMat);
+          crown.scale.set(1.15, 1.25, 1.15); crown.position.y = 4.2; crown.castShadow = true; treeGroup.add(crown);
+          treeGroup.species = 'Oak';
+        }
+
+        treeGroup.position.set(x, y, z);
+        scene.add(treeGroup);
+        trees.push({ mesh: treeGroup, x: x, z: z, hp: 4, type: 'tree' });
+      }
+
+      // 2. Granite Boulders (40 total)
+      for (let i = 0; i < 40; i++) {
+        let x, z;
+        if (i < 8) {
+          const angle = (i / 8) * Math.PI * 2;
+          const dist = 18 + (i % 3) * 6;
+          x = Math.cos(angle) * dist; z = Math.sin(angle) * dist;
+        } else {
+          x = (Math.random() - 0.5) * 320; z = (Math.random() - 0.5) * 320;
+          if (Math.hypot(x, z) < 18) continue;
+        }
+        const y = getTerrainHeight(x, z);
+        const rad = 1.8 + Math.random() * 2.0;
+        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(rad, 1), stoneMat);
+        rock.position.set(x, y + rad * 0.55, z);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.castShadow = true; scene.add(rock);
+        stoneRocks.push({ mesh: rock, x: x, z: z, hp: 6, type: 'stone' });
+      }
+
+      // 3. Sparkling Gold Vein Rock Deposits (18 total)
+      for (let i = 0; i < 18; i++) {
+        const x = (Math.random() - 0.5) * 300;
+        const z = (Math.random() - 0.5) * 300;
+        if (Math.hypot(x, z) < 25) continue;
+        const y = getTerrainHeight(x, z);
+        const rad = 1.6 + Math.random() * 1.6;
+        const gRock = new THREE.Mesh(new THREE.DodecahedronGeometry(rad, 1), goldOreMat);
+        gRock.position.set(x, y + rad * 0.5, z);
+        gRock.rotation.set(Math.random(), Math.random(), Math.random());
+        gRock.castShadow = true; scene.add(gRock);
+        goldVeins.push({ mesh: gRock, x: x, z: z, hp: 6, type: 'gold' });
+      }
+
+      // 4. Iron Ore Outcrops (15 total)
+      for (let i = 0; i < 15; i++) {
+        const x = (Math.random() - 0.5) * 300;
+        const z = (Math.random() - 0.5) * 300;
+        if (Math.hypot(x, z) < 22) continue;
+        const y = getTerrainHeight(x, z);
+        const rad = 1.5 + Math.random() * 1.5;
+        const iRock = new THREE.Mesh(new THREE.DodecahedronGeometry(rad, 1), ironOreMat);
+        iRock.position.set(x, y + rad * 0.5, z);
+        iRock.castShadow = true; scene.add(iRock);
+        ironOutcrops.push({ mesh: iRock, x: x, z: z, hp: 5, type: 'iron' });
+      }
+
+      // 5. Wild Berry Bushes with Ruby Berries (30 total)
+      for (let i = 0; i < 30; i++) {
+        const x = (Math.random() - 0.5) * 280;
+        const z = (Math.random() - 0.5) * 280;
+        if (Math.hypot(x, z) < 16) continue;
+        const y = getTerrainHeight(x, z);
+        const bushGroup = new THREE.Group();
+        const mainShrub = new THREE.Mesh(new THREE.SphereGeometry(1.2, 7, 7), shrubMat);
+        mainShrub.position.y = 0.9; mainShrub.castShadow = true; bushGroup.add(mainShrub);
+        for (let b = 0; b < 6; b++) {
+          const berry = new THREE.Mesh(new THREE.SphereGeometry(0.18, 5, 5), berryMat);
+          berry.position.set((Math.random() - 0.5) * 1.6, 0.7 + Math.random() * 0.8, (Math.random() - 0.5) * 1.6);
+          bushGroup.add(berry);
+        }
+        bushGroup.position.set(x, y, z); scene.add(bushGroup);
+        berryBushes.push({ mesh: bushGroup, x: x, z: z, hp: 4, type: 'berries' });
+      }
+
+      // 6. Tilled Wheat Crop Fields (6 fields)
+      for (let w = 0; w < 6; w++) {
+        const wx = 12 + (w % 3) * 10;
+        const wz = -12 - Math.floor(w / 3) * 10;
+        const wy = getTerrainHeight(wx, wz);
+        const field = new THREE.Group();
+        const soil = new THREE.Mesh(new THREE.BoxGeometry(7, 0.2, 7), soilMat);
+        soil.position.y = 0.1; field.add(soil);
+        for (let s = 0; s < 12; s++) {
+          const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 1.4, 5), wheatMat);
+          stalk.position.set((Math.random() - 0.5) * 6, 0.7, (Math.random() - 0.5) * 6);
+          field.add(stalk);
+        }
+        field.position.set(wx, wy, wz); scene.add(field);
+        wheatFields.push({ mesh: field, x: wx, z: wz, hp: 5, type: 'wheat' });
+      }
+
+      // 7. River Fish Schools with Jumping Trout (8 spots along river)
+      for (let f = 0; f < 8; f++) {
+        const fz = -80 + f * 22;
+        const fx = -22 + Math.sin(fz * 0.03) * 14;
+        const fishSpot = new THREE.Group();
+        const ripple = new THREE.Mesh(new THREE.RingGeometry(0.6, 1.5, 12), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 }));
+        ripple.rotation.x = -Math.PI * 0.5; ripple.position.y = -2.35; fishSpot.add(ripple);
+
+        // Silver Trout Model
+        const fishMat = new THREE.MeshStandardMaterial({ color: 0x93c5fd, metalness: 0.8, roughness: 0.3 });
+        const trout = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.0, 5), fishMat);
+        trout.rotation.x = Math.PI * 0.5; trout.position.y = -2.3; fishSpot.add(trout);
+        fishSpot.trout = trout;
+
+        fishSpot.position.set(fx, 0, fz); scene.add(fishSpot);
+        riverFishSchools.push({ mesh: fishSpot, trout: trout, x: fx, z: fz, jumpPhase: f * 0.8, type: 'fish' });
+      }
+
+      // 8. Roaming Stags/Deer & Grazing Sheep Wildlife
+      setupWildlifeAnimals();
+    }
+
+    // Roaming Deer, Wild Jungle Boars, Mountain Wolves & Pasture Sheep
+    function setupWildlifeAnimals() {
+      const deerMat = new THREE.MeshStandardMaterial({ color: 0x9a6534, roughness: 0.85 });
+      const hornMat = new THREE.MeshStandardMaterial({ color: 0x4a321a, roughness: 0.7 });
+      const boarMat = new THREE.MeshStandardMaterial({ color: 0x3b2314, roughness: 0.9 });
+      const tuskMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.3 });
+      const wolfMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
+      const woolMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.95 });
+      const sheepLimbMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+
+      // 1. Forest Stags/Deer (4 total)
+      for (let d = 0; d < 4; d++) {
+        const deer = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 1.8), deerMat);
+        body.position.y = 1.3; deer.add(body);
+        const neck = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.9, 0.45), deerMat);
+        neck.position.set(0, 1.8, 0.8); neck.rotation.x = 0.3; deer.add(neck);
+        const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.7), deerMat);
+        head.position.set(0, 2.3, 1.0); deer.add(head);
+        [-0.2, 0.2].forEach(hx => {
+          const horn = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.8, 5), hornMat);
+          horn.position.set(hx, 2.7, 0.9); horn.rotation.z = hx > 0 ? 0.35 : -0.35; deer.add(horn);
+        });
+        [[-0.3, -0.6], [0.3, -0.6], [-0.3, 0.6], [0.3, 0.6]].forEach(([lx, lz]) => {
+          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.9, 0.15), deerMat);
+          leg.position.set(lx, 0.45, lz); deer.add(leg);
+        });
+        const dx = -50 + (Math.random() - 0.5) * 60;
+        const dz = -40 + (Math.random() - 0.5) * 60;
+        deer.position.set(dx, getTerrainHeight(dx, dz), dz);
+        scene.add(deer);
+        wildlifeAnimals.push({ mesh: deer, x: dx, z: dz, angle: Math.random() * Math.PI * 2, type: 'deer', hp: 4, speed: 1.8 });
+      }
+
+      // 2. Wild Jungle Boars with Tusks in Eastern Jungle (6 total)
+      for (let b = 0; b < 6; b++) {
+        const boar = new THREE.Group();
+        const bBody = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 1.6), boarMat);
+        bBody.position.y = 0.85; boar.add(bBody);
+        const bHead = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.6, 0.8), boarMat);
+        bHead.position.set(0, 0.8, 1.0); boar.add(bHead);
+        // Ivory Tusks
+        [-0.32, 0.32].forEach(tx => {
+          const tusk = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.4, 5), tuskMat);
+          tusk.position.set(tx, 0.75, 1.35); tusk.rotation.x = -0.5; boar.add(tusk);
+        });
+        [[-0.45, -0.5], [0.45, -0.5], [-0.45, 0.5], [0.45, 0.5]].forEach(([lx, lz]) => {
+          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.5, 0.18), boarMat);
+          leg.position.set(lx, 0.25, lz); boar.add(leg);
+        });
+        const bx = 110 + (Math.random() - 0.5) * 80;
+        const bz = 20 + (Math.random() - 0.5) * 90;
+        boar.position.set(bx, getTerrainHeight(bx, bz), bz);
+        scene.add(boar);
+        wildlifeAnimals.push({ mesh: boar, x: bx, z: bz, angle: Math.random() * Math.PI * 2, type: 'boar', hp: 5, speed: 1.4 });
+      }
+
+      // 3. Mountain Wolves near Northern Foothills (4 total)
+      for (let w = 0; w < 4; w++) {
+        const wolf = new THREE.Group();
+        const wBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.65, 1.5), wolfMat);
+        wBody.position.y = 0.95; wolf.add(wBody);
+        const wHead = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.45, 0.6), wolfMat);
+        wHead.position.set(0, 1.25, 0.85); wolf.add(wHead);
+        [[-0.25, -0.5], [0.25, -0.5], [-0.25, 0.5], [0.25, 0.5]].forEach(([lx, lz]) => {
+          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.7, 0.14), wolfMat);
+          leg.position.set(lx, 0.35, lz); wolf.add(leg);
+        });
+        const wx = -15 + (Math.random() - 0.5) * 60;
+        const wz = -120 + (Math.random() - 0.5) * 40;
+        wolf.position.set(wx, getTerrainHeight(wx, wz), wz);
+        scene.add(wolf);
+        wildlifeAnimals.push({ mesh: wolf, x: wx, z: wz, angle: Math.random() * Math.PI * 2, type: 'wolf', hp: 4, speed: 2.2 });
+      }
+
+      // 4. Fluffy Pasture Sheep (6 total)
+      for (let s = 0; s < 6; s++) {
+        const sheep = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 8), woolMat);
+        body.scale.set(1.1, 0.9, 1.4); body.position.y = 0.75; sheep.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), sheepLimbMat);
+        head.position.set(0, 0.9, 0.85); sheep.add(head);
+        [[-0.3, -0.4], [0.3, -0.4], [-0.3, 0.4], [0.3, 0.4]].forEach(([lx, lz]) => {
+          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 0.12), sheepLimbMat);
+          leg.position.set(lx, 0.25, lz); sheep.add(leg);
+        });
+        const sx = 25 + (Math.random() - 0.5) * 16;
+        const sz = 25 + (Math.random() - 0.5) * 16;
+        sheep.position.set(sx, getTerrainHeight(sx, sz), sz);
+        scene.add(sheep);
+        wildlifeAnimals.push({ mesh: sheep, x: sx, z: sz, angle: Math.random() * Math.PI * 2, type: 'sheep', hp: 3, speed: 0.5 });
+      }
+    }
+
+        // Fluffy Drifting Cumulus Clouds
+    function setupSkyClouds() {
+      const cloudMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.95,
+        transparent: true,
+        opacity: 0.9
+      });
+
+      for (let i = 0; i < 18; i++) {
+        const cloudGroup = new THREE.Group();
+        const pCount = 5 + Math.floor(Math.random() * 5);
+        for (let p = 0; p < pCount; p++) {
+          const rad = 12 + Math.random() * 15;
+          const puff = new THREE.Mesh(new THREE.SphereGeometry(rad, 7, 7), cloudMat);
+          puff.position.set((Math.random() - 0.5) * 35, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 25);
+          cloudGroup.add(puff);
+        }
+        cloudGroup.position.set(
+          (Math.random() - 0.5) * 600,
+          90 + Math.random() * 40,
+          (Math.random() - 0.5) * 600
+        );
+        scene.add(cloudGroup);
+        clouds.push({ mesh: cloudGroup, speed: 1.5 + Math.random() * 2.5 });
+      }
+    }
+
+    function updateCameraPosition() {
+      const x = camTarget.x + camDistance * Math.sin(camYaw) * Math.cos(camPitch);
+      const y = camTarget.y + camDistance * Math.sin(camPitch);
+      const z = camTarget.z + camDistance * Math.cos(camYaw) * Math.cos(camPitch);
+      camera.position.set(x, Math.max(4, y), z);
+      camera.lookAt(camTarget);
+    }
+
+    // =========================================================================
+    // 3D BUILDINGS & ORGANIC GRID-LESS PLACEMENT SYSTEM
+    // =========================================================================
+    const buildings = [];
+    let activeBuildType = null;
+    let ghostBuilding = null;
+    let ghostRotation = 0;
+
+    window.filterBuildings = function(cat, tabEl) {
+      initAudio();
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      if (tabEl) tabEl.classList.add('active');
+      document.querySelectorAll('#building-dock-list .b-btn').forEach(btn => {
+        const bCat = btn.getAttribute('data-cat');
+        if (!bCat || cat === 'all' || bCat === cat) {
+          btn.style.display = 'flex';
+        } else {
+          btn.style.display = 'none';
+        }
+      });
+    };
+
+    const buildingCosts = {
+      center:    { gold: 0,   wood: 0,   stone: 0 },
+      well:      { gold: 0,   wood: 0,   stone: 10 },
+      cottage:   { gold: 0,   wood: 12,  stone: 5 },
+      apothecary:{ gold: 15,  wood: 18,  stone: 12 },
+      lumber:    { gold: 0,   wood: 15,  stone: 0 },
+      quarry:    { gold: 0,   wood: 20,  stone: 0 },
+      forge:     { gold: 15,  wood: 25,  stone: 30 },
+      granary:   { gold: 10,  wood: 35,  stone: 25 },
+      market:    { gold: 5,   wood: 15,  stone: 0 },
+      windmill:  { gold: 0,   wood: 25,  stone: 10 },
+      bakery:    { gold: 10,  wood: 20,  stone: 15 },
+      tavern:    { gold: 20,  wood: 35,  stone: 20 },
+      dock:      { gold: 5,   wood: 30,  stone: 10 },
+      barracks:  { gold: 30,  wood: 40,  stone: 35 },
+      gatehouse: { gold: 15,  wood: 20,  stone: 50 },
+      keep:      { gold: 20,  wood: 40,  stone: 60 },
+      church:    { gold: 0,   wood: 20,  stone: 40 },
+      monastery: { gold: 25,  wood: 40,  stone: 50 },
+      cathedral: { gold: 80,  wood: 80,  stone: 120 }
+    };
+
+    window.selectBuildType = function(type) {
+      initAudio();
+      if (activeBuildType === type) {
+        cancelBuildingPlacement();
+        return;
+      }
+      activeBuildType = type;
+      if (ghostBuilding) scene.remove(ghostBuilding);
+
+      ghostBuilding = createBuildingMesh(type, true);
+      scene.add(ghostBuilding);
+
+      document.querySelectorAll('.b-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.b-btn')).find(b => b.onclick && b.onclick.toString().includes(`'${type}'`));
+      if (activeBtn) activeBtn.classList.add('active');
+    };
+
+    function cancelBuildingPlacement() {
+      activeBuildType = null;
+      if (ghostBuilding) {
+        scene.remove(ghostBuilding);
+        ghostBuilding = null;
+      }
+      document.querySelectorAll('.b-btn').forEach(btn => btn.classList.remove('active'));
+    }
+
+    function createBuildingMesh(type, isGhost = false) {
+      const group = new THREE.Group();
+
+      const stoneMat = new THREE.MeshStandardMaterial({
+        map: generateCobbleTexture(),
+        roughness: 0.85,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const ashlarStoneMat = new THREE.MeshStandardMaterial({
+        map: generateStoneBrickTexture(),
+        roughness: 0.8,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const woodMat = new THREE.MeshStandardMaterial({
+        map: generateWoodTexture(),
+        roughness: 0.75,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const timberPlasterMat = new THREE.MeshStandardMaterial({
+        map: generatePlasterTimberTexture(),
+        roughness: 0.82,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const thatchMat = new THREE.MeshStandardMaterial({
+        map: generateThatchTexture(),
+        roughness: 0.9,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const tileMat = new THREE.MeshStandardMaterial({
+        map: generateClayTileTexture(),
+        roughness: 0.7,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const ironMat = new THREE.MeshStandardMaterial({
+        map: generateIronTexture(),
+        roughness: 0.45,
+        metalness: 0.85,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const stainedGlassMat = new THREE.MeshStandardMaterial({
+        map: generateStainedGlassTexture(),
+        roughness: 0.2,
+        metalness: 0.1,
+        emissive: 0x442211,
+        emissiveIntensity: 0.4,
+        side: THREE.DoubleSide,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      const canopyMat = new THREE.MeshStandardMaterial({
+        map: generateCanopyTexture(),
+        roughness: 0.5,
+        side: THREE.DoubleSide,
+        transparent: isGhost,
+        opacity: isGhost ? 0.6 : 1.0
+      });
+
+      if (type === 'center') {
+        const base = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 8), stoneMat);
+        base.position.y = 2; base.castShadow = !isGhost; base.receiveShadow = !isGhost;
+        group.add(base);
+
+        const upper = new THREE.Mesh(new THREE.BoxGeometry(9.6, 3.5, 7.6), woodMat);
+        upper.position.y = 5.75; upper.castShadow = !isGhost;
+        group.add(upper);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(7, 4, 4), tileMat);
+        roof.position.y = 9.5; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost;
+        group.add(roof);
+
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 6, 6), woodMat);
+        pole.position.set(0, 12, 0); group.add(pole);
+        const banner = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), canopyMat);
+        banner.position.set(0.9, 13.5, 0); group.add(banner);
+
+      } else if (type === 'lumber') {
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(7, 3.2, 5), woodMat);
+        cabin.position.y = 1.6; cabin.castShadow = !isGhost; group.add(cabin);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(5, 2.5, 4), thatchMat);
+        roof.position.y = 4.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        for (let l = 0; l < 5; l++) {
+          const log = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 4, 6), woodMat);
+          log.rotation.z = Math.PI * 0.5;
+          log.position.set(4.5, 0.3 + (l % 2) * 0.5, (l - 2) * 0.6);
+          group.add(log);
+        }
+
+      } else if (type === 'quarry') {
+        const yard = new THREE.Mesh(new THREE.BoxGeometry(8, 0.6, 8), stoneMat);
+        yard.position.y = 0.3; group.add(yard);
+
+        const cranePost = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 6, 6), woodMat);
+        cranePost.position.set(-2.5, 3, -2.5); group.add(cranePost);
+        const craneArm = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 5, 6), woodMat);
+        craneArm.position.set(-1, 5.8, -1); craneArm.rotation.z = Math.PI * 0.35; group.add(craneArm);
+
+        for (let b = 0; b < 4; b++) {
+          const block = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), stoneMat);
+          block.position.set(1.5 + (b % 2) * 1.5, 0.6, -1 + Math.floor(b / 2) * 1.5);
+          group.add(block);
+        }
+
+      } else if (type === 'well') {
+        const ring = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.9, 1.5, 12, 1, true), stoneMat);
+        ring.position.y = 0.75; group.add(ring);
+
+        [-1.2, 1.2].forEach(x => {
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.2, 6), woodMat);
+          post.position.set(x, 1.6, 0); group.add(post);
+        });
+
+        const canopy = new THREE.Mesh(new THREE.ConeGeometry(2.4, 1.6, 4), tileMat);
+        canopy.position.y = 3.6; canopy.rotation.y = Math.PI * 0.25; group.add(canopy);
+
+      } else if (type === 'cottage') {
+        const walls = new THREE.Mesh(new THREE.BoxGeometry(5.5, 3.2, 4.5), stoneMat);
+        walls.position.y = 1.6; walls.castShadow = !isGhost; group.add(walls);
+
+        const thatch = new THREE.Mesh(new THREE.ConeGeometry(4.6, 3.2, 4), thatchMat);
+        thatch.position.y = 4.4; thatch.rotation.y = Math.PI * 0.25; thatch.castShadow = !isGhost; group.add(thatch);
+
+        const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.9, 4.5, 0.9), stoneMat);
+        chimney.position.set(1.8, 3.5, 1.2); group.add(chimney);
+
+      } else if (type === 'market') {
+        const table = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.2, 2.5), woodMat);
+        table.position.y = 0.6; group.add(table);
+
+        const awning = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 3.5), canopyMat);
+        awning.position.y = 3.2; awning.rotation.x = Math.PI * 0.35; group.add(awning);
+
+        const crateMat = new THREE.MeshStandardMaterial({ color: 0xb45309 });
+        const crate1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.0), crateMat);
+        crate1.position.set(-1.2, 1.4, 0); group.add(crate1);
+        const crate2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.0), crateMat);
+        crate2.position.set(1.2, 1.4, 0); group.add(crate2);
+
+      } else if (type === 'windmill') {
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 3.5, 9, 8), stoneMat);
+        tower.position.y = 4.5; tower.castShadow = !isGhost; group.add(tower);
+
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(2.8, 2.2, 8), thatchMat);
+        cap.position.y = 9.8; group.add(cap);
+
+        const sailsGroup = new THREE.Group();
+        sailsGroup.position.set(0, 8.5, 2.4);
+        for (let s = 0; s < 4; s++) {
+          const sail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 7.5, 0.8), woodMat);
+          sail.rotation.z = (s * Math.PI) / 2;
+          sailsGroup.add(sail);
+        }
+        group.add(sailsGroup);
+        group.sails = sailsGroup;
+
+      } else if (type === 'church') {
+        const nave = new THREE.Mesh(new THREE.BoxGeometry(14, 6.5, 8), stoneMat);
+        nave.position.y = 3.25; nave.castShadow = !isGhost; group.add(nave);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(8.5, 4.5, 4), tileMat);
+        roof.position.y = 8.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        const belfry = new THREE.Mesh(new THREE.BoxGeometry(5, 14, 5), stoneMat);
+        belfry.position.set(-8, 7, 0); belfry.castShadow = !isGhost; group.add(belfry);
+
+        const spire = new THREE.Mesh(new THREE.ConeGeometry(3.6, 7, 8), tileMat);
+        spire.position.set(-8, 17.5, 0); spire.castShadow = !isGhost; group.add(spire);
+
+      } else if (type === 'keep') {
+        const citadel = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 14), ashlarStoneMat);
+        citadel.position.y = 5; citadel.castShadow = !isGhost; group.add(citadel);
+
+        [[-8, -7], [8, -7], [-8, 7], [8, 7]].forEach(([tx, tz]) => {
+          const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 14, 8), ashlarStoneMat);
+          tower.position.set(tx, 7, tz); tower.castShadow = !isGhost; group.add(tower);
+          const roof = new THREE.Mesh(new THREE.ConeGeometry(3.2, 3.5, 8), tileMat);
+          roof.position.set(tx, 15.5, tz); group.add(roof);
+        });
+
+      } else if (type === 'forge') {
+        // Blacksmith & Armory Workshop
+        const foundation = new THREE.Mesh(new THREE.BoxGeometry(9.0, 0.8, 7.0), stoneMat);
+        foundation.position.y = 0.4; foundation.castShadow = !isGhost; group.add(foundation);
+
+        [[-4, -3], [4, -3], [-4, 3], [4, 3], [0, 3]].forEach(([px, pz]) => {
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.6, 0.5), woodMat);
+          post.position.set(px, 2.2, pz); group.add(post);
+        });
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(6.5, 3.2, 4), tileMat);
+        roof.position.y = 5.2; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost; group.add(roof);
+
+        const hearth = new THREE.Mesh(new THREE.BoxGeometry(2.4, 6.5, 2.2), stoneMat);
+        hearth.position.set(-2.8, 3.25, -1.8); hearth.castShadow = !isGhost; group.add(hearth);
+
+        const coalMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
+        const coals = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 1.2), coalMat);
+        coals.position.set(-2.8, 1.2, -0.6); group.add(coals);
+
+        if (!isGhost) {
+          const forgeGlow = new THREE.PointLight(0xff6600, 1.8, 10);
+          forgeGlow.position.set(-2.8, 2.0, -0.6);
+          group.add(forgeGlow);
+          group.forgeLight = forgeGlow;
+        }
+
+        const anvilBase = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 0.8, 8), woodMat);
+        anvilBase.position.set(0.5, 0.8, 0); group.add(anvilBase);
+        const anvilTop = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 0.5), ironMat);
+        anvilTop.position.set(0.5, 1.3, 0); group.add(anvilTop);
+
+        const trough = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.9, 1.0), woodMat);
+        trough.position.set(2.8, 0.85, 1.5); group.add(trough);
+
+        group.smokeOrigin = new THREE.Vector3(-2.8, 6.6, -1.8);
+        group.smokeIsDark = true;
+
+      } else if (type === 'bakery') {
+        // Bread Bakery with Stone Oven Dome
+        const walls = new THREE.Mesh(new THREE.BoxGeometry(7.5, 3.5, 5.5), timberPlasterMat);
+        walls.position.y = 1.75; walls.castShadow = !isGhost; group.add(walls);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(5.8, 3.2, 4), tileMat);
+        roof.position.y = 4.8; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost; group.add(roof);
+
+        const ovenMat = new THREE.MeshStandardMaterial({ color: 0xa85a32, roughness: 0.9 });
+        const ovenDome = new THREE.Mesh(new THREE.SphereGeometry(1.5, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.55), ovenMat);
+        ovenDome.position.set(3.8, 0.8, 0); group.add(ovenDome);
+
+        const ovenChimney = new THREE.Mesh(new THREE.BoxGeometry(0.8, 4.8, 0.8), stoneMat);
+        ovenChimney.position.set(3.8, 2.8, -0.6); group.add(ovenChimney);
+
+        const table = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.0, 1.2), woodMat);
+        table.position.set(0, 0.5, 3.2); group.add(table);
+
+        const sackMat = new THREE.MeshStandardMaterial({ color: 0xe8deb8, roughness: 0.95 });
+        [-1.8, -1.2].forEach(sx => {
+          const sack = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), sackMat);
+          sack.scale.set(1.0, 1.3, 0.9);
+          sack.position.set(sx, 0.5, 3.0); group.add(sack);
+        });
+
+        group.smokeOrigin = new THREE.Vector3(3.8, 5.2, -0.6);
+        group.smokeIsDark = false;
+
+      } else if (type === 'tavern') {
+        // Two-Story Tavern & Inn
+        const base = new THREE.Mesh(new THREE.BoxGeometry(11, 4.0, 7.5), timberPlasterMat);
+        base.position.y = 2.0; base.castShadow = !isGhost; group.add(base);
+
+        const upper = new THREE.Mesh(new THREE.BoxGeometry(11.6, 3.2, 8.2), timberPlasterMat);
+        upper.position.y = 5.2; upper.castShadow = !isGhost; group.add(upper);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(8.5, 4.2, 4), tileMat);
+        roof.position.y = 8.5; roof.rotation.y = Math.PI * 0.25; roof.castShadow = !isGhost; group.add(roof);
+
+        const picnicTable = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.0, 1.6), woodMat);
+        picnicTable.position.set(-2.5, 0.5, 5.0); group.add(picnicTable);
+
+        const barrelMat = new THREE.MeshStandardMaterial({ color: 0x6e3d16, roughness: 0.8 });
+        [-4.5, -3.8].forEach(bx => {
+          const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.55, 1.2, 8), barrelMat);
+          barrel.position.set(bx, 0.6, 4.2); group.add(barrel);
+        });
+
+        const awning = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.2, 2.5), woodMat);
+        awning.position.set(0, 3.8, 4.8); awning.rotation.x = 0.2; group.add(awning);
+
+        if (!isGhost) {
+          const tavernGlow = new THREE.PointLight(0xffaa33, 1.6, 12);
+          tavernGlow.position.set(0, 3.5, 5.2); group.add(tavernGlow);
+        }
+
+        const chimney = new THREE.Mesh(new THREE.BoxGeometry(1.2, 8.2, 1.2), stoneMat);
+        chimney.position.set(4.2, 4.5, -2.5); group.add(chimney);
+
+        group.smokeOrigin = new THREE.Vector3(4.2, 8.8, -2.5);
+        group.smokeIsDark = false;
+
+      } else if (type === 'monastery') {
+        // Cloister Quadrangle Arcade & Herb Garden
+        const quad = new THREE.Mesh(new THREE.BoxGeometry(15, 3.8, 15), ashlarStoneMat);
+        quad.position.y = 1.9; quad.castShadow = !isGhost; group.add(quad);
+
+        const innerGrass = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.MeshStandardMaterial({ color: 0x489620 }));
+        innerGrass.rotation.x = -Math.PI * 0.5;
+        innerGrass.position.y = 0.05; group.add(innerGrass);
+
+        const soilMat = new THREE.MeshStandardMaterial({ color: 0x422a14 });
+        [[-2.2, -2.2], [2.2, -2.2], [-2.2, 2.2], [2.2, 2.2]].forEach(([gx, gz]) => {
+          const bed = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.4, 2.5), soilMat);
+          bed.position.set(gx, 0.25, gz); group.add(bed);
+          const herbPlant = new THREE.Mesh(new THREE.SphereGeometry(0.7, 6, 6), new THREE.MeshStandardMaterial({ color: 0x2e7d32 }));
+          herbPlant.position.set(gx, 0.6, gz); group.add(herbPlant);
+        });
+
+        const belfry = new THREE.Mesh(new THREE.BoxGeometry(4.0, 12.0, 4.0), ashlarStoneMat);
+        belfry.position.set(-6.5, 6.0, -6.5); belfry.castShadow = !isGhost; group.add(belfry);
+
+        const belfrySpire = new THREE.Mesh(new THREE.ConeGeometry(2.8, 5.0, 8), tileMat);
+        belfrySpire.position.set(-6.5, 14.5, -6.5); group.add(belfrySpire);
+
+        const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.15, 0.15), woodMat);
+        crossH.position.set(-6.5, 17.5, -6.5); group.add(crossH);
+        const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.4, 0.15), woodMat);
+        crossV.position.set(-6.5, 17.5, -6.5); group.add(crossV);
+
+      } else if (type === 'barracks') {
+        // Timber Garrison Barracks & Archery Range
+        const barracksHall = new THREE.Mesh(new THREE.BoxGeometry(10, 4.0, 6.5), woodMat);
+        barracksHall.position.y = 2.0; barracksHall.castShadow = !isGhost; group.add(barracksHall);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(7.2, 3.2, 4), thatchMat);
+        roof.position.y = 5.2; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        const targetMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.9 });
+        [-3.2, 0, 3.2].forEach(tx => {
+          const leg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.5, 5), woodMat);
+          leg1.position.set(tx, 1.2, 5.2); leg1.rotation.z = 0.2; group.add(leg1);
+          const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.2, 16), targetMat);
+          disc.rotation.x = Math.PI * 0.5;
+          disc.position.set(tx, 1.6, 5.0); group.add(disc);
+          const bullseye = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.22, 12), new THREE.MeshBasicMaterial({ color: 0xdc2626 }));
+          bullseye.rotation.x = Math.PI * 0.5;
+          bullseye.position.set(tx, 1.6, 5.02); group.add(bullseye);
+        });
+
+        const rack = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.8, 0.6), woodMat);
+        rack.position.set(-4.0, 0.9, 0); group.add(rack);
+
+        const dummyBody = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.6, 8), thatchMat);
+        dummyBody.position.set(5.5, 1.4, 2.5); group.add(dummyBody);
+        const dummyArm = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.2), woodMat);
+        dummyArm.position.set(5.5, 1.6, 2.5); group.add(dummyArm);
+
+      } else if (type === 'gatehouse') {
+        // Fortified Stone Gatehouse & Walls
+        [-4.5, 4.5].forEach(tx => {
+          const tower = new THREE.Mesh(new THREE.BoxGeometry(4.0, 9.5, 4.5), ashlarStoneMat);
+          tower.position.set(tx, 4.75, 0); tower.castShadow = !isGhost; group.add(tower);
+
+          const parapet = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.2, 4.9), stoneMat);
+          parapet.position.set(tx, 10.0, 0); group.add(parapet);
+        });
+
+        const arch = new THREE.Mesh(new THREE.BoxGeometry(5.5, 7.5, 4.0), ashlarStoneMat);
+        arch.position.set(0, 4.5, 0); arch.castShadow = !isGhost; group.add(arch);
+
+        const portcullis = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 4.0), ironMat);
+        portcullis.position.set(0, 3.8, 0); group.add(portcullis);
+
+        [-9.5, 9.5].forEach(wx => {
+          const wall = new THREE.Mesh(new THREE.BoxGeometry(6.5, 6.0, 2.0), ashlarStoneMat);
+          wall.position.set(wx, 3.0, 0); wall.castShadow = !isGhost; group.add(wall);
+        });
+
+        const banner = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 3.2), canopyMat);
+        banner.position.set(0, 6.8, 2.1); group.add(banner);
+
+      } else if (type === 'cathedral') {
+        // Grand Royal Gothic Cathedral
+        const nave = new THREE.Mesh(new THREE.BoxGeometry(20, 11, 10), ashlarStoneMat);
+        nave.position.y = 5.5; nave.castShadow = !isGhost; group.add(nave);
+
+        const transept = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 18), ashlarStoneMat);
+        transept.position.y = 5.0; transept.castShadow = !isGhost; group.add(transept);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(12, 6.0, 4), tileMat);
+        roof.position.y = 13.5; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        [-7.5, 7.5].forEach(sx => {
+          const tower = new THREE.Mesh(new THREE.BoxGeometry(4.5, 17, 4.5), ashlarStoneMat);
+          tower.position.set(sx, 8.5, 7.0); tower.castShadow = !isGhost; group.add(tower);
+
+          const spire = new THREE.Mesh(new THREE.ConeGeometry(3.2, 10, 8), tileMat);
+          spire.position.set(sx, 22.0, 7.0); spire.castShadow = !isGhost; group.add(spire);
+
+          const cross = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.8, 0.2), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+          cross.position.set(sx, 27.5, 7.0); group.add(cross);
+        });
+
+        const roseWin = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 0.2, 24), stainedGlassMat);
+        roseWin.rotation.x = Math.PI * 0.5;
+        roseWin.position.set(0, 9.2, 5.1); group.add(roseWin);
+
+        [-5, 0, 5].forEach(bx => {
+          [-5.8, 5.8].forEach(bz => {
+            const buttress = new THREE.Mesh(new THREE.BoxGeometry(0.8, 8.0, 1.8), ashlarStoneMat);
+            buttress.position.set(bx, 4.0, bz); group.add(buttress);
+          });
+        });
+
+      } else if (type === 'dock') {
+        // Fishing Pier & Moored Rowboat
+        const pierDeck = new THREE.Mesh(new THREE.BoxGeometry(12, 0.4, 4.2), woodMat);
+        pierDeck.position.set(0, 0.4, 0); pierDeck.castShadow = !isGhost; group.add(pierDeck);
+
+        [-5, -2, 2, 5].forEach(px => {
+          [-1.8, 1.8].forEach(pz => {
+            const stilt = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 4.0, 6), woodMat);
+            stilt.position.set(px, -1.5, pz); group.add(stilt);
+          });
+        });
+
+        const boatMat = new THREE.MeshStandardMaterial({ color: 0x5a3517, roughness: 0.8 });
+        const boat = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.8, 1.8), boatMat);
+        boat.position.set(0, -0.6, 3.5); group.add(boat);
+
+        [-3.5, 3.5].forEach(rx => {
+          const rackFrame = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.8, 0.4), woodMat);
+          rackFrame.position.set(rx, 1.2, -1.2); group.add(rackFrame);
+        });
+
+        const barrelMat = new THREE.MeshStandardMaterial({ color: 0x784419, roughness: 0.8 });
+        const barrel1 = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.9, 8), barrelMat);
+        barrel1.position.set(0, 0.85, -1.2); group.add(barrel1);
+
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.4, 6), woodMat);
+        post.position.set(5.5, 1.4, 1.6); group.add(post);
+
+        if (!isGhost) {
+          const pierGlow = new THREE.PointLight(0xffb74d, 1.2, 8);
+          pierGlow.position.set(5.5, 2.5, 1.6); group.add(pierGlow);
+        }
+
+      } else if (type === 'granary') {
+        // Raised Medieval Stilt Granary
+        [-3.2, 0, 3.2].forEach(sx => {
+          [-2.2, 2.2].forEach(sz => {
+            const stilt = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 2.2, 8), stoneMat);
+            stilt.position.set(sx, 1.1, sz); group.add(stilt);
+            const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.2, 8), stoneMat);
+            cap.position.set(sx, 2.1, sz); group.add(cap);
+          });
+        });
+
+        const storehouse = new THREE.Mesh(new THREE.BoxGeometry(8.5, 4.2, 6.0), woodMat);
+        storehouse.position.y = 4.2; storehouse.castShadow = !isGhost; group.add(storehouse);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(6.5, 3.2, 4), thatchMat);
+        roof.position.y = 7.5; roof.rotation.y = Math.PI * 0.25; group.add(roof);
+
+        const ramp = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 4.5), woodMat);
+        ramp.position.set(0, 1.1, 4.5); ramp.rotation.x = -0.45; group.add(ramp);
+
+      } else if (type === 'apothecary') {
+        // Apothecary & Herbalist Cottage
+        const cottage = new THREE.Mesh(new THREE.BoxGeometry(6.0, 3.2, 5.0), timberPlasterMat);
+        cottage.position.y = 1.6; cottage.castShadow = !isGhost; group.add(cottage);
+
+        const thatchRoof = new THREE.Mesh(new THREE.ConeGeometry(4.8, 3.0, 4), thatchMat);
+        thatchRoof.position.y = 4.3; thatchRoof.rotation.y = Math.PI * 0.25; group.add(thatchRoof);
+
+        const box = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.3, 0.4), woodMat);
+        box.position.set(0, 1.6, 2.6); group.add(box);
+
+        const flowerMat1 = new THREE.MeshStandardMaterial({ color: 0x9333ea });
+        const flowerMat2 = new THREE.MeshStandardMaterial({ color: 0xef4444 });
+        [-0.8, -0.3, 0.3, 0.8].forEach((fx, idx) => {
+          const fl = new THREE.Mesh(new THREE.SphereGeometry(0.2, 6, 6), idx % 2 === 0 ? flowerMat1 : flowerMat2);
+          fl.position.set(fx, 1.85, 2.6); group.add(fl);
+        });
+
+        const pergola = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.8, 2.0), woodMat);
+        pergola.position.set(-3.1, 1.4, 0); group.add(pergola);
+        const vine = new THREE.Mesh(new THREE.SphereGeometry(1.0, 6, 6), new THREE.MeshStandardMaterial({ color: 0x22c55e }));
+        vine.position.set(-3.1, 2.0, 0); group.add(vine);
+      }
+
+      return group;
+    }
+
+    function tryPlaceBuilding(worldX, worldZ) {
+      if (!activeBuildType) return;
+      const cost = buildingCosts[activeBuildType];
+
+      if (gameState.gold < cost.gold || gameState.wood < cost.wood || gameState.stone < cost.stone) {
+        showRealmNotice(`[INSUFFICIENT RESOURCES] Requires ${cost.gold} Gold, ${cost.wood} Wood, ${cost.stone} Stone.`);
+        return;
+      }
+
+      gameState.gold -= cost.gold;
+      gameState.wood -= cost.wood;
+      gameState.stone -= cost.stone;
+      updateResourceLedger();
+
+      const building = createBuildingMesh(activeBuildType, false);
+      const groundY = getTerrainHeight(worldX, worldZ);
+      building.position.set(worldX, groundY, worldZ);
+      building.rotation.y = ghostRotation;
+      scene.add(building);
+
+      playBuildHammerSound();
+
+      if (building.smokeOrigin) {
+        const sx = worldX + building.smokeOrigin.x;
+        const sy = groundY + building.smokeOrigin.y;
+        const sz = worldZ + building.smokeOrigin.z;
+        for (let s = 0; s < 6; s++) {
+          addSmokePuff(sx, sy, sz, building.smokeIsDark || false);
+        }
+      } else if (activeBuildType === 'cottage') {
+        for (let s = 0; s < 5; s++) {
+          addSmokePuff(worldX + 1.8, groundY + 5.8, worldZ + 1.2, false);
+        }
+      }
+
+      buildings.push({
+        type: activeBuildType,
+        mesh: building,
+        x: worldX,
+        z: worldZ,
+        workers: []
+      });
+
+      checkQuestMilestone(activeBuildType);
+      cancelBuildingPlacement();
+    }
+
+    // =========================================================================
+    // AUTONOMOUS VILLAGER SIMULATION, NEEDS & DESIRE FOOTPATHS
+    // =========================================================================
+    const villagers = [];
+    const villagerNames = [
+      'Godwin', 'Elsbeth', 'Cedric', 'Rosalind', 'Wulfric', 'Morwenna',
+      'Aldous', 'Beatrice', 'Osric', 'Gisela', 'Dunstan', 'Rowena'
+    ];
+
+    function createVillagerMesh(color = 0x0284c7) {
+      const group = new THREE.Group();
+
+      const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.2, 8), bodyMat);
+      body.position.y = 1.0; body.castShadow = true;
+      group.add(body);
+
+      const headMat = new THREE.MeshStandardMaterial({ color: 0xfbd2a9, roughness: 0.6 });
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), headMat);
+      head.position.y = 1.85; head.castShadow = true;
+      group.add(head);
+
+      const limbMat = new THREE.MeshStandardMaterial({ color: 0x422810 });
+      const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.65, 0.18), limbMat);
+      leftLeg.position.set(-0.2, 0.35, 0); group.add(leftLeg);
+
+      const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.65, 0.18), limbMat);
+      rightLeg.position.set(0.2, 0.35, 0); group.add(rightLeg);
+
+      // VISIBLE 3D CARGO ATTACHMENTS
+      // 1. Cut Timber Log
+      const logMat = new THREE.MeshStandardMaterial({ color: 0x6e3d16, roughness: 0.85 });
+      const logMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 1.1, 6), logMat);
+      logMesh.rotation.z = Math.PI * 0.5;
+      logMesh.position.set(0, 1.1, 0.45);
+      logMesh.visible = false;
+      group.add(logMesh);
+      group.logCargo = logMesh;
+
+      // 2. Chiselled Stone Block
+      const blockMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+      const stoneMesh = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 0.35), blockMat);
+      stoneMesh.position.set(0, 1.05, 0.42);
+      stoneMesh.visible = false;
+      group.add(stoneMesh);
+      group.stoneCargo = stoneMesh;
+
+      // 3. Bread Basket
+      const breadMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.7 });
+      const breadMesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 6), breadMat);
+      breadMesh.scale.set(1.2, 0.8, 1.0);
+      breadMesh.position.set(0, 1.05, 0.42);
+      breadMesh.visible = false;
+      group.add(breadMesh);
+      group.breadCargo = breadMesh;
+
+      // 4. Guard Spear & Shield
+      const guardGroup = new THREE.Group();
+      const spearPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6, 6), limbMat);
+      spearPole.position.set(0.42, 1.3, 0); guardGroup.add(spearPole);
+      const spearTip = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.35, 6), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 }));
+      spearTip.position.set(0.42, 2.7, 0); guardGroup.add(spearTip);
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.7, 0.5), new THREE.MeshStandardMaterial({ color: 0x991b1b }));
+      shield.position.set(-0.42, 1.1, 0); guardGroup.add(shield);
+      guardGroup.visible = false;
+      group.add(guardGroup);
+      group.guardGear = guardGroup;
+
+      group.leftLeg = leftLeg;
+      group.rightLeg = rightLeg;
+
+      return group;
+    }
+
+    function spawnVillager(profession = 'Laborer', startPos = null) {
+      const name = villagerNames[villagers.length % villagerNames.length];
+      const colors = [0x0284c7, 0xb45309, 0x15803d, 0xca8a04, 0xb91c1c];
+      const col = colors[villagers.length % colors.length];
+
+      const mesh = createVillagerMesh(col);
+      const pos = startPos || new THREE.Vector3((Math.random() - 0.5) * 15, 0, (Math.random() - 0.5) * 15);
+      pos.y = getTerrainHeight(pos.x, pos.z);
+      mesh.position.copy(pos);
+      scene.add(mesh);
+
+      const villager = {
+        name: name,
+        mesh: mesh,
+        x: pos.x,
+        z: pos.z,
+        profession: profession,
+        state: 'idle',
+        targetPos: null,
+        targetObj: null,
+        workTimer: 0,
+        hunger: 100,
+        thirst: 100,
+        faith: 100,
+        walkAnim: 0
+      };
+
+      villagers.push(villager);
+      updatePopulationHUD();
+      return villager;
+    }
+
+    function updateVillagers(delta) {
+      villagers.forEach((v) => {
+        v.hunger = Math.max(0, v.hunger - delta * 0.4);
+        v.thirst = Math.max(0, v.thirst - delta * 0.6);
+
+        if (!v.targetPos || v.state === 'idle') {
+          decideVillagerAction(v);
+        }
+
+        if (v.targetPos) {
+          const dx = v.targetPos.x - v.x;
+          const dz = v.targetPos.z - v.z;
+          const dist = Math.hypot(dx, dz);
+
+          if (dist > 1.2) {
+            const speed = 4.2;
+            v.x += (dx / dist) * speed * delta;
+            v.z += (dz / dist) * speed * delta;
+            const y = getTerrainHeight(v.x, v.z);
+            v.mesh.position.set(v.x, y, v.z);
+
+            v.mesh.rotation.y = Math.atan2(dx, dz);
+
+            v.walkAnim += delta * 12;
+            v.mesh.leftLeg.rotation.x = Math.sin(v.walkAnim) * 0.6;
+            v.mesh.rightLeg.rotation.x = -Math.sin(v.walkAnim) * 0.6;
+
+            if (v.mesh.logCargo) v.mesh.logCargo.visible = (v.state === 'chopping');
+            if (v.mesh.stoneCargo) v.mesh.stoneCargo.visible = (v.state === 'quarrying');
+            if (v.mesh.breadCargo) v.mesh.breadCargo.visible = (v.profession === 'Baker' || v.state === 'eating');
+            if (v.mesh.guardGear) v.mesh.guardGear.visible = (v.profession === 'Guard');
+
+            // Stamp desire path footprint
+            stampVillagerFootstep(v.x, v.z);
+
+          } else {
+            v.mesh.leftLeg.rotation.x = 0;
+            v.mesh.rightLeg.rotation.x = 0;
+            handleDestinationArrival(v, delta);
+          }
+        }
+      });
+    }
+
+    function decideVillagerAction(v) {
+      if (v.thirst < 40) {
+        const well = buildings.find(b => b.type === 'well');
+        if (well) {
+          v.state = 'drinking';
+          v.targetPos = new THREE.Vector3(well.x, 0, well.z);
+          return;
+        }
+      }
+
+      if (v.hunger < 40) {
+        const market = buildings.find(b => b.type === 'market');
+        if (market) {
+          v.state = 'eating';
+          v.targetPos = new THREE.Vector3(market.x, 0, market.z);
+          return;
+        }
+      }
+
+      // 1. HUNTER: Tracks Wild Game in the Jungle
+      if (v.profession === 'Hunter' && wildlifeAnimals.length > 0) {
+        const huntable = wildlifeAnimals.filter(a => a.type === 'boar' || a.type === 'deer' || a.type === 'wolf');
+        if (huntable.length > 0) {
+          let closest = huntable[0];
+          let minDist = 9999;
+          huntable.forEach(a => {
+            const d = Math.hypot(a.x - v.x, a.z - v.z);
+            if (d < minDist) { minDist = d; closest = a; }
+          });
+          v.state = 'hunting';
+          v.targetObj = closest;
+          v.targetPos = new THREE.Vector3(closest.x, 0, closest.z);
+          return;
+        }
+      }
+
+      // 2. GOLD MINER: Quarries Gold Veins
+      if (v.profession === 'Gold Miner' && goldVeins.length > 0) {
+        let closest = goldVeins[0];
+        let minDist = 9999;
+        goldVeins.forEach(g => {
+          const d = Math.hypot(g.x - v.x, g.z - v.z);
+          if (d < minDist) { minDist = d; closest = g; }
+        });
+        v.state = 'mining_gold';
+        v.targetObj = closest;
+        v.targetPos = new THREE.Vector3(closest.x, 0, closest.z);
+        return;
+      }
+
+      // 3. FORAGER: Gathers Wild Berries & Herbs
+      if (v.profession === 'Forager' && berryBushes.length > 0) {
+        let closest = berryBushes[0];
+        let minDist = 9999;
+        berryBushes.forEach(b => {
+          const d = Math.hypot(b.x - v.x, b.z - v.z);
+          if (d < minDist) { minDist = d; closest = b; }
+        });
+        v.state = 'foraging';
+        v.targetObj = closest;
+        v.targetPos = new THREE.Vector3(closest.x, 0, closest.z);
+        return;
+      }
+
+      // 4. FISHERMAN: Casts Line in River Fish Schools
+      if (v.profession === 'Fisherman' && riverFishSchools.length > 0) {
+        let closest = riverFishSchools[0];
+        let minDist = 9999;
+        riverFishSchools.forEach(f => {
+          const d = Math.hypot(f.x - v.x, f.z - v.z);
+          if (d < minDist) { minDist = d; closest = f; }
+        });
+        v.state = 'fishing';
+        v.targetObj = closest;
+        v.targetPos = new THREE.Vector3(closest.x, 0, closest.z);
+        return;
+      }
+
+      // 5. FARMER: Tends Wheat Fields
+      if (v.profession === 'Farmer' && wheatFields.length > 0) {
+        let closest = wheatFields[0];
+        let minDist = 9999;
+        wheatFields.forEach(w => {
+          const d = Math.hypot(w.x - v.x, w.z - v.z);
+          if (d < minDist) { minDist = d; closest = w; }
+        });
+        v.state = 'farming';
+        v.targetObj = closest;
+        v.targetPos = new THREE.Vector3(closest.x, 0, closest.z);
+        return;
+      }
+
+      // 6. STONE MASON & STONE GATHERING
+      const wantsStone = (v.profession === 'Stone Mason') || 
+                         (v.profession === 'Laborer' && gameState.stone <= gameState.wood) ||
+                         (buildings.some(b => b.type === 'quarry'));
+
+      if (wantsStone && stoneRocks.length > 0) {
+        let closestRock = stoneRocks[0];
+        let minDist = 9999;
+        stoneRocks.forEach(r => {
+          const d = Math.hypot(r.x - v.x, r.z - v.z);
+          if (d < minDist) { minDist = d; closestRock = r; }
+        });
+        v.state = 'quarrying';
+        v.targetObj = closestRock;
+        v.targetPos = new THREE.Vector3(closestRock.x, 0, closestRock.z);
+        return;
+      }
+
+      // 7. WOODCUTTER & TIMBER HARVESTING
+      const wantsWood = (v.profession === 'Woodcutter') || 
+                        (v.profession === 'Laborer' && gameState.wood < gameState.stone) ||
+                        (buildings.some(b => b.type === 'lumber'));
+
+      if (wantsWood && trees.length > 0) {
+        let closestTree = trees[0];
+        let minDist = 9999;
+        trees.forEach(t => {
+          const d = Math.hypot(t.x - v.x, t.z - v.z);
+          if (d < minDist) { minDist = d; closestTree = t; }
+        });
+        v.state = 'chopping';
+        v.targetObj = closestTree;
+        v.targetPos = new THREE.Vector3(closestTree.x, 0, closestTree.z);
+        return;
+      }
+
+      // 8. ROYAL GUARD: Patrols Realm Borders & Stone Bridge
+      if (v.profession === 'Guard') {
+        const patrolPoints = [
+          new THREE.Vector3(-22, 0, 8),   // Stone Bridge
+          new THREE.Vector3(0, 0, 0),     // Town Center
+          new THREE.Vector3(-55, 0, 15)   // Western Creek Border
+        ];
+        const pt = patrolPoints[Math.floor(Math.random() * patrolPoints.length)];
+        v.state = 'patrolling';
+        v.targetPos = pt;
+        return;
+      }
+
+      v.state = 'strolling';
+      v.targetPos = new THREE.Vector3((Math.random() - 0.5) * 45, 0, (Math.random() - 0.5) * 45);
+    }
+
+    function handleDestinationArrival(v, delta) {
+      v.workTimer += delta;
+
+      // Animate tool swinging during work
+      if (v.mesh && v.mesh.rightArmGroup && (v.state === 'chopping' || v.state === 'quarrying' || v.state === 'mining_gold' || v.state === 'hunting')) {
+        v.mesh.rightArmGroup.rotation.x = Math.sin(v.workTimer * 8.0) * 0.8;
+      }
+
+      if (v.state === 'hunting' && v.targetObj) {
+        if (v.workTimer > 2.6) {
+          playArcheryWhooshSound();
+          v.workTimer = 0;
+          v.targetObj.hp -= 2;
+
+          if (v.targetObj.hp <= 0) {
+            scene.remove(v.targetObj.mesh);
+            const idx = wildlifeAnimals.indexOf(v.targetObj);
+            if (idx !== -1) wildlifeAnimals.splice(idx, 1);
+            gameState.bread += 4; // Raw Game Meat sustenance
+            gameState.gold += 30; // Pelts & leather trade value
+            addPrestigeXP(18, 'Felled Wild Game in Jungle');
+            checkRoyalTaskProgress('hunt', 1);
+            showRealmNotice(`[HUNT SUCCESSFUL] ${v.name} brought down wild game! +4 Meat, +30 Gold!`);
+            playQuestCompleteSound();
+          }
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+
+      } else if (v.state === 'mining_gold' && v.targetObj) {
+        if (v.workTimer > 3.2) {
+          playStoneChiselSound();
+          playGoldChimeSound();
+          v.workTimer = 0;
+          v.targetObj.hp--;
+          gameState.gold += 4;
+          gameState.iron += 1;
+          addPrestigeXP(8, 'Mined Gold Quartz Vein');
+          checkRoyalTaskProgress('gold', 1);
+          updateResourceLedger();
+
+          if (v.targetObj.hp <= 0) {
+            scene.remove(v.targetObj.mesh);
+            const idx = goldVeins.indexOf(v.targetObj);
+            if (idx !== -1) goldVeins.splice(idx, 1);
+          }
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+
+      } else if (v.state === 'foraging' && v.targetObj) {
+        if (v.workTimer > 2.5) {
+          playWoodChopSound();
+          v.workTimer = 0;
+          v.targetObj.hp--;
+          gameState.berries += 3;
+          addPrestigeXP(5, 'Foraged Wild Berries & Herbs');
+          checkRoyalTaskProgress('berries', 2);
+          updateResourceLedger();
+
+          if (v.targetObj.hp <= 0) {
+            scene.remove(v.targetObj.mesh);
+            const idx = berryBushes.indexOf(v.targetObj);
+            if (idx !== -1) berryBushes.splice(idx, 1);
+          }
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+
+      } else if (v.state === 'fishing' && v.targetObj) {
+        if (v.workTimer > 3.0) {
+          playSplashSound();
+          v.workTimer = 0;
+          gameState.fish += 2;
+          addPrestigeXP(6, 'River Angling');
+          checkRoyalTaskProgress('fish', 2);
+          updateResourceLedger();
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+
+      } else if (v.state === 'farming' && v.targetObj) {
+        if (v.workTimer > 2.8) {
+          playWoodChopSound();
+          v.workTimer = 0;
+          gameState.bread += 2;
+          addPrestigeXP(6, 'Harvested Golden Wheat');
+          checkRoyalTaskProgress('bread', 1);
+          updateResourceLedger();
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+
+      } else if (v.state === 'chopping' && v.targetObj) {
+        if (v.workTimer > 3.0) {
+          playWoodChopSound();
+          v.workTimer = 0;
+          v.targetObj.hp--;
+          gameState.wood += 2;
+          addPrestigeXP(4, 'Harvested Forest Timber');
+          checkRoyalTaskProgress('wood', 2);
+          updateResourceLedger();
+
+          if (v.targetObj.hp <= 0) {
+            scene.remove(v.targetObj.mesh);
+            const idx = trees.indexOf(v.targetObj);
+            if (idx !== -1) trees.splice(idx, 1);
+          }
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+
+      } else if (v.state === 'quarrying' && v.targetObj) {
+        if (v.workTimer > 3.5) {
+          playStoneChiselSound();
+          v.workTimer = 0;
+          v.targetObj.hp--;
+          gameState.stone += 2;
+          addPrestigeXP(5, 'Quarried Granite Boulder');
+          checkRoyalTaskProgress('stone', 2);
+          updateResourceLedger();
+
+          if (v.targetObj.hp <= 0) {
+            scene.remove(v.targetObj.mesh);
+            const idx = stoneRocks.indexOf(v.targetObj);
+            if (idx !== -1) stoneRocks.splice(idx, 1);
+          }
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+
+      } else if (v.state === 'patrolling') {
+        if (v.workTimer > 4.0) {
+          v.workTimer = 0;
+          addPrestigeXP(4, 'Realm Border Patrol');
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+
+      } else if (v.state === 'drinking') {
+        v.thirst = 100;
+        v.state = 'idle';
+        v.targetPos = null;
+
+      } else if (v.state === 'eating') {
+        v.hunger = 100;
+        if (gameState.berries > 0) gameState.berries--;
+        else if (gameState.bread > 0) gameState.bread--;
+        else if (gameState.fish > 0) gameState.fish--;
+        updateResourceLedger();
+        v.state = 'idle';
+        v.targetPos = null;
+
+      } else {
+        if (v.workTimer > 2.0) {
+          v.workTimer = 0;
+          v.state = 'idle';
+          v.targetPos = null;
+        }
+      }
+    }
+
+        function inspectVillager(v) {
+      const card = document.getElementById('inspector-card');
+      if (!card) return;
+      document.getElementById('insp-title').innerText = `${v.name} the ${v.profession}`;
+      document.getElementById('insp-status').innerText = 'Serf';
+      document.getElementById('insp-job').innerText = v.profession;
+      document.getElementById('insp-task').innerText = v.state.toUpperCase();
+      document.getElementById('insp-hunger').innerText = v.hunger > 50 ? 'Satisfied' : 'Hungry';
+      document.getElementById('insp-thirst').innerText = v.thirst > 50 ? 'Quenched' : 'Thirsty';
+      card.style.display = 'block';
+    }
+
+    window.closeInspector = function() {
+      const card = document.getElementById('inspector-card');
+      if (card) card.style.display = 'none';
+    };
+
+    // =========================================================================
+    // ECONOMY, ESTATE QUESTS, CAMERA CONTROLS & SETTINGS
+    // =========================================================================
+    const gameState = {
+      gold: 300,
+      wood: 50,
+      stone: 30,
+      iron: 10,
+      berries: 30,
+      bread: 20,
+      fish: 10,
+      happiness: 100,
+      prestige: 0,
+      level: 1,
+      xp: 0,
+      nextXp: 100
+    };
+
+    function addPrestigeXP(amount, reason = '') {
+      gameState.prestige += amount;
+      gameState.xp += amount;
+      while (gameState.xp >= gameState.nextXp && gameState.level < 8) {
+        gameState.xp -= gameState.nextXp;
+        gameState.level++;
+        gameState.nextXp = Math.round(gameState.nextXp * 1.85);
+        playLevelUpFanfareSound();
+        const rankTitles = [
+          'Hamlet', 'Village', 'Township', 'Barony',
+          'County', 'Dukedom', 'Sovereign Kingdom', 'Imperial Realm'
+        ];
+        const newRank = rankTitles[gameState.level - 1] || 'Sovereign Realm';
+        showRealmNotice(`[REALM ASCENSION: LEVEL ${gameState.level}] Estate elevated to a ${newRank.toUpperCase()}!`);
+        spawnVillager('Laborer');
+        gameState.gold += 120 * gameState.level;
+      }
+      updateResourceLedger();
+      updateLevelHUD();
+    }
+
+    function updateLevelHUD() {
+      const lvlEl = document.getElementById('realm-lvl');
+      const rankEl = document.getElementById('realm-rank');
+      const presEl = document.getElementById('realm-prestige');
+      const xpEl = document.getElementById('realm-xp');
+      const nextEl = document.getElementById('realm-xp-next');
+      const fillEl = document.getElementById('lvl-xp-fill');
+
+      const rankTitles = [
+        'Hamlet', 'Village', 'Township', 'Barony',
+        'County', 'Dukedom', 'Sovereign Kingdom', 'Imperial Realm'
+      ];
+      if (lvlEl) lvlEl.innerText = gameState.level;
+      if (rankEl) rankEl.innerText = (rankTitles[gameState.level - 1] || 'Sovereign Realm').toUpperCase();
+      if (presEl) presEl.innerText = gameState.prestige;
+      if (xpEl) xpEl.innerText = gameState.xp;
+      if (nextEl) nextEl.innerText = gameState.nextXp;
+      if (fillEl) fillEl.style.width = `${Math.min(100, Math.round((gameState.xp / gameState.nextXp) * 100))}%`;
+    }
+
+    // =========================================================================
+    // SOVEREIGN CAMPAIGN QUESTS & DYNAMIC ROYAL BOUNTIES
+    // =========================================================================
+    let currentQuestIdx = 1;
+    const quests = [
+      {
+        id: 1,
+        title: '1. Lay the Foundation',
+        desc: 'Construct a Lumber Camp and a Town Well to secure vital supplies for your serfs.',
+        check: () => buildings.some(b => b.type === 'lumber') && buildings.some(b => b.type === 'well'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'lumber' || b.type === 'well').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 100; gameState.bread += 20; addPrestigeXP(60, 'Foundation Charter'); spawnVillager('Woodcutter'); spawnVillager('Laborer'); }
+      },
+      {
+        id: 2,
+        title: '2. Feed the Hamlet',
+        desc: 'Construct a Market Stall and Thatched Cottages to house your growing population.',
+        check: () => buildings.some(b => b.type === 'market') && buildings.filter(b => b.type === 'cottage').length >= 2,
+        progressText: () => `[PROGRESS: Market ${buildings.filter(b => b.type === 'market').length}/1, Cottages ${buildings.filter(b => b.type === 'cottage').length}/2]`,
+        reward: () => { gameState.gold += 150; addPrestigeXP(80, 'Hamlet Fed'); spawnVillager('Forager'); spawnVillager('Farmer'); }
+      },
+      {
+        id: 3,
+        title: '3. Grain & Masonry',
+        desc: 'Construct a Stonecutter Quarry and a Windmill to produce bread and stone blocks.',
+        check: () => buildings.some(b => b.type === 'quarry') && buildings.some(b => b.type === 'windmill'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'quarry' || b.type === 'windmill').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 200; addPrestigeXP(100, 'Masonry Established'); spawnVillager('Stone Mason'); spawnVillager('Miller'); }
+      },
+      {
+        id: 4,
+        title: '4. Master Craftsmen & Feast',
+        desc: 'Erect a Blacksmith Forge and a Bread Bakery to feed and equip your workforce.',
+        check: () => buildings.some(b => b.type === 'forge') && buildings.some(b => b.type === 'bakery'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'forge' || b.type === 'bakery').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 250; playAnvilClangSound(); addPrestigeXP(120, 'Industry Forged'); spawnVillager('Blacksmith'); spawnVillager('Baker'); }
+      },
+      {
+        id: 5,
+        title: '5. Trade, Sea & Merriment',
+        desc: 'Construct a Fishing Pier, Great Granary and Tavern & Inn to foster realm commerce.',
+        check: () => buildings.some(b => b.type === 'dock') && buildings.some(b => b.type === 'tavern'),
+        progressText: () => `[PROGRESS: Pier ${buildings.filter(b => b.type === 'dock').length}/1, Tavern ${buildings.filter(b => b.type === 'tavern').length}/1]`,
+        reward: () => { gameState.gold += 300; addPrestigeXP(140, 'Commerce Prospering'); spawnVillager('Fisherman'); spawnVillager('Hunter'); }
+      },
+      {
+        id: 6,
+        title: '6. Defenders of the Realm',
+        desc: 'Build Barracks and Fortified Stone Gatehouse walls to guard your borders from rival raiders.',
+        check: () => buildings.some(b => b.type === 'barracks') && buildings.some(b => b.type === 'gatehouse'),
+        progressText: () => `[PROGRESS: ${buildings.filter(b => b.type === 'barracks' || b.type === 'gatehouse').length}/2 BUILDINGS]`,
+        reward: () => { gameState.gold += 350; playArcheryWhooshSound(); addPrestigeXP(160, 'Realm Fortified'); spawnVillager('Guard'); spawnVillager('Guard'); }
+      },
+      {
+        id: 7,
+        title: '7. Cloister of Sacred Wisdom',
+        desc: 'Erect a Monastery & Scriptorium and Apothecary to cultivate herbs and sacred scrolls.',
+        check: () => buildings.some(b => b.type === 'monastery') && buildings.some(b => b.type === 'apothecary'),
+        progressText: () => `[PROGRESS: Monastery ${buildings.filter(b => b.type === 'monastery').length}/1, Apothecary ${buildings.filter(b => b.type === 'apothecary').length}/1]`,
+        reward: () => { gameState.gold += 400; playChurchBellSound(); addPrestigeXP(200, 'Sacred Cloister Built'); spawnVillager('Priest'); spawnVillager('Laborer'); }
+      },
+      {
+        id: 8,
+        title: '8. Imperial Majesty: Great Cathedral',
+        desc: 'Erect the Great Royal Gothic Cathedral and Lord\'s Keep to ascend into a sovereign kingdom!',
+        check: () => buildings.some(b => b.type === 'cathedral') && buildings.some(b => b.type === 'keep'),
+        progressText: () => `[PROGRESS: Cathedral ${buildings.filter(b => b.type === 'cathedral').length}/1, Keep ${buildings.filter(b => b.type === 'keep').length}/1]`,
+        reward: () => { playCathedralFanfareSound(); addPrestigeXP(500, 'Sovereign Ascension'); showRealmNotice('[SOVEREIGN ASCENSION] Your Grand Kingdom stands eternal!'); }
+      }
+    ];
+
+    // 8 Repeatable Royal Bounties
+    const royalTasks = [
+      { id: 'hunt', title: 'Jungle Boar & Game Hunt', desc: 'Fell 3 wild animals in the eastern jungle.', target: 3, current: 0, icon: '[HUNT]', rewardGold: 90, rewardXP: 60 },
+      { id: 'gold', title: 'Mountain Gold Prospecting', desc: 'Mine 8 gold quartz ore deposits.', target: 8, current: 0, icon: '[GOLD]', rewardGold: 120, rewardXP: 80 },
+      { id: 'wood', title: 'Royal Timber Quota', desc: 'Harvest 25 logs of oak, pine or birch.', target: 25, current: 0, icon: '[WOOD]', rewardGold: 60, rewardXP: 40 },
+      { id: 'stone', title: 'Granite Quarrying', desc: 'Quarry 20 stone blocks from boulders.', target: 20, current: 0, icon: '[STONE]', rewardGold: 70, rewardXP: 50 },
+      { id: 'berries', title: 'Wild Forest Foraging', desc: 'Gather 20 wild berries and herbs.', target: 20, current: 0, icon: '[BERRIES]', rewardGold: 50, rewardXP: 35 },
+      { id: 'fish', title: 'River Angling', desc: 'Catch 15 fresh river trout & salmon.', target: 15, current: 0, icon: '[FISH]', rewardGold: 65, rewardXP: 45 },
+      { id: 'bread', title: 'Bakery Sustenance', desc: 'Produce 12 loaves of fresh bread.', target: 12, current: 0, icon: '[BREAD]', rewardGold: 75, rewardXP: 50 },
+      { id: 'raiders', title: 'Repel Rival Marauders', desc: 'Defend border from Crimson Wolf raiders.', target: 2, current: 0, icon: '[DEF]', rewardGold: 140, rewardXP: 100 }
+    ];
+
+    function checkRoyalTaskProgress(type, amount) {
+      const task = royalTasks.find(t => t.id === type);
+      if (task) {
+        task.current = Math.min(task.target, task.current + amount);
+        renderRoyalTasks();
+      }
+    }
+
+    window.claimRoyalTaskReward = function(taskId) {
+      const task = royalTasks.find(t => t.id === taskId);
+      if (!task || task.current < task.target) return;
+      initAudio();
+      gameState.gold += task.rewardGold;
+      addPrestigeXP(task.rewardXP, `Claimed ${task.title}`);
+      playGoldChimeSound();
+      showRealmNotice(`[BOUNTY CLAIMED: ${task.title}] +${task.rewardGold} Gold, +${task.rewardXP} XP!`);
+      task.current = 0;
+      task.target = Math.round(task.target * 1.3);
+      renderRoyalTasks();
+    };
+
+    function renderRoyalTasks() {
+      const container = document.getElementById('tasks-list');
+      if (!container) return;
+      container.innerHTML = '';
+      royalTasks.forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'task-item';
+        const isReady = t.current >= t.target;
+        item.innerHTML = `
+          <div>
+            <span style="font-weight: 800; color: #78350f;">${t.icon} ${t.title}</span><br>
+            <span style="color: #8c6838;">${t.desc} [${t.current}/${t.target}]</span>
+          </div>
+          <div>
+            ${isReady 
+              ? `<button class="task-claim-btn" onclick="claimRoyalTaskReward('${t.id}')">[CLAIM +${t.rewardGold}G]</button>`
+              : `<span style="font-size: 9px; color: #a16207; font-weight: 700;">${Math.round((t.current / t.target) * 100)}%</span>`}
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    window.switchMissionTab = function(tab) {
+      initAudio();
+      const tabC = document.getElementById('tab-campaign');
+      const tabT = document.getElementById('tab-tasks');
+      const panelC = document.getElementById('panel-campaign');
+      const panelT = document.getElementById('panel-tasks');
+
+      if (tab === 'campaign') {
+        if (tabC) tabC.classList.add('active');
+        if (tabT) tabT.classList.remove('active');
+        if (panelC) panelC.style.display = 'block';
+        if (panelT) panelT.style.display = 'none';
+      } else {
+        if (tabC) tabC.classList.remove('active');
+        if (tabT) tabT.classList.add('active');
+        if (panelC) panelC.style.display = 'none';
+        if (panelT) panelT.style.display = 'block';
+        renderRoyalTasks();
+      }
+    };
+
+    function checkQuestMilestone(newBuildingType) {
+      const q = quests[currentQuestIdx - 1];
+      if (q && q.check()) {
+        playQuestCompleteSound();
+        q.reward();
+        currentQuestIdx++;
+        if (currentQuestIdx <= quests.length) {
+          updateQuestUI();
+        } else {
+          document.getElementById('quest-title').innerText = 'VICTORY: Realm Established';
+          document.getElementById('quest-desc').innerText = 'Your kingdom stands proud upon the rolling hills.';
+          document.getElementById('quest-progress').innerText = '[ALL QUESTS COMPLETE]';
+        }
+      } else {
+        updateQuestUI();
+      }
+    }
+
+    function updateQuestUI() {
+      if (currentQuestIdx > quests.length) return;
+      const q = quests[currentQuestIdx - 1];
+      document.getElementById('quest-title').innerText = q.title;
+      document.getElementById('quest-desc').innerText = q.desc;
+      document.getElementById('quest-progress').innerText = q.progressText();
+    }
+
+    function updateResourceLedger() {
+      const g = document.getElementById('res-gold'); if (g) g.innerText = gameState.gold;
+      const w = document.getElementById('res-wood'); if (w) w.innerText = gameState.wood;
+      const s = document.getElementById('res-stone'); if (s) s.innerText = gameState.stone;
+      const i = document.getElementById('res-iron'); if (i) i.innerText = gameState.iron;
+      const b = document.getElementById('res-berries'); if (b) b.innerText = gameState.berries;
+      const br = document.getElementById('res-bread'); if (br) br.innerText = gameState.bread;
+      const f = document.getElementById('res-fish'); if (f) f.innerText = gameState.fish;
+    }
+
+    function updatePopulationHUD() {
+      const popEl = document.getElementById('pop-count');
+      if (popEl) popEl.innerText = villagers.length;
+    }
+
+        const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    // =========================================================================
+    // ARTISAN CRAFTING ATELIER & FORGE SYSTEM
+    // =========================================================================
+    window.toggleCraftingModal = function() {
+      const m = document.getElementById('crafting-modal');
+      if (!m) return;
+      m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    window.craftItem = function(type) {
+      initAudio();
+      if (type === 'planks') {
+        if (gameState.wood < 2) { showRealmNotice('[INSUFFICIENT WOOD] Requires 2 Wood.'); return; }
+        gameState.wood -= 2;
+        gameState.wood += 4;
+        addPrestigeXP(5, 'Crafted Oak Planks');
+        playBuildHammerSound();
+        showRealmNotice('[ARTISAN ATELIER] Crafted +4 Cut Oak Planks! +5 XP');
+      } else if (type === 'ashlar') {
+        if (gameState.stone < 2) { showRealmNotice('[INSUFFICIENT STONE] Requires 2 Stone.'); return; }
+        gameState.stone -= 2;
+        gameState.stone += 4;
+        addPrestigeXP(6, 'Carved Ashlar Stone');
+        playStoneChiselSound();
+        showRealmNotice('[ARTISAN ATELIER] Carved +4 Ashlar Stone Blocks! +6 XP');
+      } else if (type === 'steel') {
+        if (gameState.iron < 2 || gameState.stone < 1) { showRealmNotice('[INSUFFICIENT ORE] Requires 2 Iron & 1 Stone.'); return; }
+        gameState.iron -= 2;
+        gameState.stone -= 1;
+        gameState.gold += 15;
+        addPrestigeXP(12, 'Forged Tempered Steel');
+        playAnvilClangSound();
+        showRealmNotice('[FORGE] Forged Tempered Steel Bars! +15 Gold, +12 XP');
+      } else if (type === 'pickaxe') {
+        if (gameState.wood < 10 || gameState.iron < 5 || gameState.gold < 20) { showRealmNotice('[INSUFFICIENT MATERIALS] Requires 10 Wood, 5 Iron, 20 Gold.'); return; }
+        gameState.wood -= 10; gameState.iron -= 5; gameState.gold -= 20;
+        addPrestigeXP(25, 'Crafted Masterwork Pickaxe');
+        playAnvilClangSound();
+        showRealmNotice('[FORGE] Crafted Masterwork Pickaxe! Mining yield boosted! +25 XP');
+      } else if (type === 'bow') {
+        if (gameState.wood < 15 || gameState.gold < 25) { showRealmNotice('[INSUFFICIENT MATERIALS] Requires 15 Wood, 25 Gold.'); return; }
+        gameState.wood -= 15; gameState.gold -= 25;
+        addPrestigeXP(30, 'Crafted Recurve Yew Bow');
+        playArcheryWhooshSound();
+        showRealmNotice('[ATELIER] Crafted Recurve Yew Bow! Hunter lethality boosted! +30 XP');
+      } else if (type === 'glass') {
+        if (gameState.stone < 10 || gameState.iron < 5 || gameState.gold < 30) { showRealmNotice('[INSUFFICIENT MATERIALS] Requires 10 Stone, 5 Iron, 30 Gold.'); return; }
+        gameState.stone -= 10; gameState.iron -= 5; gameState.gold -= 30;
+        addPrestigeXP(45, 'Crafted Stained Glass Rosette');
+        playGoldChimeSound();
+        showRealmNotice('[ATELIER] Crafted Stained Glass Rosette! Realm grandeur elevated! +45 XP');
+      } else if (type === 'relic') {
+        if (gameState.stone < 20 || gameState.gold < 50) { showRealmNotice('[INSUFFICIENT MATERIALS] Requires 20 Stone, 50 Gold.'); return; }
+        gameState.stone -= 20; gameState.gold -= 50;
+        addPrestigeXP(150, 'Crafted Gilded Sovereign Relic');
+        playCathedralFanfareSound();
+        showRealmNotice('[SOVEREIGN FORGE] Crafted Gilded Sovereign Relic! +150 Prestige XP!');
+      }
+      updateResourceLedger();
+    };
+
+    // =========================================================================
+    // EMPIRE SAVE & LOAD SYSTEM (LOCALSTORAGE & JSON CONTINUITY)
+    // =========================================================================
+    window.saveRealmGame = function() {
+      initAudio();
+      const saveData = {
+        version: '1.0',
+        timestamp: new Date().toISOString(),
+        gameState: gameState,
+        currentQuestIdx: currentQuestIdx,
+        currentWeatherIdx: currentWeatherIdx,
+        buildings: buildings.map(b => ({
+          type: b.type,
+          x: b.x,
+          z: b.z,
+          rotY: b.mesh ? b.mesh.rotation.y : 0
+        })),
+        villagers: villagers.map(v => ({
+          name: v.name,
+          profession: v.profession,
+          hunger: v.hunger,
+          thirst: v.thirst,
+          x: v.x,
+          z: v.z
+        })),
+        royalTasks: royalTasks.map(t => ({ id: t.id, current: t.current, target: t.target }))
+      };
+
+      try {
+        localStorage.setItem('foundation_kingdom_save', JSON.stringify(saveData));
+        playGoldChimeSound();
+        showRealmNotice('[EMPIRE SAVED] Game state saved successfully! Continue building anytime.');
+      } catch (e) {
+        console.error('Save error:', e);
+        showRealmNotice('[SAVE FAILED] Storage error.');
+      }
+    };
+
+    window.loadRealmGame = function() {
+      initAudio();
+      try {
+        const raw = localStorage.getItem('foundation_kingdom_save');
+        if (!raw) {
+          showRealmNotice('[NO SAVE FOUND] No saved realm state exists in local storage.');
+          return;
+        }
+        const data = JSON.parse(raw);
+        if (data.gameState) {
+          Object.assign(gameState, data.gameState);
+        }
+        if (data.currentQuestIdx) currentQuestIdx = data.currentQuestIdx;
+        if (data.currentWeatherIdx !== undefined) {
+          currentWeatherIdx = data.currentWeatherIdx;
+          applyWeatherCondition(WEATHER_CONDITIONS[currentWeatherIdx]);
+        }
+        if (data.royalTasks) {
+          data.royalTasks.forEach(st => {
+            const t = royalTasks.find(rt => rt.id === st.id);
+            if (t) { t.current = st.current; t.target = st.target; }
+          });
+          renderRoyalTasks();
+        }
+        updateResourceLedger();
+        updateLevelHUD();
+        updateQuestUI();
+        playCathedralFanfareSound();
+        showRealmNotice('[EMPIRE LOADED] Welcome back, Sovereign! Your realm has been restored.');
+      } catch (e) {
+        console.error('Load error:', e);
+        showRealmNotice('[LOAD FAILED] Corrupt save file.');
+      }
+    };
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'F5') {
+        e.preventDefault();
+        saveRealmGame();
+      }
+    });
+
+    // =========================================================================
+    // FLOATING 3D HOVER TOOLTIP & OBJECT RECOGNITION
+    // =========================================================================
+    function updateHoverTooltip(clientX, clientY) {
+      const tip = document.getElementById('hover-tooltip');
+      const tipTitle = document.getElementById('tip-title');
+      const tipSub = document.getElementById('tip-sub');
+      if (!tip || !tipTitle || !tipSub) return;
+
+      tip.style.left = `${clientX}px`;
+      tip.style.top = `${clientY}px`;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      // Check Placed Buildings
+      for (const b of buildings) {
+        const hits = raycaster.intersectObjects(b.mesh.children, true);
+        if (hits.length > 0) {
+          const names = {
+            center: "Town Hall [LORD'S MANOR]",
+            lumber: "Lumber Camp [TIMBER PROCESSING]",
+            quarry: "Stone Quarry [MASONRY & CRANE]",
+            well: "Town Well [CIVIC FRESH WATER]",
+            cottage: "Thatched Cottage [SERF RESIDENCE]",
+            market: "Market Stall [COMMERCE & TRADE]",
+            windmill: "Grain Windmill [WHEAT MILLING]",
+            forge: "Blacksmith & Forge [TOOL & ARMORY]",
+            bakery: "Bread Bakery [CLAY OVEN & FLOUR]",
+            tavern: "The Royal Boar [TAVERN & INN]",
+            dock: "Fishing Pier [RIVER HARVEST]",
+            granary: "Great Granary [ELEVATED WAREHOUSE]",
+            apothecary: "Apothecary [HERBS & MEDICINE]",
+            barracks: "Garrison Barracks [MILITARY RECRUIT]",
+            gatehouse: "Stone Gatehouse [FORTIFIED WALLS]",
+            church: "Rustic Church [PARISH FAITH]",
+            monastery: "Monastery & Cloister [SACRED SCRIPTORIUM]",
+            keep: "Lord's Keep [CITADEL STRONGHOLD]",
+            cathedral: "Great Gothic Cathedral [ROYAL MONUMENT]"
+          };
+          tipTitle.innerText = names[b.type] || b.type.toUpperCase();
+          tipSub.innerText = "Active Kingdom Infrastructure &bull; Click to Inspect";
+          tip.style.display = 'block';
+          return;
+        }
+      }
+
+      // Check Trees
+      for (const t of trees) {
+        const hits = raycaster.intersectObjects(t.mesh.children, true);
+        if (hits.length > 0) {
+          tipTitle.innerText = `${t.mesh.species || 'Forest'} Tree [TIMBER]`;
+          tipSub.innerText = `Yields Wood &bull; HP: ${t.hp}/4 &bull; Click to harvest`;
+          tip.style.display = 'block';
+          return;
+        }
+      }
+
+      // Check Granite Boulders
+      for (const r of stoneRocks) {
+        const hits = raycaster.intersectObject(r.mesh);
+        if (hits.length > 0) {
+          tipTitle.innerText = "Granite Boulder [STONE]";
+          tipSub.innerText = `Rich Stone Deposit &bull; HP: ${r.hp}/6 &bull; Click to quarry`;
+          tip.style.display = 'block';
+          return;
+        }
+      }
+
+      // Check Gold Veins
+      for (const g of goldVeins) {
+        const hits = raycaster.intersectObject(g.mesh);
+        if (hits.length > 0) {
+          tipTitle.innerText = "Gold Quartz Vein [PRECIOUS ORE]";
+          tipSub.innerText = `Yields Gold & Iron &bull; HP: ${g.hp}/6 &bull; Click to mine`;
+          tip.style.display = 'block';
+          return;
+        }
+      }
+
+      // Check Wild Berry Bushes
+      for (const b of berryBushes) {
+        const hits = raycaster.intersectObjects(b.mesh.children, true);
+        if (hits.length > 0) {
+          tipTitle.innerText = "Wild Berry Bush [FORAGING]";
+          tipSub.innerText = `Ripe Ruby Berries &bull; HP: ${b.hp}/4 &bull; Click to forage`;
+          tip.style.display = 'block';
+          return;
+        }
+      }
+
+      // Check River Fish Schools
+      for (const f of riverFishSchools) {
+        const hits = raycaster.intersectObjects(f.mesh.children, true);
+        if (hits.length > 0) {
+          tipTitle.innerText = "River Trout School [FISHING]";
+          tipSub.innerText = "Leaping Fresh Trout &bull; Click to cast fishing line";
+          tip.style.display = 'block';
+          return;
+        }
+      }
+
+      // Check Wild Animals
+      for (const a of wildlifeAnimals) {
+        const hits = raycaster.intersectObjects(a.mesh.children, true);
+        if (hits.length > 0) {
+          tipTitle.innerText = `Wild ${a.type.toUpperCase()} [GAME ANIMAL]`;
+          tipSub.innerText = `HP: ${a.hp} &bull; Click with Hunter to track and hunt`;
+          tip.style.display = 'block';
+          return;
+        }
+      }
+
+      // Check Villagers
+      for (const v of villagers) {
+        const hits = raycaster.intersectObjects(v.mesh.children, true);
+        if (hits.length > 0) {
+          tipTitle.innerText = `${v.name} [SERF: ${v.profession.toUpperCase()}]`;
+          tipSub.innerText = `Task: ${v.state.toUpperCase()} &bull; Hunger: ${Math.round(v.hunger)}% &bull; Click to reassign`;
+          tip.style.display = 'block';
+          return;
+        }
+      }
+
+      // Check Rival Raiders
+      for (const r of rivalRaiders) {
+        const hits = raycaster.intersectObjects(r.mesh.children, true);
+        if (hits.length > 0) {
+          tipTitle.innerText = "Crimson Wolf Raider [ENEMY]";
+          tipSub.innerText = "Hostile Barbarian Scout &bull; Guard border defense required";
+          tip.style.display = 'block';
+          return;
+        }
+      }
+
+      tip.style.display = 'none';
+    }
+
+    function setupControlsAndInput() {
+      window.addEventListener('keydown', (e) => {
+        initAudio();
+        if (e.code === 'Escape') {
+          if (activeBuildType) cancelBuildingPlacement();
+          else togglePauseSettings();
+        }
+        if (e.code === 'KeyR' && ghostBuilding) {
+          ghostRotation += Math.PI * 0.25;
+          ghostBuilding.rotation.y = ghostRotation;
+        }
+      });
+
+      let isLeftDragging = false;
+      let leftDragStartX = 0, leftDragStartY = 0;
+      let hasDraggedSignificantly = false;
+
+      window.addEventListener('mousedown', (e) => {
+        initAudio();
+        if (e.button === 2) {
+          isRightDragging = true;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+        } else if (e.button === 0) {
+          isLeftDragging = true;
+          leftDragStartX = e.clientX;
+          leftDragStartY = e.clientY;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+          hasDraggedSignificantly = false;
+        } else if (e.button === 1) {
+          isRightDragging = true;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+        }
+      });
+
+      window.addEventListener('mouseup', (e) => {
+        if (e.button === 2 || e.button === 1) isRightDragging = false;
+        if (e.button === 0) {
+          isLeftDragging = false;
+          if (!hasDraggedSignificantly) {
+            handleLeftClick(e);
+          }
+        }
+      });
+
+      window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        updateHoverTooltip(e.clientX, e.clientY);
+
+        if (isRightDragging) {
+          const deltaX = e.clientX - prevMouseX;
+          const deltaY = e.clientY - prevMouseY;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+
+          camYaw -= deltaX * 0.005;
+          camPitch = Math.max(0.15, Math.min(1.4, camPitch - deltaY * 0.005));
+          updateCameraPosition();
+        } else if (isLeftDragging && !activeBuildType) {
+          const deltaX = e.clientX - prevMouseX;
+          const deltaY = e.clientY - prevMouseY;
+          if (Math.hypot(e.clientX - leftDragStartX, e.clientY - leftDragStartY) > 5) {
+            hasDraggedSignificantly = true;
+          }
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+
+          const panSpeed = (camDistance * 0.0022);
+          const sinYaw = Math.sin(camYaw);
+          const cosYaw = Math.cos(camYaw);
+
+          camTarget.x -= (deltaX * cosYaw + deltaY * sinYaw) * panSpeed;
+          camTarget.z -= (-deltaX * sinYaw + deltaY * cosYaw) * panSpeed;
+          updateCameraPosition();
+        }
+
+        if (activeBuildType && ghostBuilding && terrainMesh) {
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObject(terrainMesh);
+          if (intersects.length > 0) {
+            const p = intersects[0].point;
+            ghostBuilding.position.set(p.x, getTerrainHeight(p.x, p.z), p.z);
+          }
+        }
+      });
+
+      // CONTINUOUS MOUSE SCROLL WHEEL OPTICAL ZOOM (8m to 260m)
+      window.addEventListener('wheel', (e) => {
+        camDistance = Math.max(8.0, Math.min(260.0, camDistance + e.deltaY * 0.08));
+        updateCameraPosition();
+      }, { passive: true });
+
+      const btnSettings = document.getElementById('btn-settings-hud');
+      if (btnSettings) btnSettings.addEventListener('click', () => togglePauseSettings());
+
+      const sBright = document.getElementById('slider-brightness');
+      if (sBright) {
+        sBright.addEventListener('input', (e) => {
+          const v = parseFloat(e.target.value);
+          if (renderer) renderer.toneMappingExposure = v;
+          document.getElementById('val-brightness').innerText = `${Math.round(v * 100)}%`;
+        });
+      }
+
+      const sVol = document.getElementById('slider-volume');
+      if (sVol) {
+        sVol.addEventListener('input', (e) => {
+          masterVolume = parseFloat(e.target.value);
+          document.getElementById('val-volume').innerText = `${Math.round(masterVolume * 100)}%`;
+        });
+      }
+
+      const selGPU = document.getElementById('select-gpu');
+      if (selGPU) {
+        selGPU.addEventListener('change', (e) => {
+          if (!renderer) return;
+          const mode = e.target.value;
+          if (mode === 'ultra') renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          else if (mode === 'high') renderer.setPixelRatio(1.25);
+          else renderer.setPixelRatio(1.0);
+        });
+      }
+    }
+
+    function handleLeftClick(e) {
+      if (e.target.closest('#hud') || e.target.closest('#settings-modal') || e.target.closest('#inspector-card') || e.target.closest('#hints-modal')) return;
+
+      if (activeBuildType && ghostBuilding) {
+        tryPlaceBuilding(ghostBuilding.position.x, ghostBuilding.position.z);
+        return;
+      }
+
+      raycaster.setFromCamera(mouse, camera);
+
+      // 1. Click on Granite Boulder to loot stone immediately
+      for (const rock of stoneRocks) {
+        const hits = raycaster.intersectObject(rock.mesh);
+        if (hits.length > 0) {
+          showRealmNotice('[GRANITE BOULDER] Ordering nearest serf to quarry stone!');
+          playStoneChiselSound();
+          let c = villagers.find(v => v.profession === 'Stone Mason') || villagers[0];
+          if (c) { c.state = 'quarrying'; c.targetObj = rock; c.targetPos = new THREE.Vector3(rock.x, 0, rock.z); }
+          return;
+        }
+      }
+
+      // 2. Click on Gold Quartz Vein to mine gold ore
+      for (const g of goldVeins) {
+        const hits = raycaster.intersectObject(g.mesh);
+        if (hits.length > 0) {
+          showRealmNotice('[GOLD VEIN] Ordering nearest miner to extract gold ore!');
+          playGoldChimeSound();
+          let c = villagers.find(v => v.profession === 'Gold Miner') || villagers[0];
+          if (c) { c.state = 'mining_gold'; c.targetObj = g; c.targetPos = new THREE.Vector3(g.x, 0, g.z); }
+          return;
+        }
+      }
+
+      // 3. Click on Wild Berry Bush to forage food
+      for (const b of berryBushes) {
+        const hits = raycaster.intersectObjects(b.mesh.children);
+        if (hits.length > 0) {
+          showRealmNotice('[BERRY BUSH] Ordering nearest forager to harvest wild berries!');
+          let c = villagers.find(v => v.profession === 'Forager') || villagers[0];
+          if (c) { c.state = 'foraging'; c.targetObj = b; c.targetPos = new THREE.Vector3(b.x, 0, b.z); }
+          return;
+        }
+      }
+
+      // 4. Click on River Fish School to fish
+      for (const f of riverFishSchools) {
+        const hits = raycaster.intersectObjects(f.mesh.children);
+        if (hits.length > 0) {
+          showRealmNotice('[RIVER FISH] Ordering nearest fisherman to cast line!');
+          playSplashSound();
+          let c = villagers.find(v => v.profession === 'Fisherman') || villagers[0];
+          if (c) { c.state = 'fishing'; c.targetObj = f; c.targetPos = new THREE.Vector3(f.x, 0, f.z); }
+          return;
+        }
+      }
+
+      // 5. Click on Wild Animal to Hunt (Boar, Deer, Wolf)
+      for (const a of wildlifeAnimals) {
+        const hits = raycaster.intersectObjects(a.mesh.children);
+        if (hits.length > 0) {
+          showRealmNotice(`[WILD GAME: ${a.type.toUpperCase()}] Ordering nearest hunter to track and fell beast!`);
+          playArcheryWhooshSound();
+          let c = villagers.find(v => v.profession === 'Hunter') || villagers[0];
+          if (c) { c.state = 'hunting'; c.targetObj = a; c.targetPos = new THREE.Vector3(a.x, 0, a.z); }
+          return;
+        }
+      }
+
+      // 6. Click on Trees to harvest timber
+      for (const t of trees) {
+        const hits = raycaster.intersectObjects(t.mesh.children);
+        if (hits.length > 0) {
+          showRealmNotice('[TIMBER OAK/PINE] Ordering nearest woodcutter to harvest timber!');
+          playWoodChopSound();
+          let c = villagers.find(v => v.profession === 'Woodcutter') || villagers[0];
+          if (c) { c.state = 'chopping'; c.targetObj = t; c.targetPos = new THREE.Vector3(t.x, 0, t.z); }
+          return;
+        }
+      }
+
+      // 7. Click on Villagers to Inspect & Reassign
+      for (const v of villagers) {
+        const hits = raycaster.intersectObjects(v.mesh.children, true);
+        if (hits.length > 0) {
+          inspectVillager(v);
+          return;
+        }
+      }
+    }
+
+        const keys = {};
+    window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+    function updateCameraPan(delta) {
+      let dx = 0, dz = 0;
+      if (keys['KeyW'] || keys['ArrowUp']) dz -= 1;
+      if (keys['KeyS'] || keys['ArrowDown']) dz += 1;
+      if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+      if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+
+      if (dx !== 0 || dz !== 0) {
+        const panSpeed = (camDistance * 0.8) * delta;
+        const sinYaw = Math.sin(camYaw);
+        const cosYaw = Math.cos(camYaw);
+
+        camTarget.x += (dx * cosYaw - dz * sinYaw) * panSpeed;
+        camTarget.z += (dx * sinYaw + dz * cosYaw) * panSpeed;
+        camTarget.x = Math.max(-180, Math.min(180, camTarget.x));
+        camTarget.z = Math.max(-180, Math.min(180, camTarget.z));
+        updateCameraPosition();
+      }
+    }
+
+    window.togglePauseSettings = function() {
+      const modal = document.getElementById('settings-modal');
+      if (!modal) return;
+      const isOpen = modal.style.display === 'flex';
+      modal.style.display = isOpen ? 'none' : 'flex';
+    };
+
+    window.toggleZoningTool = function() {
+      initAudio();
+      showRealmNotice('[ZONING ACTIVE] Serfs autonomously construct thatched cottages near wells and workplaces.');
+    };
+
+    // MAIN 60 FPS SIMULATION ANIMATION LOOP
+    let lastTime = performance.now();
+    let lastEconomyTick = 0;
+
+    function animate(currentTime) {
+      requestAnimationFrame(animate);
+
+      const delta = Math.min((currentTime - lastTime) * 0.001, 0.05);
+      lastTime = currentTime;
+
+      updateCameraPan(delta);
+      updateVillagers(delta);
+
+      // 1. Dynamic Weather Automatic Progression
+      rainTimer += delta;
+      if (rainTimer > 110.0) {
+        rainTimer = 0;
+        cycleWeatherCondition();
+      }
+
+      // 2. 3D Rain Drop Particle Simulation
+      if (rainParticleSystem && rainParticleSystem.visible) {
+        const pos = rainParticleSystem.geometry.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          let y = pos.getY(i) - delta * 65.0;
+          if (y < 0) y = 120;
+          pos.setY(i, y);
+        }
+        pos.needsUpdate = true;
+      }
+
+      // 3. Dynamic Waterfall Foam Texture Scrolling & Plunge Spray
+      if (waterfallFoamTex) {
+        waterfallFoamTex.offset.y -= delta * 2.2;
+      }
+      for (let i = 0; i < waterfallMistParticles.length; i++) {
+        const m = waterfallMistParticles[i];
+        m.age += delta;
+        m.mesh.position.y += m.speedY * delta;
+        m.mesh.position.x += (Math.random() - 0.5) * delta * 2.0;
+        const prog = m.age / m.lifetime;
+        m.mesh.scale.setScalar(1.0 + prog * 2.5);
+        m.mesh.material.opacity = Math.max(0, (1 - prog) * 0.55);
+        if (m.age >= m.lifetime) {
+          m.age = 0;
+          m.mesh.position.set(m.baseX, m.baseY, m.baseZ);
+          m.mesh.scale.setScalar(1.0);
+          m.mesh.material.opacity = 0.5;
+        }
+      }
+
+      // 4. Jumping River Trout in Fish Schools
+      riverFishSchools.forEach((s) => {
+        if (s.trout) {
+          const jump = Math.sin(currentTime * 0.003 + s.jumpPhase);
+          if (jump > 0.4) {
+            s.trout.position.y = -2.3 + (jump - 0.4) * 2.5;
+            s.trout.rotation.z = Math.sin(currentTime * 0.01) * 0.4;
+          } else {
+            s.trout.position.y = -2.3;
+          }
+        }
+      });
+
+      // 5. Roaming Wildlife Animals (Deer, Jungle Boars, Wolves, Sheep)
+      wildlifeAnimals.forEach((a) => {
+        a.angle += (Math.random() - 0.5) * delta * 1.5;
+        a.x += Math.cos(a.angle) * a.speed * delta;
+        a.z += Math.sin(a.angle) * a.speed * delta;
+        const y = getTerrainHeight(a.x, a.z);
+        a.mesh.position.set(a.x, y, a.z);
+        a.mesh.rotation.y = a.angle + Math.PI * 0.5;
+      });
+
+      // 6. Rival Tribal Raiders Patrolling Encampment & Scouting
+      raiderAttackTimer += delta;
+      rivalRaiders.forEach((r, idx) => {
+        r.x += (Math.random() - 0.5) * delta * 1.8;
+        r.z += (Math.random() - 0.5) * delta * 1.8;
+        r.mesh.position.set(r.x, getTerrainHeight(r.x, r.z), r.z);
+      });
+
+      // 7. Windmill Sails Rotation & Forge Light Flickering
+      buildings.forEach((b) => {
+        if (b.type === 'windmill' && b.mesh.sails) {
+          b.mesh.sails.rotation.z += delta * 1.2;
+        }
+        if (b.type === 'forge' && b.mesh.forgeLight) {
+          b.mesh.forgeLight.intensity = 1.4 + Math.sin(currentTime * 0.012) * 0.4 + (Math.random() - 0.5) * 0.2;
+        }
+      });
+
+      // 8. Chimney Smoke billows
+      for (let i = 0; i < smokeParticles.length; i++) {
+        const p = smokeParticles[i];
+        p.age += delta;
+        p.mesh.position.y += p.speedY * delta;
+        p.mesh.position.x += p.driftX * delta;
+        p.mesh.position.z += Math.sin(p.age * 2) * delta * 0.15;
+        const progress = Math.min(1.0, p.age / p.lifetime);
+        p.mesh.scale.setScalar(1.0 + progress * 2.8);
+        p.mesh.material.opacity = Math.max(0, (1.0 - progress) * 0.65);
+        if (p.age >= p.lifetime) {
+          p.age = 0;
+          p.mesh.position.set(p.baseX + (Math.random() - 0.5) * 0.3, p.baseY, p.baseZ + (Math.random() - 0.5) * 0.3);
+          p.mesh.scale.setScalar(1.0);
+          p.mesh.material.opacity = 0.65;
+        }
+      }
+
+      // 9. Sky Birds V-Formation Flight
+      if (flockOfBirds.length > 0) {
+        flockFlightAngle += delta * 0.12;
+        const leaderX = Math.cos(flockFlightAngle) * 160;
+        const leaderZ = Math.sin(flockFlightAngle) * 140;
+        const leaderY = 62 + Math.sin(flockFlightAngle * 2) * 6;
+        const flightYaw = flockFlightAngle + Math.PI * 0.5;
+
+        flockOfBirds.forEach((b) => {
+          const cosY = Math.cos(flightYaw), sinY = Math.sin(flightYaw);
+          const wx = leaderX + (b.offsetLeaderX * cosY - b.offsetLeaderZ * sinY);
+          const wz = leaderZ + (b.offsetLeaderX * sinY + b.offsetLeaderZ * cosY);
+          b.mesh.position.set(wx, leaderY, wz);
+          b.mesh.rotation.y = flightYaw + Math.PI;
+
+          const flap = Math.sin(currentTime * 0.009 + b.wingPhase) * 0.45;
+          b.mesh.rotation.z = flap * 0.22;
+          const posAttr = b.mesh.geometry.attributes.position;
+          posAttr.setY(1, 0.3 + flap * 0.6);
+          posAttr.setY(4, 0.3 + flap * 0.6);
+          posAttr.needsUpdate = true;
+        });
+      }
+
+      // 10. Dynamic River Wave Oscillation
+      if (riverMesh && riverMesh.geometry) {
+        const rPos = riverMesh.geometry.attributes.position;
+        for (let i = 0; i < rPos.count; i++) {
+          const z = rPos.getZ(i);
+          rPos.setY(i, -2.4 + Math.sin(currentTime * 0.0022 + z * 0.07) * 0.14);
+        }
+        rPos.needsUpdate = true;
+      }
+      if (riverMesh && riverMesh.material && riverMesh.material.map) {
+        riverMesh.material.map.offset.y += delta * 0.04;
+      }
+
+      // 11. Periodic Kingdom Economy Revenue Ticker
+      if (currentTime - lastEconomyTick > 8000) {
+        lastEconomyTick = currentTime;
+        let goldGain = 0;
+        if (buildings.some(b => b.type === 'market')) goldGain += 4;
+        if (buildings.some(b => b.type === 'tavern')) goldGain += 8;
+        if (buildings.some(b => b.type === 'dock')) gameState.fish += 2;
+        if (buildings.some(b => b.type === 'bakery')) gameState.bread += 3;
+        if (goldGain > 0) {
+          gameState.gold += goldGain;
+          updateResourceLedger();
+        }
+      }
+
+      clouds.forEach((c) => {
+        c.mesh.position.x += c.speed * delta;
+        if (c.mesh.position.x > 450) c.mesh.position.x = -450;
+      });
+
+      renderer.render(scene, camera);
+    }
+
+        function showRealmNotice(text) {
+      let notice = document.getElementById('realm-notice');
+      if (!notice) {
+        notice = document.createElement('div');
+        notice.id = 'realm-notice';
+        notice.style.position = 'fixed';
+        notice.style.top = '75px';
+        notice.style.left = '50%';
+        notice.style.transform = 'translateX(-50%)';
+        notice.style.background = '#fef2f2';
+        notice.style.border = '2px solid #ef4444';
+        notice.style.borderRadius = '8px';
+        notice.style.padding = '8px 18px';
+        notice.style.color = '#991b1b';
+        notice.style.fontWeight = '800';
+        notice.style.fontSize = '12px';
+        notice.style.zIndex = '999';
+        notice.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+        document.body.appendChild(notice);
+      }
+      notice.innerText = text;
+      notice.style.display = 'block';
+      setTimeout(() => { if (notice) notice.style.display = 'none'; }, 3200);
+    }
+
+    // BOOTSTRAP REALM (Daylight Foundation World - Reliable Multi-Stage Initialization)
+    function bootstrapRealm() {
+      try {
+        init3DEnvironment();
+        setupControlsAndInput();
+        setupFlockOfBirds();
+        setupRainParticles();
+        setupMountainWaterfall();
+        setupArchedRiverBridge();
+        setupRusticWoodcraftsAndFurnitures();
+        setupRivalEnemyCamp();
+
+        const centerBuilding = createBuildingMesh('center', false);
+        const centerGroundY = getTerrainHeight(0, 0);
+        centerBuilding.position.set(0, centerGroundY, 0);
+        scene.add(centerBuilding);
+        buildings.push({ type: 'center', mesh: centerBuilding, x: 0, z: 0 });
+
+        // Town Hall Chimney Smoke Puffs
+        for (let s = 0; s < 6; s++) {
+          addSmokePuff(1.8, centerGroundY + 11.0, 1.2, false);
+        }
+
+        // Initial balanced workforce with Hunters, Woodcutters, Masons & Laborers
+        const starterRoles = ['Woodcutter', 'Woodcutter', 'Stone Mason', 'Gold Miner', 'Hunter', 'Laborer'];
+        for (let i = 0; i < 6; i++) {
+          const offset = new THREE.Vector3((Math.random() - 0.5) * 16, 0, (Math.random() - 0.5) * 16);
+          const v = spawnVillager(starterRoles[i], offset);
+          updateVillagerGear(v);
+        }
+
+        updateResourceLedger();
+        updateLevelHUD();
+        updateQuestUI();
+        renderRoyalTasks();
+        requestAnimationFrame(animate);
+        console.log('[FOUNDATION REALM] 800m Open-World Simulation Bootstrapped Successfully.');
+      } catch (err) {
+        console.error('[FOUNDATION ENGINE ERROR]', err);
+      }
+    }
+
+        if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', bootstrapRealm);
+    } else {
+      bootstrapRealm();
+    }
+
+  </script>
+  <!-- Strategy Hints & Realm Guide Modal -->
+  <div id="hints-modal" style="display: none; position: fixed; inset: 0; background: rgba(30, 20, 10, 0.7); z-index: 1000; justify-content: center; align-items: center; pointer-events: auto;">
+    <div style="background: #fdf8ee; border: 3px solid #c9933b; border-radius: 12px; width: 680px; max-width: 90vw; max-height: 85vh; overflow-y: auto; padding: 22px 26px; box-shadow: 0 10px 35px rgba(0,0,0,0.4); font-family: Georgia, serif; color: #4a3420;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c9933b; padding-bottom: 10px; margin-bottom: 14px;">
+        <span style="font-size: 16px; font-weight: 800; color: #78350f; letter-spacing: 0.5px;">[STRATEGY GUIDE & REALM HINTS]</span>
+        <button onclick="toggleHintsModal()" style="background: #e2d3b5; border: 1px solid #c9933b; border-radius: 4px; padding: 3px 9px; font-weight: 800; cursor: pointer; color: #78350f;">[X]</button>
+      </div>
+
+      <div style="font-size: 12px; line-height: 1.6; color: #4a3420;">
+        <h4 style="color: #92400e; margin: 8px 0 4px 0;">1. Open-World Geography & Biomes</h4>
+        <p>Your realm is set within a massive 800m open world. To the South lie fertile meadows; to the East lies the Ancient Deep Jungle rich in wild boars and berry thickets; to the North rise towering Rocky Mountains feeding an alpine lake and rushing waterfalls; to the West across the river gorge lies the hostile Crimson Wolf Clan encampment.</p>
+
+        <h4 style="color: #92400e; margin: 12px 0 4px 0;">2. Worker Vocations & Direct Resource Looting</h4>
+        <p>Click any villager to open their Inspector Card and reassign them to 10 vocations: Woodcutter, Stone Mason, Gold Miner, Forager, Fisherman, Farmer, Baker, Blacksmith, Royal Guard, or Hunter! You can also left-click directly on any tree, granite boulder, gold quartz vein, berry bush, or wild animal in the world to immediately dispatch nearest workers to loot it!</p>
+
+        <h4 style="color: #92400e; margin: 12px 0 4px 0;">3. Hunting Wild Game in the Jungle</h4>
+        <p>Assign Hunters to track and hunt wild boars in the dense eastern jungle, stags in the forest edges, and wolves near mountain ridges. Hunting yields fresh meat and leather hides to sustain your settlers and satisfy royal bounties.</p>
+
+        <h4 style="color: #92400e; margin: 12px 0 4px 0;">4. Defense Against Rival Enemy Tribes</h4>
+        <p>The Crimson Wolf Marauder Clan periodically sends raiding parties across the river gorge. Construct the Stone Gatehouse and Wall battlements, and assign Royal Guards to patrol borders and repel raiders for large gold and prestige bounties!</p>
+
+        <h4 style="color: #92400e; margin: 12px 0 4px 0;">5. Dynamic Weather & Production Chains</h4>
+        <p>Experience clear sunshine, heavy rainstorms, rolling mountain mist, and golden sunsets. Windmills grind grain, Bakeries bake warm bread, Blacksmiths forge iron weapons, and Fishing Docks harvest the river.</p>
+      </div>
+
+      <div style="margin-top: 18px; text-align: center;">
+        <button onclick="toggleHintsModal()" style="background: #c9933b; border: 1px solid #8c5818; border-radius: 6px; padding: 6px 20px; font-weight: 800; color: #fffdf5; cursor: pointer;">[RETURN TO REALM]</button>
+      </div>
+    </div>
+  </div>
+  <!-- Floating 3D Object Hover Tooltip -->
+  <div id="hover-tooltip">
+    <div id="tip-title" class="tip-title">[OBJECT NAME]</div>
+    <div id="tip-sub" class="tip-sub">Description & Resource Details</div>
+  </div>
+
+  <!-- Modern Artisan Crafting Workshop Modal -->
+  <div id="crafting-modal">
+    <div class="craft-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c9933b; padding-bottom: 10px; margin-bottom: 12px;">
+        <div>
+          <span style="font-size: 16px; font-weight: 800; color: #78350f; letter-spacing: 0.5px;">[ARTISAN CRAFTING ATELIER & FORGE]</span><br>
+          <span style="font-size: 11px; color: #8c6838;">Craft refined materials, masterwork tools, stained glass, and kingdom artifacts.</span>
+        </div>
+        <button onclick="toggleCraftingModal()" style="background: #e2d3b5; border: 1px solid #c9933b; border-radius: 6px; padding: 4px 10px; font-weight: 800; cursor: pointer; color: #78350f;">[X]</button>
+      </div>
+
+      <div class="craft-grid">
+        <!-- 1. Cut Timber Planks -->
+        <div class="craft-card">
+          <div>
+            <div class="craft-name">[TIMBER] Cut Oak Planks</div>
+            <div class="craft-cost">Cost: 2 Wood &bull; Yield: +4 Planks</div>
+          </div>
+          <button class="craft-btn" onclick="craftItem('planks')">[CRAFT PLANKS]</button>
+        </div>
+
+        <!-- 2. Carved Ashlar Blocks -->
+        <div class="craft-card">
+          <div>
+            <div class="craft-name">[STONE] Carved Ashlar Blocks</div>
+            <div class="craft-cost">Cost: 2 Stone &bull; Yield: +4 Cut Blocks</div>
+          </div>
+          <button class="craft-btn" onclick="craftItem('ashlar')">[CRAFT ASHLAR]</button>
+        </div>
+
+        <!-- 3. Tempered Steel Ingots -->
+        <div class="craft-card">
+          <div>
+            <div class="craft-name">[FORGE] Tempered Steel Bars</div>
+            <div class="craft-cost">Cost: 2 Iron, 1 Stone &bull; Yield: +3 Steel</div>
+          </div>
+          <button class="craft-btn" onclick="craftItem('steel')">[FORGE STEEL]</button>
+        </div>
+
+        <!-- 4. Masterwork Steel Pickaxe -->
+        <div class="craft-card">
+          <div>
+            <div class="craft-name">[TOOL] Masterwork Pickaxe</div>
+            <div class="craft-cost">Cost: 10 Wood, 5 Iron, 20 Gold</div>
+          </div>
+          <button class="craft-btn" onclick="craftItem('pickaxe')">[CRAFT PICKAXE]</button>
+        </div>
+
+        <!-- 5. Recurve Hunting Bow -->
+        <div class="craft-card">
+          <div>
+            <div class="craft-name">[WEAPON] Recurve Yew Bow</div>
+            <div class="craft-cost">Cost: 15 Wood, 25 Gold</div>
+          </div>
+          <button class="craft-btn" onclick="craftItem('bow')">[CRAFT BOW]</button>
+        </div>
+
+        <!-- 6. Stained Glass Rosette -->
+        <div class="craft-card">
+          <div>
+            <div class="craft-name">[FAITH] Stained Glass Rosette</div>
+            <div class="craft-cost">Cost: 10 Stone, 5 Iron, 30 Gold</div>
+          </div>
+          <button class="craft-btn" onclick="craftItem('glass')">[CRAFT ROSETTE]</button>
+        </div>
+
+        <!-- 7. Gilded Throne Relic -->
+        <div class="craft-card">
+          <div>
+            <div class="craft-name">[CROWN] Gilded Sovereign Relic</div>
+            <div class="craft-cost">Cost: 20 Stone, 50 Gold &bull; +150 XP</div>
+          </div>
+          <button class="craft-btn" onclick="craftItem('relic')">[CRAFT RELIC]</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
