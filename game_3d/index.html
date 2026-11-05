@@ -1091,40 +1091,87 @@
     /* =========================================================================
        MINIMAL & COLLAPSIBLE HUD PANELS (SPACE-SAVING AUTO-DOCK)
        ========================================================================= */
-    .hud-panel-collapsible {
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
-      transform-origin: top left;
+    /* Fixed-in-Place Ultra-Minimal Collapsible HUD Panels */
+    .hud-panel-fixed {
+      position: absolute;
+      pointer-events: auto;
+      transition: max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s ease, padding 0.2s ease, opacity 0.2s ease;
+      overflow: hidden;
+      max-height: 400px;
     }
-    .hud-panel-collapsible.collapsed-left {
-      transform: translateX(calc(-100% + 28px));
-      opacity: 0.85;
+
+    /* Fixed Screen Coordinates */
+    #panel-brand {
+      top: 14px;
+      left: 18px;
+      width: 260px;
     }
-    .hud-panel-collapsible.collapsed-right {
-      transform: translateX(calc(100% - 28px));
-      opacity: 0.85;
+    #panel-stats {
+      top: 14px;
+      right: 18px;
+      width: 220px;
     }
-    .hud-panel-collapsible.collapsed-bottom {
-      transform: translateY(calc(100% - 28px));
-      opacity: 0.85;
+    #comms-box {
+      bottom: 56px;
+      left: 18px;
+      width: 340px;
+    }
+
+    /* Minimal Standby / Collapsed State - FIXED IN PLACE */
+    .hud-panel-fixed.is-minimized {
+      max-height: 28px !important;
+      padding: 4px 10px !important;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1.5px solid rgba(14, 165, 233, 0.55);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+    }
+    body.dark-theme .hud-panel-fixed.is-minimized {
+      background: rgba(4, 9, 20, 0.94);
+      border-color: rgba(0, 240, 255, 0.5);
+    }
+
+    .hud-panel-fixed.is-minimized .panel-collapsible-body {
+      display: none !important;
+    }
+    .hud-panel-fixed.is-minimized .stepped-orange-tab,
+    .hud-panel-fixed.is-minimized .hazard-stripe {
+      display: none !important;
+    }
+
+    .mini-fixed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      height: 20px;
+      cursor: pointer;
+    }
+    .mini-fixed-title {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #0284c7;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+    body.dark-theme .mini-fixed-title {
+      color: #00f0ff;
     }
 
     .panel-toggle-btn {
-      position: absolute;
-      top: 6px;
-      right: 6px;
       background: rgba(14, 165, 233, 0.2);
       border: 1px solid rgba(14, 165, 233, 0.5);
       color: #0284c7;
       border-radius: 3px;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 900;
       cursor: pointer;
-      z-index: 20;
       transition: all 0.2s;
     }
     .panel-toggle-btn:hover {
@@ -1227,10 +1274,87 @@
       font-weight: 800;
     }
 
+  
+    /* Camera View Mode Toast Banner */
+    #cam-toast {
+      position: absolute;
+      top: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(2, 6, 18, 0.92);
+      border: 1.5px solid #00f0ff;
+      border-radius: 4px;
+      color: #00f0ff;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 7px 18px;
+      z-index: 80;
+      display: none;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+      clip-path: polygon(0 6px, 6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px));
+      pointer-events: none;
+    }
+    body.light-theme #cam-toast {
+      background: rgba(255, 255, 255, 0.96);
+      border-color: #0284c7;
+      color: #0284c7;
+      box-shadow: 0 8px 30px rgba(2, 132, 199, 0.25);
+    }
+
+    /* Plasma Ammo Battery Indicator */
+    .ammo-battery {
+      display: flex;
+      gap: 3px;
+      margin-top: 4px;
+    }
+    .ammo-cell {
+      flex: 1;
+      height: 6px;
+      background: #0284c7;
+      border-radius: 1px;
+      box-shadow: 0 0 6px rgba(2, 132, 199, 0.6);
+      transition: opacity 0.1s;
+    }
+    .ammo-cell.empty {
+      background: rgba(148, 163, 184, 0.3);
+      box-shadow: none;
+    }
+
+  
+    /* Drone Acrobatic Movement Tricks Toast Banner */
+    #trick-toast {
+      position: absolute;
+      top: 145px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(2, 6, 18, 0.94);
+      border: 1.5px solid #f59e0b;
+      border-radius: 4px;
+      color: #fbbf24;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 8px 22px;
+      z-index: 85;
+      display: none;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.45);
+      clip-path: polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
+      pointer-events: none;
+    }
+    body.light-theme #trick-toast {
+      background: rgba(255, 255, 255, 0.96);
+      border-color: #d97706;
+      color: #b45309;
+      box-shadow: 0 8px 30px rgba(217, 119, 6, 0.25);
+    }
+
   </style>
 </head>
 <body>
   <div id="canvas-container"></div>
+  <div id="trick-toast">[TRICK: 360 BARREL ROLL]</div>
+  <div id="cam-toast">[CAMERA MODE: CHASE TACTICAL]</div>
   <div class="cockpit-vignette"></div>
   <div id="damage-flash" class="damage-flash"></div>
   <div id="warp-flash" class="warp-flash"></div>
@@ -1252,26 +1376,29 @@
   <!-- In-Game Cockpit HUD -->
   <div id="hud">
     <div class="hud-top">
-      <div id="panel-brand" class="brand-card cyber-panel-tab hud-panel-collapsible">
-        <div class="panel-toggle-btn" onclick="toggleHudPanel('panel-brand', 'collapsed-left')">◀</div>
-        <div class="stepped-orange-tab"></div>
-        <div class="corner-clamp-tl"></div>
-        <div class="corner-clamp-br"></div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div class="brand-title">METAHORIZON ODYSSEY 3D</div>
-          <div class="audio-eq-container">
-            <div class="eq-bar"></div>
-            <div class="eq-bar"></div>
-            <div class="eq-bar"></div>
-            <div class="eq-bar"></div>
-            <div class="eq-bar"></div>
-            <div class="eq-bar"></div>
-          </div>
+      <div id="panel-brand" class="brand-card cyber-panel-tab hud-panel-fixed">
+        <div class="mini-fixed-header" onclick="toggleFixedHudPanel('panel-brand')">
+          <span class="mini-fixed-title">[VOYAGER 3D]</span>
+          <span class="panel-toggle-btn">&minus;</span>
         </div>
-        <div class="brand-sub">FRONTIER VOYAGER <span class="chevron-divider">&gt;&gt;&gt;</span> SPACE SIMULATOR</div>
-        <div id="sector-badge" class="sector-badge">SECTOR 1: PROXIMA CENTAURI</div>
-        <div id="solar-sync-clock">[SOLAR SYNC: REAL-TIME]</div>
-        <div class="hazard-stripe"></div>
+        <div class="panel-collapsible-body">
+          <div class="stepped-orange-tab"></div>
+          <div class="corner-clamp-tl"></div>
+          <div class="corner-clamp-br"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+            <div class="brand-title">METAHORIZON ODYSSEY 3D</div>
+            <div class="audio-eq-container">
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+              <div class="eq-bar"></div>
+            </div>
+          </div>
+          <div class="brand-sub">FRONTIER VOYAGER <span class="chevron-divider">&gt;&gt;&gt;</span> SPACE SIMULATOR</div>
+          <div id="sector-badge" class="sector-badge">SECTOR 1: PROXIMA CENTAURI</div>
+          <div id="solar-sync-clock">[SOLAR SYNC: REAL-TIME]</div>
+          <div class="hazard-stripe"></div>
+        </div>
       </div>
 
       <!-- Cyberpunk Concentric 3D Tactical Radar (Reference Sheet 4 & 5) -->
@@ -1291,8 +1418,12 @@
         <div class="radar-label">360 TACTICAL SENSOR</div>
       </div>
 
-      <div id="panel-stats" class="stat-cluster hud-panel-collapsible" style="position: relative;">
-        <div class="panel-toggle-btn" style="right: -4px; top: -14px;" onclick="toggleHudPanel('panel-stats', 'collapsed-right')">▶</div>
+      <div id="panel-stats" class="stat-cluster cyber-panel-tab hud-panel-fixed" style="padding: 6px 10px;">
+        <div class="mini-fixed-header" onclick="toggleFixedHudPanel('panel-stats')">
+          <span class="mini-fixed-title">[TELEMETRY 100%]</span>
+          <span class="panel-toggle-btn">&minus;</span>
+        </div>
+        <div class="panel-collapsible-body">
         <div class="gauge-box sci-frame" style="padding: 6px 14px;">
           <div class="gauge-row">
             <span style="color: #0284c7; font-weight: 800;">[DEFLECTOR SHIELDS]</span>
@@ -1323,13 +1454,34 @@
             <span id="heat-val" style="color: #d97706; font-weight: 900;">0%</span>
           </div>
           <div class="seg-meter"><div id="heat-bar" class="seg-meter-fill fill-heat-seg" style="width: 0%;"></div></div>
+          <div class="gauge-row" style="margin-top: 5px;">
+            <span style="color: #0284c7; font-weight: 800;">[PLASMA AMMO CELL]</span>
+            <span id="ammo-val" style="color: #0284c7; font-weight: 900;">100%</span>
+          </div>
+          <div id="ammo-battery-row" class="ammo-battery">
+            <div class="ammo-cell"></div>
+            <div class="ammo-cell"></div>
+            <div class="ammo-cell"></div>
+            <div class="ammo-cell"></div>
+            <div class="ammo-cell"></div>
+            <div class="ammo-cell"></div>
+            <div class="ammo-cell"></div>
+            <div class="ammo-cell"></div>
+            <div class="ammo-cell"></div>
+            <div class="ammo-cell"></div>
+          </div>
         </div>
       </div>
+        </div>
     </div>
 
     <!-- Real-time Story Transmission Comms Hologram -->
-    <div id="comms-box" class="comms-container sci-frame hud-panel-collapsible">
-      <div class="panel-toggle-btn" onclick="toggleHudPanel('comms-box', 'collapsed-bottom')">▼</div>
+    <div id="comms-box" class="comms-container sci-frame hud-panel-fixed">
+      <div class="mini-fixed-header" onclick="toggleFixedHudPanel('comms-box')">
+        <span class="mini-fixed-title">[FLEET COMMS LOG]</span>
+        <span class="panel-toggle-btn">&minus;</span>
+      </div>
+      <div class="panel-collapsible-body">
       <div class="comms-header">
         <div class="comms-wave">
           <div class="comms-bar"></div>
@@ -1349,12 +1501,25 @@
         <span>[DIRECTIVE]</span>
         <span id="comms-mission-task">Eliminate Renegade Interceptor Jets (0 / 5)</span>
       </div>
+      </div>
     </div>
 
     <div class="hud-bottom">
       <div class="dock-bar">
         <button id="btn-settings-hud" class="dock-btn" onclick="togglePauseSettings()">
           [SETTINGS] <span class="key-hint">ESC</span>
+        </button>
+        <button id="btn-cam-hud" class="dock-btn" onclick="cycleCameraView()">
+          <span id="cam-btn-label">[CAM: CHASE]</span> <span class="key-hint">C</span>
+        </button>
+        <button id="btn-trick-hud" class="dock-btn" onclick="executeMovementTrick('barrel_roll')">
+          <span>[TRICK: ROLL]</span> <span class="key-hint">X</span>
+        </button>
+        <button id="btn-flip-hud" class="dock-btn" onclick="executeMovementTrick('loop_flip')">
+          <span>[FLIP: 180°]</span> <span class="key-hint">Z</span>
+        </button>
+        <button id="btn-drift-hud" class="dock-btn" onclick="toggleDriftMode()">
+          <span id="drift-btn-label">[DRIFT: OFF]</span> <span class="key-hint">F</span>
         </button>
 
         <button id="btn-map" class="dock-btn" onclick="openGalaxyMap()">
@@ -2820,17 +2985,52 @@
       }
     }
 
-    // Toggle Collapsible HUD Panels
-    window.toggleHudPanel = function(panelId, collapseClass) {
+    // Toggle Fixed-in-Place Minimal HUD Panels (Expands/Collapses In-Place)
+    window.toggleFixedHudPanel = function(panelId) {
       const panel = document.getElementById(panelId);
       if (!panel) return;
-      panel.classList.toggle(collapseClass);
+      panel.classList.toggle('is-minimized');
       const btn = panel.querySelector('.panel-toggle-btn');
       if (btn) {
-        const isCollapsed = panel.classList.contains(collapseClass);
-        if (collapseClass === 'collapsed-left') btn.innerText = isCollapsed ? '▶' : '◀';
-        else if (collapseClass === 'collapsed-right') btn.innerText = isCollapsed ? '◀' : '▶';
-        else if (collapseClass === 'collapsed-bottom') btn.innerText = isCollapsed ? '▲' : '▼';
+        btn.innerText = panel.classList.contains('is-minimized') ? '+' : '−';
+      }
+    };
+
+
+    // -------------------------------------------------------------------------
+    // MULTI-CAMERA VIEW SYSTEM (KEY 'C' & HUD BUTTON)
+    // Modes: Chase, Bird's-Eye (Top-down RTS), Long Range Panoramic, Cockpit FP, Wing Action
+    // -------------------------------------------------------------------------
+    const CAMERA_MODES = [
+      { id: 'chase', name: 'CHASE TACTICAL VIEW', offset: new THREE.Vector3(0, 4.2, 14), lookAhead: 25, lerp: 0.14 },
+      { id: "bird", name: "BIRD EYE VIEW (OVERHEAD)", offset: new THREE.Vector3(0, 72, 14), lookAhead: 6, lerp: 0.09 },
+      { id: 'long_range', name: 'LONG RANGE VIEW (PANORAMIC)', offset: new THREE.Vector3(0, 18, 54), lookAhead: 50, lerp: 0.08 },
+      { id: 'cockpit', name: 'FIRST-PERSON COCKPIT (PILOT EYE)', offset: new THREE.Vector3(0, 1.05, -0.2), lookAhead: 70, lerp: 0.4 },
+      { id: 'wing', name: 'WING ACTION CAM (SHOULDER)', offset: new THREE.Vector3(4.8, 1.9, 9.2), lookAhead: 32, lerp: 0.15 }
+    ];
+    let currentCameraIndex = 0;
+    let camToastTimer = null;
+
+    window.cycleCameraView = function() {
+      currentCameraIndex = (currentCameraIndex + 1) % CAMERA_MODES.length;
+      const mode = CAMERA_MODES[currentCameraIndex];
+
+      const btnLabel = document.getElementById('cam-btn-label');
+      if (btnLabel) {
+        if (mode.id === 'chase') btnLabel.innerText = '[CAM: CHASE]';
+        else if (mode.id === 'bird') btnLabel.innerText = '[CAM: BIRD VIEW]';
+        else if (mode.id === 'long_range') btnLabel.innerText = '[CAM: LONG RANGE]';
+        else if (mode.id === 'cockpit') btnLabel.innerText = '[CAM: COCKPIT]';
+        else if (mode.id === 'wing') btnLabel.innerText = '[CAM: WING CAM]';
+      }
+
+      // Show on-screen toast notification
+      const toast = document.getElementById('cam-toast');
+      if (toast) {
+        toast.innerText = `[CAMERA VIEW: ${mode.name}]`;
+        toast.style.display = 'block';
+        clearTimeout(camToastTimer);
+        camToastTimer = setTimeout(() => { toast.style.display = 'none'; }, 2200);
       }
     };
 
@@ -2841,6 +3041,8 @@
 
         if (e.code === 'Escape') {
           togglePauseSettings();
+        } else if (e.code === 'KeyC') {
+          window.cycleCameraView();
         } else if (e.code === 'KeyT') {
           toggleTheme();
         } else if (e.code === 'KeyM') {
@@ -3116,41 +3318,84 @@
     }
 
     // Fire Player Weapons (Dual Plasma Lasers)
+    // High-Visibility Plasma Bolt Generator (Intense White Core + Radiant Cyan Energy Sheath)
+    function createHighVisibilityPlasmaBolt(forwardVector) {
+      const boltGroup = new THREE.Group();
+
+      // 1. Intense White Plasma Core Beam (High Visibility)
+      const coreGeo = new THREE.CylinderGeometry(0.32, 0.32, 8.5, 8);
+      const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const core = new THREE.Mesh(coreGeo, coreMat);
+      core.rotateX(Math.PI / 2);
+      boltGroup.add(core);
+
+      // 2. Outer Electric Cyan Glowing Energy Sheath (Additive Glow)
+      const glowGeo = new THREE.CylinderGeometry(0.68, 0.68, 9.8, 8);
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending
+      });
+      const glow = new THREE.Mesh(glowGeo, glowMat);
+      glow.rotateX(Math.PI / 2);
+      boltGroup.add(glow);
+
+      // 3. Spherical Leading Warhead Flare
+      const warheadGeo = new THREE.SphereGeometry(0.85, 8, 8);
+      const warheadMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, blending: THREE.AdditiveBlending });
+      const warhead = new THREE.Mesh(warheadGeo, warheadMat);
+      warhead.position.set(0, 0, -4.6);
+      boltGroup.add(warhead);
+
+      boltGroup.userData = { vel: forwardVector.clone().multiplyScalar(11.5), damage: 1, life: 75 };
+      return boltGroup;
+    }
+
+    let playerAmmoCapacitor = 100;
+
     function firePlayerWeapons() {
       if (isPaused || inGalaxyMap) return;
-      if (laserHeat >= 100) return;
+      if (laserHeat >= 100 || playerAmmoCapacitor < 8) return;
 
       initAudio();
       playSound('laser');
 
-      laserHeat = Math.min(100, laserHeat + 12);
+      laserHeat = Math.min(100, laserHeat + 11);
+      playerAmmoCapacitor = Math.max(0, playerAmmoCapacitor - 10);
+      updateAmmoBatteryUI();
+
       document.getElementById('heat-bar').style.width = `${laserHeat}%`;
       document.getElementById('heat-val').innerText = `${Math.round(laserHeat)}%`;
 
-      const pGeo = new THREE.CylinderGeometry(0.16, 0.16, 5.0, 6);
-      const pMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-
       const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
 
-      // Left Cannon
-      const pLeft = new THREE.Mesh(pGeo, pMat);
+      // Left High-Visibility Wingtip Cannon
+      const pLeft = createHighVisibilityPlasmaBolt(forward);
       pLeft.quaternion.copy(player.quaternion);
-      pLeft.rotateX(Math.PI / 2);
       const leftOffset = new THREE.Vector3(-5.1, -0.2, 0.9).applyQuaternion(player.quaternion);
       pLeft.position.copy(player.position).add(leftOffset);
-      pLeft.userData = { vel: forward.clone().multiplyScalar(10.5), damage: 1, life: 70 };
       scene.add(pLeft);
       playerProjectiles.push(pLeft);
 
-      // Right Cannon
-      const pRight = new THREE.Mesh(pGeo, pMat);
+      // Right High-Visibility Wingtip Cannon
+      const pRight = createHighVisibilityPlasmaBolt(forward);
       pRight.quaternion.copy(player.quaternion);
-      pRight.rotateX(Math.PI / 2);
       const rightOffset = new THREE.Vector3(5.1, -0.2, 0.9).applyQuaternion(player.quaternion);
       pRight.position.copy(player.position).add(rightOffset);
-      pRight.userData = { vel: forward.clone().multiplyScalar(10.5), damage: 1, life: 70 };
       scene.add(pRight);
       playerProjectiles.push(pRight);
+    }
+
+    function updateAmmoBatteryUI() {
+      const valEl = document.getElementById('ammo-val');
+      if (valEl) valEl.innerText = `${Math.round(playerAmmoCapacitor)}%`;
+      const cells = document.querySelectorAll('.ammo-cell');
+      const activeCells = Math.round((playerAmmoCapacitor / 100) * cells.length);
+      cells.forEach((cell, idx) => {
+        if (idx < activeCells) cell.classList.remove('empty');
+        else cell.classList.add('empty');
+      });
     }
 
     // Fire Enemy Projectiles toward Player
@@ -3709,18 +3954,64 @@
       rotDelta.setFromEuler(euler);
       player.quaternion.multiply(rotDelta);
 
-      // Forward Flight Propulsion
+      // Execute Active Acrobatic Tricks (Barrel Roll & Immelmann Loop)
+      if (activeTrick) {
+        trickProgress++;
+        if (activeTrick.type === 'barrel_roll') {
+          // Rapid roll on ship Z-axis and lateral evasion
+          const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), activeTrick.rollRate);
+          player.quaternion.multiply(rollQuat);
+          player.position.add(activeTrick.sideVel);
+
+          // Evasion thruster spark particles
+          if (Math.random() < 0.6) {
+            createExplosion(player.position.clone().add(new THREE.Vector3((Math.random()-0.5)*3, -1, 3)), 0x00f0ff, false);
+          }
+        } else if (activeTrick.type === 'loop_flip') {
+          // Acrobatic vertical loop-de-loop
+          const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), activeTrick.pitchRate);
+          player.quaternion.multiply(pitchQuat);
+          const loopFwd = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
+          player.position.add(loopFwd.multiplyScalar(activeTrick.forwardBoost));
+        }
+
+        if (trickProgress >= activeTrick.duration) {
+          activeTrick = null;
+        }
+      }
+
+      // Forward Flight Propulsion & Inertial Drift / Drone Hover Physics
       const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
-      const moveStep = forward.clone().multiplyScalar(currentSpeed * 0.0035);
-      player.position.add(moveStep);
+      if (isDrifting) {
+        // Decoupled drift velocity: maintain momentum while free-aiming
+        player.position.add(driftVelocity);
+      } else if (isDroneHovering) {
+        // Drone airbrake hover: omnidirectional lateral thrusters
+        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(player.quaternion);
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(player.quaternion);
+        if (keys['KeyA']) player.position.add(right.clone().multiplyScalar(-1.2));
+        if (keys['KeyD']) player.position.add(right.clone().multiplyScalar(1.2));
+        if (keys['KeyQ']) player.position.add(up.clone().multiplyScalar(-1.0));
+        if (keys['KeyE']) player.position.add(up.clone().multiplyScalar(1.0));
+      } else {
+        const moveStep = forward.clone().multiplyScalar(currentSpeed * 0.0035);
+        player.position.add(moveStep);
+      }
 
-      // Smooth Third-Person Chase Camera with Dynamic Inertia
-      const camOffset = new THREE.Vector3(0, 4.2, 14).applyQuaternion(player.quaternion);
+      // Dynamic Multi-Camera System (Chase, Bird's-Eye, Long Range, Cockpit FP, Wing Action)
+      const currentCamMode = CAMERA_MODES[currentCameraIndex];
+      const camOffset = currentCamMode.offset.clone().applyQuaternion(player.quaternion);
       const targetCamPos = player.position.clone().add(camOffset);
-      camera.position.lerp(targetCamPos, 0.12);
+      camera.position.lerp(targetCamPos, currentCamMode.lerp);
 
-      const lookTarget = player.position.clone().add(forward.clone().multiplyScalar(25));
+      const lookTarget = player.position.clone().add(forward.clone().multiplyScalar(currentCamMode.lookAhead));
       camera.lookAt(lookTarget);
+
+      // Continuous Ammo Capacitor Regeneration
+      if (playerAmmoCapacitor < 100) {
+        playerAmmoCapacitor = Math.min(100, playerAmmoCapacitor + 0.35);
+        updateAmmoBatteryUI();
+      }
 
       // Laser Heat Dissipation
       if (laserHeat > 0) {
