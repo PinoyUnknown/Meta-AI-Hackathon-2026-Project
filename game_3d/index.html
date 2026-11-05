@@ -2021,6 +2021,14 @@
     <!-- Core Three.js Engine Script -->
   <script type="module">
     import * as THREE from './lib/three.module.min.js';
+    import { GLTFLoader } from './lib/GLTFLoader.js';
+
+    // Global Asset Loaders & Authentic 3D Community Models
+    const assetLoader = new THREE.TextureLoader();
+    const gltfLoader = new GLTFLoader();
+    const alienNebulaTex = assetLoader.load('textures/alien_space_nebula_2_skybox.jpg');
+    alienNebulaTex.mapping = THREE.EquirectangularReflectionMapping;
+    alienNebulaTex.colorSpace = THREE.SRGBColorSpace;
 
     // Simulation & Game State
     let scene, camera, renderer;
@@ -2029,6 +2037,8 @@
     let enemies = [], asteroids = [], comets = [], satellites = [], spaceMines = [];
     let particles = [], debrisChunks = [];
     let backgroundGalaxyPoints, planetaryBody;
+    let playerShieldAuraMesh;
+    let isRespawning = false, respawnInvincibleTimer = 0;
     let ambientLight, sunKeyLight, rimLight, skyDomeMesh;
     let currentTheme = 'light';
 
@@ -2320,7 +2330,7 @@
     function init3D() {
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x050c1e, 0.0025);
+      scene.fog = new THREE.FogExp2(0x050c1e, 0.00022);
 
       camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 8000);
       camera.position.set(0, 4.5, 14);
@@ -2579,7 +2589,52 @@
 
       // Position in illuminated celestial background
       planetaryBody.position.set(240, 80, -580);
+      planetaryBody.userData = { radius: 185, name: sector.name + ' Primary Planet' };
       scene.add(planetaryBody);
+
+      // Asynchronously Mount Authentic Community 3D Planet Models
+      const sectorModelMap = {
+        1: 'models/theia_prime_planet_system.glb',
+        2: 'models/theia_prime_planet_system.glb',
+        3: 'models/ringed_gas_giant_planet.glb',
+        4: 'models/theia_prime_planet_system.glb',
+        5: 'models/saturn_ringed_planet.glb'
+      };
+      const modelUrl = sectorModelMap[sector.id] || 'models/ringed_gas_giant_planet.glb';
+      if (gltfLoader) {
+        gltfLoader.load(modelUrl, (gltf) => {
+          if (!planetaryBody) return;
+          while (planetaryBody.children.length > 0) {
+            planetaryBody.remove(planetaryBody.children[0]);
+          }
+          const loadedPlanet = gltf.scene;
+          const bbox = new THREE.Box3().setFromObject(loadedPlanet);
+          const size = new THREE.Vector3();
+          bbox.getSize(size);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const targetScale = maxDim > 0 ? (370 / maxDim) : 1;
+          loadedPlanet.scale.setScalar(targetScale);
+          loadedPlanet.position.set(0, 0, 0);
+
+          loadedPlanet.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              if (child.material) {
+                child.material.envMap = alienNebulaTex;
+                child.material.envMapIntensity = 1.35;
+                child.material.needsUpdate = true;
+              }
+            }
+          });
+
+          planetaryBody.add(loadedPlanet);
+          planetaryBody.userData.radius = 185;
+          console.log(`[3D ENGINE] Mounted authentic 3D planet model: ${modelUrl}`);
+        }, undefined, (err) => {
+          console.warn('Fallback to procedural celestial body for sector:', sector.id);
+        });
+      }
     }
 
     // Destructible Procedural Comets
@@ -2884,7 +2939,6 @@
     // 1. Ringed Gas Giant Planet (Saturnian Class)
     // 2. Space-Flyer Chronos II Cyber Interceptor
     // -------------------------------------------------------------
-    const assetLoader = new THREE.TextureLoader();
     const ringedGasPlanetTex = assetLoader.load('assets/planet/textures/m_planet_baseColor.png');
     ringedGasPlanetTex.wrapS = THREE.RepeatWrapping;
     ringedGasPlanetTex.wrapT = THREE.ClampToEdgeWrapping;
@@ -3625,6 +3679,18 @@
       finCapL.rotation.z = 0.46;
       player.add(finCapL);
 
+      // 3D Quantum Energy Shield Bubble (Visible on hits & respawn protection)
+      const auraGeo = new THREE.SphereGeometry(4.4, 24, 24);
+      const auraMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.65
+      });
+      playerShieldAuraMesh = new THREE.Mesh(auraGeo, auraMat);
+      playerShieldAuraMesh.visible = false;
+      player.add(playerShieldAuraMesh);
+
       player.position.set(0, 0, 0);
       scene.add(player);
       window.player = player;
@@ -3754,33 +3820,20 @@
     let targetPitch = 0, targetYaw = 0, targetRoll = 0;
 
 
-    // Procedural Luminous Sky Dome for Light Theme (Solving Darkness Issue)
+    // Alien Space Nebula 2 360-Degree Environment Sky Dome
     function buildSkyDome() {
-      const skyGeo = new THREE.SphereGeometry(4500, 32, 24);
-      const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
-      const ctx = canvas.getContext('2d');
-      const grad = ctx.createLinearGradient(0, 0, 0, 512);
-      grad.addColorStop(0.0, '#38bdf8'); // Zenith: vibrant celestial cyan
-      grad.addColorStop(0.35, '#bae6fd'); // Upper sky: luminous dawn
-      grad.addColorStop(0.50, '#f0f9ff'); // Horizon: brilliant pearlescent solar atmosphere
-      grad.addColorStop(0.70, '#7dd3fc'); // Lower sky: bright azure
-      grad.addColorStop(1.0, '#0284c7'); // Nadir: deep clear celestial blue
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 512, 512);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.ClampToEdgeWrapping;
-
+      const skyGeo = new THREE.SphereGeometry(4500, 48, 32);
       const skyMat = new THREE.MeshBasicMaterial({
-        map: texture,
+        map: alienNebulaTex,
         side: THREE.BackSide,
         depthWrite: false
       });
       skyDomeMesh = new THREE.Mesh(skyGeo, skyMat);
       scene.add(skyDomeMesh);
+
+      // Apply Alien Space Nebula directly as infinite equirectangular background and PBR environment
+      scene.background = alienNebulaTex;
+      scene.environment = alienNebulaTex;
     }
 
     // Dynamic Theme Manager (Daylight Light Theme vs Deep Space Dark Theme)
@@ -3804,12 +3857,16 @@
       if (themeVal) themeVal.innerText = isLight ? 'Daylight Light Theme' : 'Deep Space Dark Theme';
 
       if (scene) {
+        scene.background = alienNebulaTex;
+        scene.environment = alienNebulaTex;
+        if (skyDomeMesh) {
+          skyDomeMesh.visible = true;
+        }
+
         if (isLight) {
-          if (skyDomeMesh) skyDomeMesh.visible = true;
-          scene.background = new THREE.Color(0xbfe0f7);
           if (scene.fog) {
-            scene.fog.color.setHex(0xbfe0f7);
-            scene.fog.density = 0.00035;
+            scene.fog.color.setHex(0x0c1e38);
+            scene.fog.density = 0.00018;
           }
           if (ambientLight) {
             ambientLight.color.setHex(0xf8fafc);
@@ -3817,38 +3874,36 @@
           }
           if (sunKeyLight) {
             sunKeyLight.color.setHex(0xffffff);
-            sunKeyLight.intensity = 2.9;
+            sunKeyLight.intensity = 2.8;
           }
           if (rimLight) {
             rimLight.color.setHex(0x38bdf8);
             rimLight.intensity = 1.6;
           }
-          if (renderer) renderer.toneMappingExposure = 1.45;
+          if (renderer) renderer.toneMappingExposure = 1.40;
         } else {
-          if (skyDomeMesh) skyDomeMesh.visible = false;
-          scene.background = new THREE.Color(0x01040a);
           const sec = SECTORS[currentSectorId - 1];
           if (scene.fog) {
             scene.fog.color.setHex(sec ? sec.fogColor : 0x050c1e);
-            scene.fog.density = 0.0025;
+            scene.fog.density = 0.00022;
           }
           if (ambientLight) {
-            ambientLight.color.setHex(0xffffff);
-            ambientLight.intensity = 0.55;
+            ambientLight.color.setHex(0xe2e8f0);
+            ambientLight.intensity = 0.85;
           }
           if (sunKeyLight) {
             sunKeyLight.color.setHex(0x00f0ff);
-            sunKeyLight.intensity = 2.2;
+            sunKeyLight.intensity = 2.4;
           }
           if (rimLight) {
             rimLight.color.setHex(0x9333ea);
-            rimLight.intensity = 1.4;
+            rimLight.intensity = 1.5;
           }
-          if (renderer) renderer.toneMappingExposure = 1.35;
+          if (renderer) renderer.toneMappingExposure = 1.30;
         }
 
         if (planetaryBody && planetaryBody.children[0] && planetaryBody.children[0].material) {
-          planetaryBody.children[0].material.emissiveIntensity = isLight ? 0.35 : 0.12;
+          planetaryBody.children[0].material.emissiveIntensity = isLight ? 0.35 : 0.15;
         }
       }
     };
@@ -4231,12 +4286,46 @@
         boss.add(spire);
       }
 
+      // Mount Authentic Community 3D Alien Spaceship Model as Colossal Boss
+      if (gltfLoader) {
+        gltfLoader.load('models/cool_alien_spaceship.glb', (gltf) => {
+          if (!boss) return;
+          const alienShip = gltf.scene;
+          const bbox = new THREE.Box3().setFromObject(alienShip);
+          const size = new THREE.Vector3();
+          bbox.getSize(size);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          // Colossal scale: 75m massive flagship dreadnought
+          const targetScale = maxDim > 0 ? (75 / maxDim) : 1;
+          alienShip.scale.setScalar(targetScale);
+          alienShip.position.set(0, 0, 0);
+          alienShip.rotation.y = Math.PI; // Face towards player
+
+          alienShip.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              if (child.material) {
+                child.material.envMap = alienNebulaTex;
+                child.material.envMapIntensity = 1.4;
+                child.material.needsUpdate = true;
+              }
+            }
+          });
+          boss.add(alienShip);
+          console.log('[3D ENGINE] Colossal Jungle Jim Alien Spaceship Flagship mounted as Supreme Boss!');
+        }, undefined, (err) => {
+          console.warn('Fallback to procedural alien dreadnought:', err);
+        });
+      }
+
       boss.position.set(player.position.x, player.position.y, player.position.z - 300);
       boss.userData = {
         type: 'boss',
-        hp: 50,
-        maxHp: 50,
-        name: 'SUPREME ALIEN DREADNOUGHT',
+        hp: 75,
+        maxHp: 75,
+        radius: 38,
+        name: 'SUPREME ALIEN TITAN FLAGSHIP',
         shootTimer: 45
       };
       scene.add(boss);
@@ -4597,6 +4686,333 @@
       }
     }
 
+    // Real-Time Health & Shield HUD Synchronization
+    function updateHealthUI() {
+      const sb = document.getElementById('shield-bar');
+      if (sb) sb.style.width = `${Math.max(0, Math.min(100, Math.round(playerShield)))}%`;
+      const sv = document.getElementById('shield-val');
+      if (sv) sv.innerText = `${Math.max(0, Math.min(100, Math.round(playerShield)))}%`;
+      const hb = document.getElementById('hull-bar');
+      if (hb) hb.style.width = `${Math.max(0, Math.min(100, Math.round(playerHull)))}%`;
+      const hv = document.getElementById('hull-val');
+      if (hv) hv.innerText = `${Math.max(0, Math.min(100, Math.round(playerHull)))}%`;
+
+      const hudHullFill = document.getElementById('hud-hull-fill');
+      if (hudHullFill) hudHullFill.style.width = `${Math.max(0, Math.min(100, Math.round(playerHull)))}%`;
+    }
+
+    // Comprehensive Player Respawn Sequence (No Stalls, Full System Recovery)
+    function executePlayerRespawn(reason = 'STARFIGHTER DESTROYED') {
+      if (isRespawning) return;
+      isRespawning = true;
+
+      // Heavy vaporization explosion at impact site
+      if (player) {
+        createExplosion(player.position, 0xff3b30, true);
+      }
+      playSound('explosion');
+
+      // Crimson damage flash overlay
+      const flash = document.getElementById('damage-flash');
+      if (flash) {
+        flash.style.opacity = '1.0';
+        setTimeout(() => { flash.style.opacity = '0'; }, 950);
+      }
+
+      // Mission status telemetry alert
+      const toast = document.getElementById('cam-toast');
+      if (toast) {
+        toast.innerText = `[CRITICAL ALERT: ${reason}! INITIATING QUANTUM RESPAWN...]`;
+        toast.style.display = 'block';
+      }
+
+      if (player) player.visible = false;
+
+      setTimeout(() => {
+        // Warp back to safe fleet rally coordinates
+        if (player) {
+          player.position.set(0, 0, 0);
+          player.rotation.set(0, 0, 0);
+          player.quaternion.identity();
+          player.visible = true;
+        }
+        playerVelocity.set(0, 0, 0);
+        mouseDeltaX = 0;
+        mouseDeltaY = 0;
+        currentSpeed = 480;
+
+        // Restore complete hull integrity & shields
+        playerHull = 100;
+        playerShield = 100;
+        laserHeat = 0;
+        updateHealthUI();
+
+        // 3.5 seconds quantum invulnerability shield (210 frames at 60fps)
+        respawnInvincibleTimer = 210;
+        playSound('warp');
+
+        if (toast) {
+          toast.innerText = `[VANGUARD RE-DEPLOYED: QUANTUM SHIELDS FULL - SYSTEMS RESTORED]`;
+          setTimeout(() => { toast.style.display = 'none'; }, 3200);
+        }
+
+        isRespawning = false;
+      }, 950);
+    }
+
+    // 3D Environmental Object Collision & Deflection Physics (Planets, Moon, Comets, Asteroids, Satellites, Boss)
+    function updatePlayerEnvironmentalCollisions() {
+      if (!player || isRespawning) return;
+
+      const playerRadius = 3.2;
+
+      // 1. COLLISION WITH 3D CELESTIAL PLANET (CATASTROPHIC RE-ENTRY CRASH & RESPAWN)
+      if (planetaryBody) {
+        const pPos = new THREE.Vector3();
+        planetaryBody.getWorldPosition(pPos);
+        const planetRadius = planetaryBody.userData.radius || 185;
+        const distToPlanet = player.position.distanceTo(pPos);
+
+        if (distToPlanet <= (planetRadius + playerRadius)) {
+          // STRICT COLLISION DEFLECTION: Push ship outside boundary so it NEVER bypasses or clips inside planet
+          const outNorm = player.position.clone().sub(pPos).normalize();
+          if (outNorm.lengthSq() < 0.001) outNorm.set(0, 0, 1);
+          player.position.copy(pPos).add(outNorm.clone().multiplyScalar(planetRadius + playerRadius + 3.0));
+
+          // Catastrophic atmospheric/surface impact
+          playerHull = 0;
+          playerShield = 0;
+          updateHealthUI();
+          executePlayerRespawn('CATASTROPHIC PLANETARY IMPACT');
+          return;
+        }
+
+        // Orbiting Moon Collision
+        if (orbitingMoonMesh) {
+          const mPos = new THREE.Vector3();
+          orbitingMoonMesh.getWorldPosition(mPos);
+          const moonRadius = 40;
+          const distToMoon = player.position.distanceTo(mPos);
+          if (distToMoon <= (moonRadius + playerRadius)) {
+            const outNorm = player.position.clone().sub(mPos).normalize();
+            if (outNorm.lengthSq() < 0.001) outNorm.set(0, 1, 0);
+            player.position.copy(mPos).add(outNorm.clone().multiplyScalar(moonRadius + playerRadius + 2.5));
+
+            playerHull = 0;
+            playerShield = 0;
+            updateHealthUI();
+            executePlayerRespawn('CATASTROPHIC CELESTIAL MOON IMPACT');
+            return;
+          }
+        }
+      }
+
+      // 2. COLLISION WITH 3D DESTRUCTIBLE COMETS (NO BYPASSING + DEFLECTION + DAMAGE)
+      for (let i = 0; i < comets.length; i++) {
+        const c = comets[i];
+        const cRadius = 9.0;
+        const dist = player.position.distanceTo(c.position);
+
+        if (dist < (cRadius + playerRadius)) {
+          // Push out along collision normal: aircraft NEVER passes through comet
+          const bounceDir = player.position.clone().sub(c.position).normalize();
+          if (bounceDir.lengthSq() < 0.001) bounceDir.set(0, 1, 0);
+          player.position.copy(c.position).add(bounceDir.clone().multiplyScalar(cRadius + playerRadius + 2.0));
+
+          // Physical recoil velocity impulse
+          playerVelocity.add(bounceDir.clone().multiplyScalar(3.8));
+          currentSpeed = Math.max(minSpeed, currentSpeed * 0.45);
+
+          if (respawnInvincibleTimer <= 0) {
+            // Deduct shields and hull
+            if (playerShield > 0) {
+              playerShield = Math.max(0, playerShield - 30);
+              if (playerShield === 0) playerHull = Math.max(0, playerHull - 15);
+            } else {
+              playerHull = Math.max(0, playerHull - 25);
+            }
+            updateHealthUI();
+
+            createExplosion(player.position.clone().add(bounceDir.clone().multiplyScalar(-2.0)), 0x38bdf8, false);
+            playSound('explosion');
+
+            const flash = document.getElementById('damage-flash');
+            if (flash) {
+              flash.style.opacity = '0.9';
+              setTimeout(() => { flash.style.opacity = '0'; }, 280);
+            }
+
+            const toast = document.getElementById('cam-toast');
+            if (toast) {
+              toast.innerText = '[COLLISION WARNING: HYPER-VELOCITY COMET IMPACT! SHIELD/HULL DAMAGED]';
+              toast.style.display = 'block';
+              setTimeout(() => { toast.style.display = 'none'; }, 2000);
+            }
+
+            // Reciprocal damage to comet
+            c.userData.hp -= 2;
+            if (c.userData.hp <= 0) {
+              createExplosion(c.position, 0xf59e0b, true);
+              scene.remove(c);
+              comets.splice(i, 1);
+              shards += 3;
+              score += 150;
+              document.getElementById('shards-val').innerText = shards;
+              document.getElementById('score-val').innerText = score;
+              i--;
+            }
+
+            if (playerHull <= 0) {
+              executePlayerRespawn('DESTROYED BY HYPER-VELOCITY COMET');
+              return;
+            }
+          }
+        }
+      }
+
+      // 3. COLLISION WITH 3D DESTRUCTIBLE ASTEROIDS (NO BYPASSING + DEFLECTION + DAMAGE)
+      for (let i = 0; i < asteroids.length; i++) {
+        const a = asteroids[i];
+        const aRadius = a.userData.radius || 6.5;
+        const dist = player.position.distanceTo(a.position);
+
+        if (dist < (aRadius + playerRadius)) {
+          // Rigid bounce normal: aircraft deflects off rock surface
+          const bounceDir = player.position.clone().sub(a.position).normalize();
+          if (bounceDir.lengthSq() < 0.001) bounceDir.set(1, 0, 0);
+          player.position.copy(a.position).add(bounceDir.clone().multiplyScalar(aRadius + playerRadius + 1.8));
+
+          // Physical bounce impulse
+          playerVelocity.add(bounceDir.clone().multiplyScalar(2.8));
+          currentSpeed = Math.max(minSpeed, currentSpeed * 0.55);
+
+          if (respawnInvincibleTimer <= 0) {
+            if (playerShield > 0) {
+              playerShield = Math.max(0, playerShield - 20);
+              if (playerShield === 0) playerHull = Math.max(0, playerHull - 12);
+            } else {
+              playerHull = Math.max(0, playerHull - 18);
+            }
+            updateHealthUI();
+
+            createExplosion(player.position.clone().add(bounceDir.clone().multiplyScalar(-1.5)), 0x94a3b8, false);
+            playSound('explosion');
+
+            const flash = document.getElementById('damage-flash');
+            if (flash) {
+              flash.style.opacity = '0.85';
+              setTimeout(() => { flash.style.opacity = '0'; }, 220);
+            }
+
+            const toast = document.getElementById('cam-toast');
+            if (toast) {
+              toast.innerText = '[COLLISION WARNING: ASTEROID IMPACT! TRAJECTORY DEFLECTED]';
+              toast.style.display = 'block';
+              setTimeout(() => { toast.style.display = 'none'; }, 1800);
+            }
+
+            // Ramming damage to asteroid
+            a.userData.hp -= 20;
+            if (a.userData.hp <= 0) {
+              createExplosion(a.position, 0x64748b, true);
+              scene.remove(a);
+              asteroids.splice(i, 1);
+              shards += 1;
+              score += 50;
+              document.getElementById('shards-val').innerText = shards;
+              document.getElementById('score-val').innerText = score;
+              i--;
+            }
+
+            if (playerHull <= 0) {
+              executePlayerRespawn('CATASTROPHIC IMPACT WITH ASTEROID');
+              return;
+            }
+          }
+        }
+      }
+
+      // 4. COLLISION WITH 3D ORBITAL SATELLITES (NO BYPASSING + DEFLECTION + DAMAGE)
+      for (let i = 0; i < satellites.length; i++) {
+        const s = satellites[i];
+        const sRadius = 6.0;
+        const dist = player.position.distanceTo(s.position);
+
+        if (dist < (sRadius + playerRadius)) {
+          const bounceDir = player.position.clone().sub(s.position).normalize();
+          if (bounceDir.lengthSq() < 0.001) bounceDir.set(0, 1, 0);
+          player.position.copy(s.position).add(bounceDir.clone().multiplyScalar(sRadius + playerRadius + 1.5));
+
+          playerVelocity.add(bounceDir.clone().multiplyScalar(2.2));
+          currentSpeed = Math.max(minSpeed, currentSpeed * 0.65);
+
+          if (respawnInvincibleTimer <= 0) {
+            if (playerShield > 0) {
+              playerShield = Math.max(0, playerShield - 15);
+            } else {
+              playerHull = Math.max(0, playerHull - 12);
+            }
+            updateHealthUI();
+
+            createExplosion(s.position, 0xfbbf24, false);
+            playSound('explosion');
+
+            const toast = document.getElementById('cam-toast');
+            if (toast) {
+              toast.innerText = '[COLLISION WARNING: ORBITAL SATELLITE IMPACT! DEFLECTED]';
+              toast.style.display = 'block';
+              setTimeout(() => { toast.style.display = 'none'; }, 1800);
+            }
+
+            if (playerHull <= 0) {
+              executePlayerRespawn('ORBITAL SATELLITE IMPACT');
+              return;
+            }
+          }
+        }
+      }
+
+      // 5. COLLISION WITH COLOSSAL ALIEN SPACESHIP BOSS
+      if (bossActive && boss) {
+        const bRadius = boss.userData.radius || 35.0;
+        const distToBoss = player.position.distanceTo(boss.position);
+        if (distToBoss < (bRadius + playerRadius)) {
+          const bounceDir = player.position.clone().sub(boss.position).normalize();
+          if (bounceDir.lengthSq() < 0.001) bounceDir.set(0, 0, 1);
+          player.position.copy(boss.position).add(bounceDir.clone().multiplyScalar(bRadius + playerRadius + 3.0));
+
+          playerVelocity.add(bounceDir.clone().multiplyScalar(4.5));
+          currentSpeed = Math.max(minSpeed, currentSpeed * 0.4);
+
+          if (respawnInvincibleTimer <= 0) {
+            playerShield = Math.max(0, playerShield - 40);
+            if (playerShield <= 0) playerHull = Math.max(0, playerHull - 30);
+            updateHealthUI();
+
+            createExplosion(player.position.clone().add(bounceDir.clone().multiplyScalar(-2.0)), 0xec4899, true);
+            playSound('explosion');
+
+            const toast = document.getElementById('cam-toast');
+            if (toast) {
+              toast.innerText = '[CRITICAL: RAMMED COLOSSAL ALIEN FLAGSHIP BIO-HULL! HEAVY DEFLECTION]';
+              toast.style.display = 'block';
+              setTimeout(() => { toast.style.display = 'none'; }, 2200);
+            }
+
+            if (playerHull <= 0) {
+              executePlayerRespawn('CRUSHED AGAINST ALIEN DREADNOUGHT HULL');
+              return;
+            }
+          }
+        }
+      }
+
+      // Decrement invulnerability timer
+      if (respawnInvincibleTimer > 0) {
+        respawnInvincibleTimer--;
+      }
+    }
+
     // Multi-Stage Particle Explosion & Debris Fracturing
     function createExplosion(pos, color = 0x00f0ff, isHeavy = false) {
       playSound('explosion');
@@ -4696,10 +5112,10 @@
 
     window.updateFogDensity = function(val) {
       if (!scene || !scene.fog) return;
-      if (val === 'off') scene.fog.density = 0.0001;
-      else if (val === 'low') scene.fog.density = 0.0012;
-      else if (val === 'normal') scene.fog.density = 0.0025;
-      else if (val === 'dense') scene.fog.density = 0.006;
+      if (val === 'off') scene.fog.density = 0.00005;
+      else if (val === 'low') scene.fog.density = 0.00015;
+      else if (val === 'normal') scene.fog.density = 0.00022;
+      else if (val === 'dense') scene.fog.density = 0.00065;
       document.getElementById('fog-val').innerText = val.toUpperCase();
     };
 
@@ -4779,6 +5195,18 @@
       name: 'SECTOR 1 TERRESTRIAL WORLD (HOME)',
       position: new THREE.Vector3(45, 0, 0),
       type: 'PLANET'
+    };
+
+    window.spawnAlienBossEncounter = function() {
+      if (typeof spawnSupremeBoss === 'function') {
+        spawnSupremeBoss();
+        const toast = document.getElementById('cam-toast');
+        if (toast) {
+          toast.innerText = '[TITAN ALERT: COLOSSAL JUNGLE JIM ALIEN SPACESHIP DETECTED IN SECTOR!]';
+          toast.style.display = 'block';
+          setTimeout(() => { toast.style.display = 'none'; }, 3500);
+        }
+      }
     };
 
     window.openGalaxyMap = function() {
@@ -4870,6 +5298,7 @@
     function initGalaxyMap3D() {
       const container = document.getElementById('galaxy-canvas-container');
       galaxyScene = new THREE.Scene();
+      galaxyScene.background = alienNebulaTex;
       galaxyCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 8000);
       galaxyCamera.position.set(0, 140, galaxyZoomDist);
       galaxyCamera.lookAt(0, 0, 0);
@@ -5404,10 +5833,11 @@
       document.getElementById('sector-badge').innerText = sec.badge;
 
       if (currentTheme === 'light') {
-        scene.fog.color.setHex(0xbfe0f7);
+        scene.fog.color.setHex(0x0c1e38);
       } else {
         scene.fog.color.setHex(sec.fogColor);
       }
+      scene.fog.density = 0.00022;
       buildSectorCelestialPlanet(sec);
 
       enemies.forEach(e => scene.remove(e));
@@ -5461,6 +5891,9 @@
         if (mapCometMesh) {
           mapCometMesh.position.x = Math.sin(Date.now() * 0.0006) * 125;
           mapCometMesh.position.z = Math.cos(Date.now() * 0.0006) * 95;
+        }
+        if (galaxyScene && galaxyScene.backgroundRotation) {
+          galaxyScene.backgroundRotation.y += 0.0002;
         }
         galaxyRenderer.render(galaxyScene, galaxyCamera);
         return;
@@ -5554,6 +5987,9 @@
         player.position.add(moveStep);
       }
 
+      // Real-Time 3D Object Collision & Deflection Physics (Planets, Moon, Comets, Asteroids, Satellites)
+      updatePlayerEnvironmentalCollisions();
+
       // Dynamic Multi-Camera System (Chase, Bird's-Eye, Long Range, Cockpit FP, Wing Action)
       const currentCamMode = CAMERA_MODES[currentCameraIndex];
       const camOffset = currentCamMode.offset.clone().applyQuaternion(player.quaternion);
@@ -5562,6 +5998,17 @@
 
       const lookTarget = player.position.clone().add(forward.clone().multiplyScalar(currentCamMode.lookAhead));
       camera.lookAt(lookTarget);
+
+      // Quantum Energy Shield Bubble Aura Animation
+      if (playerShieldAuraMesh) {
+        if (respawnInvincibleTimer > 0) {
+          playerShieldAuraMesh.visible = (Math.floor(Date.now() / 80) % 2 === 0);
+          playerShieldAuraMesh.rotation.y += 0.05;
+          playerShieldAuraMesh.rotation.z += 0.03;
+        } else {
+          playerShieldAuraMesh.visible = false;
+        }
+      }
 
       // Continuous Ammo Capacitor Regeneration
       if (playerAmmoCapacitor < 100) {
@@ -5823,10 +6270,10 @@
           setTimeout(() => { flash.style.opacity = '0'; }, 85);
 
           if (playerShield <= 0) playerHull = Math.max(0, playerHull - 12);
-          document.getElementById('shield-bar').style.width = `${playerShield}%`;
-          document.getElementById('shield-val').innerText = `${playerShield}%`;
-          document.getElementById('hull-bar').style.width = `${playerHull}%`;
-          document.getElementById('hull-val').innerText = `${playerHull}%`;
+          updateHealthUI();
+          if (playerHull <= 0) {
+            executePlayerRespawn('COMPROMISED BY ENEMY FIRE');
+          }
 
           createExplosion(ep.position, 0xef4444, false);
           scene.remove(ep);
@@ -5914,6 +6361,9 @@
             playerShield = Math.max(0, playerShield - 30);
             if (playerShield <= 0) playerHull = Math.max(0, playerHull - 20);
             updateHealthUI();
+            if (playerHull <= 0) {
+              executePlayerRespawn('DESTROYED IN HEAD-ON RAMMING IMPACT');
+            }
             playSound('explosion');
             playTone(85, 0.45, 'sawtooth');
 
@@ -6046,6 +6496,21 @@
           scene.remove(d);
           debrisChunks.splice(i, 1);
         }
+      }
+
+      // Smooth Continuous Alien Space Nebula Skybox Rotation & Camera Tracking
+      if (skyDomeMesh) {
+        if (player) skyDomeMesh.position.copy(player.position);
+        skyDomeMesh.rotation.y += 0.00015;
+        skyDomeMesh.rotation.x += 0.00004;
+      }
+      if (scene.backgroundRotation) {
+        scene.backgroundRotation.y += 0.00015;
+        scene.backgroundRotation.x += 0.00004;
+      }
+      if (scene.environmentRotation) {
+        scene.environmentRotation.y += 0.00015;
+        scene.environmentRotation.x += 0.00004;
       }
 
       renderer.render(scene, camera);
