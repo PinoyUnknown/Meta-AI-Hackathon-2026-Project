@@ -39,6 +39,57 @@ This project evolved through three major iterations during the Meta Global AI Ha
 
 ## 📦 Version-by-Version Breakdown
 
+### **v7.5.0 — Real Galaxies Explorer, "YOU ARE HERE" Universal Indicator, Authentic Saturn & Ringed Gas Giant 3D Models, Giant Round Spacestation Citadel & Dual Asteroid Belts (Current Version)**
+- **Release Date:** November 5, 2026 (23:15 local)
+- **Key Deliverables:**
+  1. **Simultaneous 3D Planetary Systems & Jungle Jim Spacestation**:
+     - Mounted **Saturn - Ringed Planet** (`saturn_ringed_planet.glb`, 1.33 MB) with authentic 26.7° axial tilt, golden atmospheric bands, and multi-tier ice rings at `(-720, 260, -520)`.
+     - Mounted **Ringed Gas Giant Planet Zephyrus** (`ringed_gas_giant_planet.glb`, 1.75 MB) with azure-emerald gas bands and wide equatorial rings at `(650, -160, 520)`.
+     - Mounted **Theia Prime Sci-Fi Planet System** (`theia_prime_planet_system.glb`, 5.82 MB) with orbiting moons and atmospheric clouds at `(240, 80, -580)`.
+     - Mounted **Giant Round Spacestation Citadel by Jungle Jim** (`giant_round_spacestation.glb`, 15.3 MB) with colossal rotating habitat wheel and docking bays at `(-160, 140, -340)`.
+  2. **Tight Surface Collision & Close Bumping Physics**:
+     - Solved previous oversized collision boundaries: re-engineered collision hulls to tightly match actual visible 3D mesh geometry (`coreRadius: 78-88` units).
+     - Allows pilots to fly right down to the atmosphere, skim clouds, weave through Saturnian ring planes, and closely bump directly into 3D planets and station hulls.
+     - Direct surface contact triggers strict normal deflection, preventing mesh clipping while executing catastrophic re-entry crash and quantum respawn.
+  3. **Expanded Dual Asteroid Belts & Flight Scene Cosmic Objects**:
+     - Expanded to **150 destructible asteroids** arranged in dual toroidal belts: Inner Chondrite Belt (90 rocky asteroids) and Outer Metallic Debris Stream (60 nickel-iron asteroids) with tumbling rotations, physical bounce impulses, and crystal shard drops.
+     - Added **Relativistic Cosmic Pulsar PSR-B1919**: high-spin neutron star with dual luminous blue-violet magnetic radiation lighthouse beams.
+     - Added **Ancient Precursor Stargate / Orbital Warp Jump Beacon**: massive toroidal gateway with counter-rotating glyph rings and glowing event horizon portal.
+     - Added **Volumetric Ion Nebula Dust Clouds**: 1,200 particle stars in drifting cyan, magenta, and amber cosmic dust plumes.
+  4. **Complete Real Galaxies Catalog in 3D Galaxy Map**:
+     - Expanded universe map to include all iconic real galaxies with distinct visual particle morphologies:
+       - **Whirlpool Galaxy (M51a + NGC 5195)**: 1,100 stars across two grand spiral arms with tidal star bridge to dwarf companion.
+       - **Messier 87 (Virgo A)**: Golden-amber supergiant elliptical with 450-unit relativistic synchrotron plasma jet from supermassive black hole Pōwehi (6.5B M☉).
+       - **Pinwheel Galaxy (M101)**: Face-on grand spiral with radiant pink H II giant starburst complexes.
+       - **Black Eye Galaxy (M64)**: Brilliant nucleus with sweeping dark absorbing dust arc and counter-rotating gas disks.
+       - **Large Magellanic Cloud (LMC)**: Satellite dwarf irregular galaxy featuring the flaming red-orange Tarantula Nebula (30 Doradus).
+     - Full interactive navigation: clicking or hovering over any real galaxy provides detailed astronomical dossiers (distance, classification, star count, supermassive singularity, resources).
+  5. **Unmistakable "WHERE GALAXY I AM" Indicator & Navigation**:
+     - In-engine 3D Holographic Locator Beacon over Milky Way Home Solar System: dual expanding emerald/cyan radar pulse rings, vertical laser column beam, inverted chevron pointer, and 3D billboard sprite `[>>> YOU ARE HERE: MILKY WAY GALAXY <<<]`.
+     - Top HUD Persistent Location Banner: `[>>> YOU ARE HERE: MILKY WAY GALAXY // ORION ARM // HELIOS-PRIME SYSTEM (SOLAR START) <<<]`.
+     - Quick-Action **[>>> LOCATE MY GALAXY / FOCUS MY SHIP <<<]** toolbar button for instant camera centering on the player's aircraft.
+  6. **Automated Verification & Zero AI Invariant**:
+     - Automated test harness: `8/8 PASSED (100% INVARIANT COMPLIANCE)`.
+     - In-Game Zero 'AI' word filter verified (strictly 0 occurrences detected).
+     - Pure offline local operation with 0 console errors.
+
+### **v7.4.1 — Tactical Attack Director, Anti-Swarm Defense & Staggered Combat**
+- **Release Date:** November 5, 2026 (22:50 local)
+- **Key Deliverables:**
+  1. **Tactical Attack Token Director (Anti-Swarm Engagement)**:
+     - Solved simultaneous enemy swarming: only **ONE** hostile enemy at a time is granted the active firing attack token (`globalAttackTokenEnemy`).
+     - Non-token hostiles hold their heavy fire and execute realistic formation escorts, wide combat banking, and evasive weaving at standoff range (120m–260m).
+  2. **Tactical Grace Periods & Low-Health Protection**:
+     - Mandatory 65–120 frame (1.1s to 2.0s) grace delay between consecutive enemy attack salvos.
+     - Low-Health Grace Protection: If the player's shield is depleted or hull drops below 40%, the director automatically extends the delay to 130 frames, giving the pilot critical breathing room to evade, deploy Slot 5 [NANO-HEAL], or reposition.
+  3. **Staggered Single-Rammer Constraint**:
+     - At most **ONE** enemy can ever initiate a ramming run at a time (`activeRammerEnemy`). All other hostile craft hold formation, completely preventing multi-ship pileup crashes.
+  4. **Cockpit Tactical Threat Alerts**:
+     - Audio alert chimes (`comms_beep`) and HUD warning toasts announce upcoming hostile attack runs.
+  5. **Strict Zero 'AI' Invariant & Benchmark Suite**:
+     - Zero matches for exact word `\bAI\b` in `game_3d/index.html`.
+     - 8/8 Automated Benchmark Tests passed (100% compliance).
+
 ### **v7.4.0 — Alien Space Nebula 2 Environment, 3D Collisions, Planet Respawn & Jungle Jim Titan Boss (Current Version)**
 - **Release Date:** November 5, 2026 (22:30 local)
 - **Key Deliverables:**

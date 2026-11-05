@@ -1,4 +1,4 @@
-# METAHORIZON ODYSSEY: NOVA GALAXY 3D (v7.4.0 Alien Nebula, 3D Collisions & Titan Boss Edition)
+# METAHORIZON ODYSSEY: NOVA GALAXY 3D (v7.4.1 Tactical Attack Director & Staggered Combat Edition)
 ### AAA Realistic 3D Space Flight Simulation, 360 Free Exploration & Tactical Dogfighting Engine
 ### Autonomous Hardware-Accelerated 3D Simulation Engine & Multi-Stage Sci-Fi Action Experience
 **Built for the Meta Global AI Developer Hackathon ($1,000,000 Prize Pool | Oct 26 – Nov 4, 2026)**  
@@ -15,6 +15,19 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-white?style=for-the-badge)](LICENSE)
 
 ---
+
+### What's New in v7.4.1 (Tactical Attack Director & Anti-Swarm Defense Edition):
+- [Tactical Attack Token Director (Anti-Swarm Engagement)]::
+  - Prevents all enemies from attacking the player simultaneously, eliminating sudden instakills and crossfire barrages.
+  - Staggered Single-Attacker Rule: At any given moment, only **ONE** enemy is cleared hot with the active attack token.
+  - Non-attacking hostiles hold their fire and perform tactical standoff escort flying, banking formations, and wide circling maneuvers.
+- [Tactical Grace Periods & Low-Health Protection]::
+  - Enforces a 65–120 frame (1.1s to 2.0s) mandatory grace period between enemy attack salvos.
+  - If the player's shield is broken or hull drops below 40%, the grace period automatically extends to 130 frames, giving the pilot essential breathing room to maneuver, retaliate, or trigger Slot 5 [NANO-HEAL].
+- [Staggered Single-Rammer Constraint]::
+  - At most **ONE** hostile can attempt a ramming run at any time; other rammer berserkers maintain standoff distance until the airspace is clear.
+- [Cockpit Tactical HUD Warnings]::
+  - Audible threat chime and HUD alerts notify the pilot when a hostile acquires the attack token (`[TACTICAL WARNING: HOSTILE ACQUIRING TARGET - BREAK LINE!]`).
 
 ### What's New in v7.4.0 (Alien Nebula, 3D Collisions & Jungle Jim Titan Boss Edition):
 - [Alien Space Nebula 2 360° Skybox Environment]: Sourced from community 3D assets, high-definition 4K equirectangular panorama applied as `scene.background`, `scene.environment`, and rotating 3D skydome (`skyDomeMesh`) and Galaxy Map background (`galaxyScene.background`). Dynamic PBR metallic reflections and calibrated cosmic fog (~0.00022 density) in both Light & Dark modes.

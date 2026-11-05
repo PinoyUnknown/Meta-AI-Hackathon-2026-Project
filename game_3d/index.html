@@ -1941,15 +1941,27 @@
         <div class="brand-sub">INTERACTIVE UNIVERSE // REAL-TIME FLEET & AIRCRAFT TRACKER // WAYPOINTING</div>
       </div>
 
-      <!-- Quick-Focus Multi-Galaxy Navigation Toolbar -->
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; pointer-events: auto;">
-        <button class="btn-secondary" style="font-size: 10px; padding: 5px 9px;" onclick="focusMapTarget('solarsystem')">[1. SOLAR SYSTEM (START)]</button>
-        <button class="btn-secondary" style="font-size: 10px; padding: 5px 9px;" onclick="focusMapTarget('universe')">[MACRO UNIVERSE]</button>
-        <button class="btn-secondary" style="font-size: 10px; padding: 5px 9px; border-color: #f59e0b;" onclick="focusMapTarget('blackhole')">[GARGANTUA BLACK HOLE]</button>
-        <button class="btn-secondary" style="font-size: 10px; padding: 5px 9px;" onclick="focusMapTarget('andromeda')">[ANDROMEDA M31]</button>
-        <button class="btn-secondary" style="font-size: 10px; padding: 5px 9px;" onclick="focusMapTarget('triangulum')">[TRIANGULUM M33]</button>
-        <button class="btn-secondary" style="font-size: 10px; padding: 5px 9px;" onclick="focusMapTarget('sombrero')">[SOMBRERO M104]</button>
-        <button class="btn-secondary" style="font-size: 10px; padding: 5px 9px;" onclick="focusMapTarget('centaurus')">[CENTAURUS A]</button>
+      <!-- Real-Time "WHERE GALAXY I AM" Persistent Location Badge -->
+      <div id="galaxy-current-location-banner" style="position: absolute; top: 74px; left: 50%; transform: translateX(-50%); z-index: 25; pointer-events: none; background: rgba(5, 150, 105, 0.35); border: 1.5px solid #10b981; padding: 6px 18px; border-radius: 4px; font-size: 11px; font-weight: 800; color: #6ee7b7; letter-spacing: 1.5px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.45); text-align: center; white-space: nowrap;">
+        <span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #10b981; margin-right: 8px; box-shadow: 0 0 10px #10b981; vertical-align: middle;"></span>
+        [>>> YOU ARE HERE: MILKY WAY GALAXY // ORION ARM // HELIOS-PRIME SYSTEM (SOLAR START) <<<]
+      </div>
+
+      <!-- Quick-Focus Multi-Galaxy Navigation Toolbar (Complete Real Universe Catalog) -->
+      <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; pointer-events: auto; max-width: 960px;">
+        <button class="btn-action" style="font-size: 10px; padding: 5px 12px; background: #059669; border-color: #34d399; font-weight: 800; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);" onclick="focusMapTarget('milkyway')">[>>> LOCATE MY GALAXY / FOCUS MY SHIP <<<]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('solarsystem')">[SOLAR SYSTEM]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('universe')">[MACRO UNIVERSE]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px; border-color: #f59e0b;" onclick="focusMapTarget('blackhole')">[GARGANTUA BLACK HOLE]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('andromeda')">[ANDROMEDA M31]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('triangulum')">[TRIANGULUM M33]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('whirlpool')">[WHIRLPOOL M51]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('m87')">[MESSIER 87 (JET)]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('pinwheel')">[PINWHEEL M101]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('sombrero')">[SOMBRERO M104]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('blackeye')">[BLACK EYE M64]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('centaurus')">[CENTAURUS A]</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 5px 8px;" onclick="focusMapTarget('lmc')">[MAGELLANIC CLOUD LMC]</button>
         <button class="btn-action" style="font-size: 10px; padding: 5px 12px;" onclick="closeGalaxyMap()">[RETURN TO COCKPIT]</button>
       </div>
     </div>
@@ -2039,6 +2051,7 @@
     let backgroundGalaxyPoints, planetaryBody;
     let playerShieldAuraMesh;
     let isRespawning = false, respawnInvincibleTimer = 0;
+    let globalAttackTokenEnemy = null, attackTokenTimeRemaining = 0, globalAttackCooldownTimer = 60, activeRammerEnemy = null;
     let ambientLight, sunKeyLight, rimLight, skyDomeMesh;
     let currentTheme = 'light';
 
@@ -2521,16 +2534,34 @@
       return tex;
     }
 
-    // Realistic Multi-Layer 3D Planet System (Surface, Atmosphere & Orbiting Moon)
+    // Multi-Body 3D Celestial System (Theia Prime, Saturn, Ringed Gas Giant, Pulsar, Stargate, Ion Nebula)
+    let activeCelestialBodies = [];
     let planetCloudMesh, orbitingMoonMesh;
+    let saturnPlanetGroup = null;
+    let giantSpacestationGroup = null;
+    let ringedGiantGroup = null;
+    let cosmicPulsarGroup = null;
+    let precursorStargateGroup = null;
+    let ionNebulaField = null;
 
     function buildSectorCelestialPlanet(sector) {
       if (planetaryBody) scene.remove(planetaryBody);
+      if (saturnPlanetGroup) scene.remove(saturnPlanetGroup);
+      if (giantSpacestationGroup) scene.remove(giantSpacestationGroup);
+      if (ringedGiantGroup) scene.remove(ringedGiantGroup);
+      if (cosmicPulsarGroup) scene.remove(cosmicPulsarGroup);
+      if (precursorStargateGroup) scene.remove(precursorStargateGroup);
+      if (ionNebulaField) scene.remove(ionNebulaField);
 
+      activeCelestialBodies = [];
+
+      // =======================================================================
+      // 1. PRIMARY SECTOR PLANET SYSTEM (THEIA PRIME SCI-FI PLANET SYSTEM)
+      // =======================================================================
       planetaryBody = new THREE.Group();
 
-      // 1. Primary Planet Sphere with Procedural Land & Oceans
-      const sphereGeo = new THREE.SphereGeometry(180, 64, 64);
+      // Procedural Primary Planet Core
+      const sphereGeo = new THREE.SphereGeometry(88, 48, 48);
       const planetTex = generatePlanetContinentalTexture(
         sector.id === 1 ? '#0284c7' : '#0f766e',
         sector.id === 1 ? '#15803d' : '#ca8a04'
@@ -2546,8 +2577,8 @@
       const planetMesh = new THREE.Mesh(sphereGeo, sphereMat);
       planetaryBody.add(planetMesh);
 
-      // 2. Separate Dynamic 3D Cloud Sphere (Swirling Atmospheric Layer)
-      const cloudGeo = new THREE.SphereGeometry(184, 48, 48);
+      // Procedural Cloud Sphere
+      const cloudGeo = new THREE.SphereGeometry(90, 40, 40);
       const cloudTex = generatePlanetCloudTexture();
       const cloudMat = new THREE.MeshStandardMaterial({
         map: cloudTex,
@@ -2559,54 +2590,27 @@
       planetCloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
       planetaryBody.add(planetCloudMesh);
 
-      // 3. Multi-Tier Saturnian Ice-Dust Rings
-      if (sector.planetRings) {
-        const ringGeo = new THREE.RingGeometry(290, 480, 96);
-        const ringMat = new THREE.MeshStandardMaterial({
-          color: currentTheme === 'light' ? 0x67e8f9 : 0x94a3b8,
-          side: THREE.DoubleSide,
-          transparent: true,
-          opacity: currentTheme === 'light' ? 0.8 : 0.5,
-          roughness: 0.5,
-          metalness: 0.3
-        });
-        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-        ringMesh.rotation.x = Math.PI / 2.2;
-        ringMesh.rotation.y = Math.PI / 5;
-        planetaryBody.add(ringMesh);
-      }
-
-      // 4. Orbiting Cratered 3D Moon
-      const moonGeo = new THREE.DodecahedronGeometry(38, 2);
-      const moonMat = new THREE.MeshStandardMaterial({
-        color: 0x94a3b8,
-        roughness: 0.85,
-        metalness: 0.15
-      });
+      // Orbiting Cratered Moon
+      const moonGeo = new THREE.DodecahedronGeometry(22, 2);
+      const moonMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.85, metalness: 0.15 });
       orbitingMoonMesh = new THREE.Mesh(moonGeo, moonMat);
-      orbitingMoonMesh.position.set(-140, 40, 60);
+      orbitingMoonMesh.position.set(-110, 30, 45);
       planetaryBody.add(orbitingMoonMesh);
 
-      // Position in illuminated celestial background
       planetaryBody.position.set(240, 80, -580);
-      planetaryBody.userData = { radius: 185, name: sector.name + ' Primary Planet' };
-      scene.add(planetaryBody);
-
-      // Asynchronously Mount Authentic Community 3D Planet Models
-      const sectorModelMap = {
-        1: 'models/theia_prime_planet_system.glb',
-        2: 'models/theia_prime_planet_system.glb',
-        3: 'models/ringed_gas_giant_planet.glb',
-        4: 'models/theia_prime_planet_system.glb',
-        5: 'models/saturn_ringed_planet.glb'
+      planetaryBody.userData = {
+        radius: 185,
+        coreRadius: 88,
+        name: sector.name + ' Primary Planet (Theia Prime)'
       };
-      const modelUrl = sectorModelMap[sector.id] || 'models/ringed_gas_giant_planet.glb';
+      scene.add(planetaryBody);
+      activeCelestialBodies.push(planetaryBody);
+
+      // Mount Authentic Theia Prime Community 3D Model
       if (gltfLoader) {
-        gltfLoader.load(modelUrl, (gltf) => {
+        gltfLoader.load('models/theia_prime_planet_system.glb', (gltf) => {
           if (!planetaryBody) return;
-          while (planetaryBody.children.length > 0) {
-            planetaryBody.remove(planetaryBody.children[0]);
-          }
+          while (planetaryBody.children.length > 0) planetaryBody.remove(planetaryBody.children[0]);
           const loadedPlanet = gltf.scene;
           const bbox = new THREE.Box3().setFromObject(loadedPlanet);
           const size = new THREE.Vector3();
@@ -2629,12 +2633,345 @@
           });
 
           planetaryBody.add(loadedPlanet);
-          planetaryBody.userData.radius = 185;
-          console.log(`[3D ENGINE] Mounted authentic 3D planet model: ${modelUrl}`);
+          planetaryBody.userData.coreRadius = 88;
+          console.log('[3D ENGINE] Mounted authentic 3D model: Theia Prime Planet System');
         }, undefined, (err) => {
-          console.warn('Fallback to procedural celestial body for sector:', sector.id);
+          console.warn('Fallback to procedural planet for Theia Prime');
         });
       }
+
+      // =======================================================================
+      // 2. AUTHENTIC SATURN - RINGED PLANET 3D MODEL OBJECT
+      // =======================================================================
+      saturnPlanetGroup = new THREE.Group();
+      saturnPlanetGroup.position.set(-720, 260, -520);
+      saturnPlanetGroup.rotation.x = 0.42; // Authentic 26.7 deg axial tilt
+      saturnPlanetGroup.userData = {
+        radius: 210,
+        coreRadius: 78,
+        ringInner: 88,
+        ringOuter: 185,
+        name: 'SATURN - RINGED CELESTIAL PLANET'
+      };
+
+      // Procedural Golden Saturn with Rings Backup
+      const satGeo = new THREE.SphereGeometry(78, 48, 48);
+      const satMat = new THREE.MeshStandardMaterial({
+        color: 0xfde047,
+        roughness: 0.5,
+        metalness: 0.1,
+        emissive: 0xca8a04,
+        emissiveIntensity: 0.18
+      });
+      const satMesh = new THREE.Mesh(satGeo, satMat);
+      saturnPlanetGroup.add(satMesh);
+
+      const satRingGeo = new THREE.RingGeometry(94, 185, 96);
+      const satRingMat = new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.75,
+        roughness: 0.4
+      });
+      const satRingMesh = new THREE.Mesh(satRingGeo, satRingMat);
+      satRingMesh.rotation.x = Math.PI / 2;
+      saturnPlanetGroup.add(satRingMesh);
+
+      scene.add(saturnPlanetGroup);
+      activeCelestialBodies.push(saturnPlanetGroup);
+
+      if (gltfLoader) {
+        gltfLoader.load('models/saturn_ringed_planet.glb', (gltf) => {
+          if (!saturnPlanetGroup) return;
+          while (saturnPlanetGroup.children.length > 0) saturnPlanetGroup.remove(saturnPlanetGroup.children[0]);
+          const satScene = gltf.scene;
+          const bbox = new THREE.Box3().setFromObject(satScene);
+          const size = new THREE.Vector3();
+          bbox.getSize(size);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const targetScale = maxDim > 0 ? (420 / maxDim) : 1;
+          satScene.scale.setScalar(targetScale);
+          satScene.position.set(0, 0, 0);
+
+          satScene.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              if (child.material) {
+                child.material.envMap = alienNebulaTex;
+                child.material.envMapIntensity = 1.35;
+                child.material.needsUpdate = true;
+              }
+            }
+          });
+
+          saturnPlanetGroup.add(satScene);
+          saturnPlanetGroup.userData.coreRadius = 78;
+          console.log('[3D ENGINE] Mounted authentic 3D model: Saturn Ringed Planet');
+        }, undefined, (err) => {
+          console.warn('Fallback to procedural Saturn');
+        });
+      }
+
+      // =======================================================================
+      // 3. AUTHENTIC RINGED GAS GIANT PLANET 3D MODEL OBJECT
+      // =======================================================================
+      ringedGiantGroup = new THREE.Group();
+      ringedGiantGroup.position.set(650, -160, 520);
+      ringedGiantGroup.rotation.z = -0.25;
+      ringedGiantGroup.userData = {
+        radius: 200,
+        coreRadius: 82,
+        ringInner: 92,
+        ringOuter: 180,
+        name: 'RINGED GAS GIANT PLANET (ZEPHYRUS)'
+      };
+
+      // Procedural Azure Gas Giant with Emerald Rings Backup
+      const giantGeo = new THREE.SphereGeometry(82, 48, 48);
+      const giantMat = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        roughness: 0.45,
+        metalness: 0.15,
+        emissive: 0x0369a1,
+        emissiveIntensity: 0.2
+      });
+      const giantMesh = new THREE.Mesh(giantGeo, giantMat);
+      ringedGiantGroup.add(giantMesh);
+
+      const giantRingGeo = new THREE.RingGeometry(100, 180, 96);
+      const giantRingMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.7,
+        roughness: 0.5
+      });
+      const giantRingMesh = new THREE.Mesh(giantRingGeo, giantRingMat);
+      giantRingMesh.rotation.x = Math.PI / 2;
+      ringedGiantGroup.add(giantRingMesh);
+
+      scene.add(ringedGiantGroup);
+      activeCelestialBodies.push(ringedGiantGroup);
+
+      if (gltfLoader) {
+        gltfLoader.load('models/ringed_gas_giant_planet.glb', (gltf) => {
+          if (!ringedGiantGroup) return;
+          while (ringedGiantGroup.children.length > 0) ringedGiantGroup.remove(ringedGiantGroup.children[0]);
+          const giantScene = gltf.scene;
+          const bbox = new THREE.Box3().setFromObject(giantScene);
+          const size = new THREE.Vector3();
+          bbox.getSize(size);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const targetScale = maxDim > 0 ? (400 / maxDim) : 1;
+          giantScene.scale.setScalar(targetScale);
+          giantScene.position.set(0, 0, 0);
+
+          giantScene.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              if (child.material) {
+                child.material.envMap = alienNebulaTex;
+                child.material.envMapIntensity = 1.35;
+                child.material.needsUpdate = true;
+              }
+            }
+          });
+
+          ringedGiantGroup.add(giantScene);
+          ringedGiantGroup.userData.coreRadius = 82;
+          console.log('[3D ENGINE] Mounted authentic 3D model: Ringed Gas Giant Planet');
+        }, undefined, (err) => {
+          console.warn('Fallback to procedural Ringed Gas Giant');
+        });
+      }
+
+      // =======================================================================
+      // 4. RELATIVISTIC COSMIC PULSAR NEUTRON STAR
+      // =======================================================================
+      cosmicPulsarGroup = new THREE.Group();
+      cosmicPulsarGroup.position.set(-420, -260, -820);
+      cosmicPulsarGroup.userData = {
+        radius: 35,
+        coreRadius: 24,
+        name: 'RELATIVISTIC COSMIC PULSAR PSR-B1919'
+      };
+
+      const pulsarCoreGeo = new THREE.SphereGeometry(22, 32, 32);
+      const pulsarCoreMat = new THREE.MeshStandardMaterial({
+        color: 0x93c5fd,
+        emissive: 0x3b82f6,
+        emissiveIntensity: 2.8,
+        roughness: 0.1
+      });
+      const pulsarCore = new THREE.Mesh(pulsarCoreGeo, pulsarCoreMat);
+      cosmicPulsarGroup.add(pulsarCore);
+
+      // Dual Sweeping Conical Radiation Beams
+      const beamGeo = new THREE.ConeGeometry(45, 420, 24, 1, true);
+      const beamMat = new THREE.MeshBasicMaterial({
+        color: 0x60a5fa,
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+      });
+      const beamUp = new THREE.Mesh(beamGeo, beamMat);
+      beamUp.position.y = 210;
+      cosmicPulsarGroup.add(beamUp);
+      const beamDown = new THREE.Mesh(beamGeo, beamMat);
+      beamDown.position.y = -210;
+      beamDown.rotation.x = Math.PI;
+      cosmicPulsarGroup.add(beamDown);
+
+      scene.add(cosmicPulsarGroup);
+      activeCelestialBodies.push(cosmicPulsarGroup);
+
+      // =======================================================================
+      // 5. ANCIENT PRECURSOR STARGATE / ORBITAL WARP JUMP BEACON
+      // =======================================================================
+      precursorStargateGroup = new THREE.Group();
+      precursorStargateGroup.position.set(60, 220, -780);
+      precursorStargateGroup.userData = {
+        radius: 55,
+        coreRadius: 28,
+        name: 'PRECURSOR ORBITAL WARP STARGATE'
+      };
+
+      const gateTorusGeo = new THREE.TorusGeometry(50, 4.5, 16, 48);
+      const gateTorusMat = new THREE.MeshStandardMaterial({
+        color: 0x475569,
+        metalness: 0.85,
+        roughness: 0.25,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.3
+      });
+      const gateRing = new THREE.Mesh(gateTorusGeo, gateTorusMat);
+      precursorStargateGroup.add(gateRing);
+
+      const portalGeo = new THREE.CircleGeometry(46, 32);
+      const portalMat = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff,
+        transparent: true,
+        opacity: 0.45,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+      });
+      const portalDisc = new THREE.Mesh(portalGeo, portalMat);
+      precursorStargateGroup.add(portalDisc);
+
+      scene.add(precursorStargateGroup);
+      activeCelestialBodies.push(precursorStargateGroup);
+
+      // =======================================================================
+      // 5B. COLOSSAL GIANT ROUND SPACESTATION CITADEL BY JUNGLE JIM
+      // =======================================================================
+      giantSpacestationGroup = new THREE.Group();
+      giantSpacestationGroup.position.set(-160, 140, -340);
+      giantSpacestationGroup.rotation.x = 0.55; // inclined orbital plane
+      giantSpacestationGroup.rotation.z = 0.25;
+      giantSpacestationGroup.userData = {
+        radius: 140,
+        coreRadius: 65,
+        ringInner: 70,
+        ringOuter: 140,
+        name: 'GIANT ROUND SPACESTATION (JUNGLE JIM)'
+      };
+
+      // Procedural fallback giant station ring
+      const stTorusGeo = new THREE.TorusGeometry(85, 8.5, 16, 64);
+      const stTorusMat = new THREE.MeshStandardMaterial({
+        color: 0x64748b,
+        metalness: 0.85,
+        roughness: 0.25
+      });
+      const stMesh = new THREE.Mesh(stTorusGeo, stTorusMat);
+      giantSpacestationGroup.add(stMesh);
+
+      // Central Hub
+      const stHubGeo = new THREE.CylinderGeometry(18, 18, 45, 24);
+      const stHubMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        metalness: 0.9,
+        roughness: 0.2,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.3
+      });
+      const stHub = new THREE.Mesh(stHubGeo, stHubMat);
+      giantSpacestationGroup.add(stHub);
+
+      scene.add(giantSpacestationGroup);
+      activeCelestialBodies.push(giantSpacestationGroup);
+
+      if (gltfLoader) {
+        gltfLoader.load('models/giant_round_spacestation.glb', (gltf) => {
+          if (!giantSpacestationGroup) return;
+          while (giantSpacestationGroup.children.length > 0) giantSpacestationGroup.remove(giantSpacestationGroup.children[0]);
+          const stationScene = gltf.scene;
+          const bbox = new THREE.Box3().setFromObject(stationScene);
+          const size = new THREE.Vector3();
+          bbox.getSize(size);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const targetScale = maxDim > 0 ? (280 / maxDim) : 1;
+          stationScene.scale.setScalar(targetScale);
+          stationScene.position.set(0, 0, 0);
+
+          stationScene.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              if (child.material) {
+                child.material.envMap = alienNebulaTex;
+                child.material.envMapIntensity = 1.35;
+                child.material.needsUpdate = true;
+              }
+            }
+          });
+
+          giantSpacestationGroup.add(stationScene);
+          giantSpacestationGroup.userData.coreRadius = 65;
+          console.log('[3D ENGINE] Mounted authentic 3D model: Giant Round Spacestation by Jungle Jim');
+        }, undefined, (err) => {
+          console.warn('Fallback to procedural spacestation');
+        });
+      }
+
+      // =======================================================================
+      // 6. VOLUMETRIC ION NEBULA DUST FIELD (1,200 LUMINOUS PARTICLES)
+      // =======================================================================
+      const nebulaPCount = 1200;
+      const nebGeo = new THREE.BufferGeometry();
+      const nebPos = new Float32Array(nebulaPCount * 3);
+      const nebCol = new Float32Array(nebulaPCount * 3);
+      for (let n = 0; n < nebulaPCount; n++) {
+        nebPos[n * 3] = (Math.random() - 0.5) * 1600;
+        nebPos[n * 3 + 1] = (Math.random() - 0.5) * 800;
+        nebPos[n * 3 + 2] = -200 - Math.random() * 1200;
+
+        if (n % 3 === 0) {
+          nebCol[n * 3] = 0.2; nebCol[n * 3 + 1] = 0.85; nebCol[n * 3 + 2] = 1.0;
+        } else if (n % 3 === 1) {
+          nebCol[n * 3] = 0.85; nebCol[n * 3 + 1] = 0.25; nebCol[n * 3 + 2] = 0.95;
+        } else {
+          nebCol[n * 3] = 0.95; nebCol[n * 3 + 1] = 0.75; nebCol[n * 3 + 2] = 0.25;
+        }
+      }
+      nebGeo.setAttribute('position', new THREE.BufferAttribute(nebPos, 3));
+      nebGeo.setAttribute('color', new THREE.BufferAttribute(nebCol, 3));
+      ionNebulaField = new THREE.Points(
+        nebGeo,
+        new THREE.PointsMaterial({ size: 2.8, vertexColors: true, transparent: true, opacity: 0.65, blending: THREE.AdditiveBlending })
+      );
+      scene.add(ionNebulaField);
+
+      window.activeCelestialBodies = activeCelestialBodies;
+      window.saturnPlanetGroup = saturnPlanetGroup;
+      window.ringedGiantGroup = ringedGiantGroup;
+      window.cosmicPulsarGroup = cosmicPulsarGroup;
+      window.precursorStargateGroup = precursorStargateGroup;
+      window.giantSpacestationGroup = giantSpacestationGroup;
     }
 
     // Destructible Procedural Comets
@@ -2892,31 +3229,63 @@
       satellites.push(sat);
     }
 
-    // Populate Destructible Asteroid Field across Sector
+    // Populate Destructible Asteroid Field across Sector (150 Asteroids in Dual Toroidal Belts)
     function populateDestructibleAsteroidBelt() {
+      asteroids.forEach(a => scene.remove(a));
+      asteroids = [];
+
       const bumpTex = generateAsteroidBumpTexture();
-      const mat = new THREE.MeshStandardMaterial({
+      const chondriteMat = new THREE.MeshStandardMaterial({
         color: 0x64748b,
-        roughness: 0.8,
+        roughness: 0.85,
         metalness: 0.2,
         bumpMap: bumpTex,
-        bumpScale: 0.25
+        bumpScale: 0.3
+      });
+      const metallicMat = new THREE.MeshStandardMaterial({
+        color: 0x94a3b8,
+        roughness: 0.35,
+        metalness: 0.8,
+        bumpMap: bumpTex,
+        bumpScale: 0.2
       });
 
-      for (let i = 0; i < 50; i++) {
-        const rad = Math.random() * 5 + 3;
+      // Belt 1: 90 Inner Chondrite Asteroids
+      for (let i = 0; i < 90; i++) {
+        const rad = Math.random() * 4.5 + 3.2;
         const geo = new THREE.DodecahedronGeometry(rad, 1);
-        const mesh = new THREE.Mesh(geo, mat);
-                // Clustered in forward operational belt
-        const fwdZ = -70 - Math.random() * 380;
-        const spreadX = (Math.random() - 0.5) * 320;
-        const spreadY = (Math.random() - 0.5) * 120;
-        mesh.position.set(spreadX, spreadY, fwdZ);
+        const mesh = new THREE.Mesh(geo, chondriteMat);
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 160 + Math.random() * 180;
+        const fwdZ = -40 - Math.random() * 420;
+        mesh.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 120, fwdZ);
         mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
         mesh.userData = {
           type: 'asteroid',
           hp: 4,
-          name: 'DESTRUCTIBLE ASTEROID',
+          name: 'CHONDRITE ASTEROID',
+          rotX: (Math.random() - 0.5) * 0.018,
+          rotY: (Math.random() - 0.5) * 0.018,
+          radius: rad
+        };
+        scene.add(mesh);
+        asteroids.push(mesh);
+      }
+
+      // Belt 2: 60 Outer Metallic Nickel-Iron Debris Stream Asteroids
+      for (let i = 0; i < 60; i++) {
+        const rad = Math.random() * 5.0 + 4.0;
+        const geo = new THREE.IcosahedronGeometry(rad, 1);
+        const mesh = new THREE.Mesh(geo, metallicMat);
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 360 + Math.random() * 220;
+        const fwdZ = -80 - Math.random() * 580;
+        mesh.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 160, fwdZ);
+        mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+        mesh.userData = {
+          type: 'asteroid',
+          hp: 6,
+          name: 'METALLIC NICKEL-IRON ASTEROID',
           rotX: (Math.random() - 0.5) * 0.015,
           rotY: (Math.random() - 0.5) * 0.015,
           radius: rad
@@ -2924,6 +3293,7 @@
         scene.add(mesh);
         asteroids.push(mesh);
       }
+      window.asteroids = asteroids;
     }
     // High-Fidelity 3D Player Starfighter
     // =========================================================================
@@ -4246,6 +4616,11 @@
       const dirToPlayer = new THREE.Vector3().subVectors(player.position, spawnPos).normalize();
       enemyGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dirToPlayer);
 
+      // Rammer Berserker vs Tactical Dogfighter distribution
+      const isRammer = (Math.random() < 0.20);
+      enemyGroup.userData.behavior = isRammer ? 'rammer' : 'dogfighter';
+      enemyGroup.userData.regroupTimer = 0;
+
       scene.add(enemyGroup);
       enemies.push(enemyGroup);
       document.getElementById('enemies-val').innerText = enemies.length;
@@ -4766,32 +5141,61 @@
 
       const playerRadius = 3.2;
 
-      // 1. COLLISION WITH 3D CELESTIAL PLANET (CATASTROPHIC RE-ENTRY CRASH & RESPAWN)
-      if (planetaryBody) {
+      // 1. COLLISION WITH ALL ACTIVE 3D CELESTIAL BODIES (TIGHT CLOSE BUMPING + SURFACE CRASH & DEFLECTION)
+      for (let b = 0; b < activeCelestialBodies.length; b++) {
+        const body = activeCelestialBodies[b];
+        if (!body) continue;
         const pPos = new THREE.Vector3();
-        planetaryBody.getWorldPosition(pPos);
-        const planetRadius = planetaryBody.userData.radius || 185;
-        const distToPlanet = player.position.distanceTo(pPos);
+        body.getWorldPosition(pPos);
+        const coreRadius = body.userData.coreRadius || (body.userData.radius ? body.userData.radius * 0.45 : 82);
+        const distToBody = player.position.distanceTo(pPos);
 
-        if (distToPlanet <= (planetRadius + playerRadius)) {
-          // STRICT COLLISION DEFLECTION: Push ship outside boundary so it NEVER bypasses or clips inside planet
+        // Planetary Ring Skimming & Grazing Check (Allows flying through rings with deflection & shield drain)
+        if (body.userData.ringInner && body.userData.ringOuter) {
+          const relPos = player.position.clone().sub(pPos);
+          const rPlaneDist = Math.sqrt(relPos.x * relPos.x + relPos.z * relPos.z);
+          if (rPlaneDist >= body.userData.ringInner && rPlaneDist <= body.userData.ringOuter && Math.abs(relPos.y) < 7.5) {
+            const ringBounce = new THREE.Vector3(0, relPos.y >= 0 ? 1 : -1, 0);
+            player.position.y = pPos.y + (relPos.y >= 0 ? 8.5 : -8.5);
+            playerVelocity.add(ringBounce.clone().multiplyScalar(1.8));
+            currentSpeed = Math.max(minSpeed, currentSpeed * 0.85);
+
+            if (respawnInvincibleTimer <= 0) {
+              if (playerShield > 0) playerShield = Math.max(0, playerShield - 10);
+              else playerHull = Math.max(0, playerHull - 6);
+              updateHealthUI();
+              createExplosion(player.position.clone(), 0x93c5fd, false);
+              playSound('hit');
+              const toast = document.getElementById('cam-toast');
+              if (toast) {
+                toast.innerText = `[GRAZING ${body.userData.name} RING SYSTEM // SHIELD DEFLECTED]`;
+                toast.style.display = 'block';
+                setTimeout(() => { toast.style.display = 'none'; }, 1200);
+              }
+            }
+          }
+        }
+
+        // Direct Core Surface Collision (Allows close bumping directly on the visible 3D surface)
+        if (distToBody <= (coreRadius + playerRadius)) {
+          // Strict collision deflection along surface normal: pushed immediately onto outer crust
           const outNorm = player.position.clone().sub(pPos).normalize();
           if (outNorm.lengthSq() < 0.001) outNorm.set(0, 0, 1);
-          player.position.copy(pPos).add(outNorm.clone().multiplyScalar(planetRadius + playerRadius + 3.0));
+          player.position.copy(pPos).add(outNorm.clone().multiplyScalar(coreRadius + playerRadius + 3.0));
 
-          // Catastrophic atmospheric/surface impact
+          // Catastrophic surface impact
           playerHull = 0;
           playerShield = 0;
           updateHealthUI();
-          executePlayerRespawn('CATASTROPHIC PLANETARY IMPACT');
+          executePlayerRespawn(`CATASTROPHIC IMPACT WITH ${body.userData.name || 'CELESTIAL PLANET'}`);
           return;
         }
 
         // Orbiting Moon Collision
-        if (orbitingMoonMesh) {
+        if (body === planetaryBody && orbitingMoonMesh) {
           const mPos = new THREE.Vector3();
           orbitingMoonMesh.getWorldPosition(mPos);
-          const moonRadius = 40;
+          const moonRadius = 24;
           const distToMoon = player.position.distanceTo(mPos);
           if (distToMoon <= (moonRadius + playerRadius)) {
             const outNorm = player.position.clone().sub(mPos).normalize();
@@ -5233,7 +5637,8 @@
     let mapCometMesh, mapPlayerBeacon, mapAircraftMarker, mapEnemyMarkers = [];
     let mapLookAtTarget = new THREE.Vector3(0, 0, 0);
     let mapBlackHoleDisk1, mapBlackHoleDisk2, mapBlackHoleLensing;
-    let andromedaArmMesh, triangulumArmMesh;
+    let andromedaArmMesh, triangulumArmMesh, whirlpoolArmMesh, pinwheelArmMesh, blackEyeDiskMesh, lmcPointsMesh;
+    let mapYouAreHereBeacon = null;
 
     window.zoomGalaxyMap = function(delta) {
       galaxyZoomDist = Math.max(35, Math.min(2400, galaxyZoomDist + delta));
@@ -5246,32 +5651,71 @@
 
     window.focusMapTarget = function(targetKey) {
       if (!galaxyCamera) return;
-      if (targetKey === 'solarsystem') {
+      let targetName = 'MILKY WAY GALAXY';
+      if (targetKey === 'solarsystem' || targetKey === 'milkyway') {
         mapLookAtTarget.set(0, 0, 0);
         galaxyZoomDist = 110;
+        targetName = 'MILKY WAY GALAXY // HOME BASE';
       } else if (targetKey === 'universe') {
         mapLookAtTarget.set(0, 0, 0);
-        galaxyZoomDist = 1950;
+        galaxyZoomDist = 2100;
+        targetName = 'MACRO DEEP SPACE UNIVERSE';
       } else if (targetKey === 'blackhole') {
         mapLookAtTarget.set(-400, 30, -450);
         galaxyZoomDist = 140;
+        targetName = 'GARGANTUA SUPERMASSIVE BLACK HOLE';
       } else if (targetKey === 'andromeda') {
         mapLookAtTarget.set(-850, 200, -750);
         galaxyZoomDist = 240;
+        targetName = 'ANDROMEDA GALAXY (M31)';
       } else if (targetKey === 'triangulum') {
         mapLookAtTarget.set(920, -160, -680);
         galaxyZoomDist = 220;
+        targetName = 'TRIANGULUM GALAXY (M33)';
       } else if (targetKey === 'sombrero') {
         mapLookAtTarget.set(-950, -280, 750);
         galaxyZoomDist = 240;
+        targetName = 'SOMBRERO GALAXY (M104)';
       } else if (targetKey === 'centaurus') {
         mapLookAtTarget.set(820, 300, 890);
         galaxyZoomDist = 260;
+        targetName = 'CENTAURUS A (NGC 5128)';
+      } else if (targetKey === 'whirlpool') {
+        mapLookAtTarget.set(1250, 380, -350);
+        galaxyZoomDist = 230;
+        targetName = 'WHIRLPOOL GALAXY (M51)';
+      } else if (targetKey === 'm87') {
+        mapLookAtTarget.set(-1350, 420, 480);
+        galaxyZoomDist = 260;
+        targetName = 'MESSIER 87 (M87 / VIRGO A)';
+      } else if (targetKey === 'pinwheel') {
+        mapLookAtTarget.set(450, 750, -1100);
+        galaxyZoomDist = 240;
+        targetName = 'PINWHEEL GALAXY (M101)';
+      } else if (targetKey === 'blackeye') {
+        mapLookAtTarget.set(-720, -520, -850);
+        galaxyZoomDist = 220;
+        targetName = 'BLACK EYE GALAXY (M64)';
+      } else if (targetKey === 'lmc') {
+        mapLookAtTarget.set(380, -680, 520);
+        galaxyZoomDist = 210;
+        targetName = 'LARGE MAGELLANIC CLOUD (LMC)';
       }
       galaxyCamera.position.set(mapLookAtTarget.x, mapLookAtTarget.y + galaxyZoomDist * 0.45, mapLookAtTarget.z + galaxyZoomDist);
       galaxyCamera.lookAt(mapLookAtTarget);
       initAudio();
       playTone(520, 0.1, 'sine');
+
+      const popEl = document.getElementById('map-inspect-popup');
+      if (popEl && targetName) {
+        const found = mapInteractiveObjects.find(obj => obj.userData && obj.userData.name && obj.userData.name.includes(targetName.split(' ')[0]));
+        if (found) {
+          selectedMapTarget = found;
+          document.getElementById('map-sector-title').innerText = found.userData.name;
+          document.getElementById('map-sector-status').innerText = found.userData.sec || 'EXPLORABLE SECTOR';
+          document.getElementById('map-sector-desc').innerText = `${found.userData.type} | Atmosphere: ${found.userData.atmo} | Resources: ${found.userData.res}`;
+        }
+      }
     };
 
     window.setWaypointToCurrentSelection = function() {
@@ -5476,6 +5920,84 @@
       solarGroup.add(cometGroup);
       mapInteractiveObjects.push(cometGroup);
       mapCometMesh = cometGroup;
+
+      // =======================================================================
+      // 1B. UNMISTAKABLE 3D HOLOGRAPHIC "YOU ARE HERE: MILKY WAY GALAXY" BEACON
+      // =======================================================================
+      const youAreHereGroup = new THREE.Group();
+      youAreHereGroup.position.set(0, 0, 0);
+
+      // Pulsating Outer Concentric Radar Pulse Rings
+      const beaconRing1 = new THREE.Mesh(
+        new THREE.RingGeometry(28, 32, 48),
+        new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+      );
+      beaconRing1.rotation.x = Math.PI / 2;
+      youAreHereGroup.add(beaconRing1);
+
+      const beaconRing2 = new THREE.Mesh(
+        new THREE.RingGeometry(48, 54, 48),
+        new THREE.MeshBasicMaterial({ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.55 })
+      );
+      beaconRing2.rotation.x = Math.PI / 2;
+      youAreHereGroup.add(beaconRing2);
+
+      // Vertical Cyan-Emerald Laser Column Beam
+      const laserColumnGeo = new THREE.CylinderGeometry(0.8, 0.8, 160, 16);
+      const laserColumnMat = new THREE.MeshBasicMaterial({
+        color: 0x34d399,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending
+      });
+      const laserColumn = new THREE.Mesh(laserColumnGeo, laserColumnMat);
+      laserColumn.position.y = 80;
+      youAreHereGroup.add(laserColumn);
+
+      // 3D Directional Chevron Pointer pointing down toward Sun & Ship
+      const chevronMesh = new THREE.Mesh(
+        new THREE.ConeGeometry(5, 12, 4),
+        new THREE.MeshBasicMaterial({ color: 0xf59e0b, wireframe: false })
+      );
+      chevronMesh.position.y = 160;
+      chevronMesh.rotation.x = Math.PI; // point downwards
+      youAreHereGroup.add(chevronMesh);
+
+      // 3D Canvas Billboard Badge Sprite: "[>>> YOU ARE HERE: MILKY WAY GALAXY <<<]"
+      const badgeCanvas = document.createElement('canvas');
+      badgeCanvas.width = 1024;
+      badgeCanvas.height = 256;
+      const bctx = badgeCanvas.getContext('2d');
+      bctx.fillStyle = 'rgba(6, 78, 59, 0.90)';
+      bctx.fillRect(40, 40, 944, 176);
+      bctx.lineWidth = 8;
+      bctx.strokeStyle = '#34d399';
+      bctx.strokeRect(40, 40, 944, 176);
+      bctx.fillStyle = '#f8fafc';
+      bctx.font = 'bold 50px monospace';
+      bctx.textAlign = 'center';
+      bctx.fillText('[>>> YOU ARE HERE: MILKY WAY GALAXY <<<]', 512, 120);
+      bctx.fillStyle = '#6ee7b7';
+      bctx.font = '30px monospace';
+      bctx.fillText('HELIOS-PRIME // ORION SPUR // SECTORS 1-5', 512, 170);
+
+      const badgeTex = new THREE.CanvasTexture(badgeCanvas);
+      const badgeSpriteMat = new THREE.SpriteMaterial({ map: badgeTex, transparent: true });
+      const badgeSprite = new THREE.Sprite(badgeSpriteMat);
+      badgeSprite.position.set(0, 195, 0);
+      badgeSprite.scale.set(130, 32.5, 1);
+      youAreHereGroup.add(badgeSprite);
+
+      youAreHereGroup.userData = {
+        name: 'MILKY WAY GALAXY // HOME BASE',
+        type: 'Barred Spiral Galaxy (Orion Arm // Helios-Prime System)',
+        atmo: 'Terran Standard Atmospheric Seal',
+        res: 'Humanity Civil Headquarters & Resource Hub',
+        sec: 'ALLIED BASE // CURRENT LOCATION'
+      };
+      solarGroup.add(youAreHereGroup);
+      mapInteractiveObjects.push(youAreHereGroup);
+      mapYouAreHereBeacon = youAreHereGroup;
 
       // =======================================================================
       // 2. CENTRAL SUPERMASSIVE BLACK HOLE (GARGANTUA SINGULARITY)
@@ -5717,7 +6239,273 @@
       mapInteractiveObjects.push(centaurusGroup);
 
       // =======================================================================
-      // 7. DEEP COSMIC WEB STARFIELD (3,500 INTERGALACTIC NODES)
+      // 7. WHIRLPOOL GALAXY (M51) - GRAND SPIRAL WITH TIDAL BRIDGE TO NGC 5195
+      // =======================================================================
+      const whirlpoolGroup = new THREE.Group();
+      whirlpoolGroup.position.set(1250, 380, -350);
+
+      const m51Core = new THREE.Mesh(
+        new THREE.SphereGeometry(16, 20, 20),
+        new THREE.MeshBasicMaterial({ color: 0xfde047, blending: THREE.AdditiveBlending })
+      );
+      whirlpoolGroup.add(m51Core);
+
+      const m51PCount = 1100;
+      const m51Geo = new THREE.BufferGeometry();
+      const m51Pos = new Float32Array(m51PCount * 3);
+      const m51Col = new Float32Array(m51PCount * 3);
+      for (let p = 0; p < m51PCount; p++) {
+        const armIndex = p % 2;
+        const armOffset = armIndex * Math.PI;
+        const dist = 10 + Math.pow(Math.random(), 1.45) * 115;
+        const spiralAngle = dist * 0.095 + armOffset;
+        m51Pos[p * 3] = Math.cos(spiralAngle) * dist + (Math.random() - 0.5) * 10;
+        m51Pos[p * 3 + 1] = (Math.random() - 0.5) * 8;
+        m51Pos[p * 3 + 2] = Math.sin(spiralAngle) * dist + (Math.random() - 0.5) * 10;
+
+        m51Col[p * 3] = 0.22 + Math.random() * 0.3;
+        m51Col[p * 3 + 1] = 0.75 + Math.random() * 0.25;
+        m51Col[p * 3 + 2] = 0.99;
+      }
+      m51Geo.setAttribute('position', new THREE.BufferAttribute(m51Pos, 3));
+      m51Geo.setAttribute('color', new THREE.BufferAttribute(m51Col, 3));
+      whirlpoolArmMesh = new THREE.Points(
+        m51Geo,
+        new THREE.PointsMaterial({ size: 1.8, vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending })
+      );
+      whirlpoolGroup.add(whirlpoolArmMesh);
+
+      // Interacting Companion Dwarf Galaxy NGC 5195
+      const ngc5195Group = new THREE.Group();
+      ngc5195Group.position.set(78, 16, -55);
+      const compCore = new THREE.Mesh(
+        new THREE.SphereGeometry(9, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xfbbf24, blending: THREE.AdditiveBlending })
+      );
+      ngc5195Group.add(compCore);
+      whirlpoolGroup.add(ngc5195Group);
+
+      whirlpoolGroup.userData = {
+        name: 'WHIRLPOOL GALAXY (M51 / NGC 5194 + 5195)',
+        type: 'Grand-Design Spiral Galaxy Interacting with Dwarf Companion',
+        atmo: 'Gravitational Tidal Bridge & Active Starburst Clusters',
+        res: 'Dense Molecular Gas Nurseries (23M Light-Years)',
+        sec: 'INTERACTING GRAVITATIONAL PAIR'
+      };
+      galaxyPivot.add(whirlpoolGroup);
+      mapInteractiveObjects.push(whirlpoolGroup);
+
+      // =======================================================================
+      // 8. MESSIER 87 (M87 / VIRGO A) - SUPERGIANT ELLIPTICAL WITH SYNCHROTRON JET
+      // =======================================================================
+      const m87Group = new THREE.Group();
+      m87Group.position.set(-1350, 420, 480);
+
+      const m87Count = 1300;
+      const m87Geo = new THREE.BufferGeometry();
+      const m87Pos = new Float32Array(m87Count * 3);
+      const m87Col = new Float32Array(m87Count * 3);
+      for (let p = 0; p < m87Count; p++) {
+        const u = Math.random();
+        const r = Math.pow(u, 2.2) * 140;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos((Math.random() * 2) - 1);
+        m87Pos[p * 3] = r * Math.sin(phi) * Math.cos(theta);
+        m87Pos[p * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.85;
+        m87Pos[p * 3 + 2] = r * Math.cos(phi);
+
+        m87Col[p * 3] = 0.98;
+        m87Col[p * 3 + 1] = 0.82 + Math.random() * 0.15;
+        m87Col[p * 3 + 2] = 0.55;
+      }
+      m87Geo.setAttribute('position', new THREE.BufferAttribute(m87Pos, 3));
+      m87Geo.setAttribute('color', new THREE.BufferAttribute(m87Col, 3));
+      const m87Points = new THREE.Points(
+        m87Geo,
+        new THREE.PointsMaterial({ size: 2.0, vertexColors: true, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending })
+      );
+      m87Group.add(m87Points);
+
+      const m87Core = new THREE.Mesh(
+        new THREE.SphereGeometry(24, 24, 24),
+        new THREE.MeshBasicMaterial({ color: 0xfef08a, blending: THREE.AdditiveBlending })
+      );
+      m87Group.add(m87Core);
+
+      // Relativistic Synchrotron Plasma Jet (Blue-Violet Beam)
+      const jetConeGeo = new THREE.ConeGeometry(8, 450, 16, 1, true);
+      const jetConeMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.75,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+      });
+      const m87Jet = new THREE.Mesh(jetConeGeo, jetConeMat);
+      m87Jet.position.set(160, 90, -110);
+      m87Jet.rotation.z = -Math.PI / 3;
+      m87Group.add(m87Jet);
+
+      m87Group.userData = {
+        name: 'MESSIER 87 (M87 / VIRGO A)',
+        type: 'Colossal Supergiant Elliptical (Mass: 2.7T Solar Masses)',
+        atmo: 'Synchrotron Magnetic Shockwaves (Relativistic Jet)',
+        res: 'Supermassive Singularity Pōwehi (6.5 Billion Solar Masses)',
+        sec: 'COSMIC RADIO BEACON CLUSTER'
+      };
+      galaxyPivot.add(m87Group);
+      mapInteractiveObjects.push(m87Group);
+
+      // =======================================================================
+      // 9. PINWHEEL GALAXY (M101) - GRAND FACE-ON SPIRAL WITH H II STARBURSTS
+      // =======================================================================
+      const m101Group = new THREE.Group();
+      m101Group.position.set(450, 750, -1100);
+
+      const m101Core = new THREE.Mesh(
+        new THREE.SphereGeometry(15, 20, 20),
+        new THREE.MeshBasicMaterial({ color: 0xbae6fd, blending: THREE.AdditiveBlending })
+      );
+      m101Group.add(m101Core);
+
+      const m101Count = 1200;
+      const m101Geo = new THREE.BufferGeometry();
+      const m101Pos = new Float32Array(m101Count * 3);
+      const m101Col = new Float32Array(m101Count * 3);
+      for (let p = 0; p < m101Count; p++) {
+        const armIndex = p % 5;
+        const armOffset = (armIndex * Math.PI * 2) / 5;
+        const dist = 8 + Math.pow(Math.random(), 1.35) * 120;
+        const spiralAngle = dist * 0.08 + armOffset;
+        m101Pos[p * 3] = Math.cos(spiralAngle) * dist + (Math.random() - 0.5) * 12;
+        m101Pos[p * 3 + 1] = (Math.random() - 0.5) * 6;
+        m101Pos[p * 3 + 2] = Math.sin(spiralAngle) * dist + (Math.random() - 0.5) * 12;
+
+        if (p % 6 === 0) {
+          m101Col[p * 3] = 0.99; m101Col[p * 3 + 1] = 0.35; m101Col[p * 3 + 2] = 0.72;
+        } else {
+          m101Col[p * 3] = 0.55 + Math.random() * 0.35;
+          m101Col[p * 3 + 1] = 0.82 + Math.random() * 0.18;
+          m101Col[p * 3 + 2] = 1.0;
+        }
+      }
+      m101Geo.setAttribute('position', new THREE.BufferAttribute(m101Pos, 3));
+      m101Geo.setAttribute('color', new THREE.BufferAttribute(m101Col, 3));
+      pinwheelArmMesh = new THREE.Points(
+        m101Geo,
+        new THREE.PointsMaterial({ size: 1.8, vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending })
+      );
+      m101Group.add(pinwheelArmMesh);
+
+      m101Group.userData = {
+        name: 'PINWHEEL GALAXY (M101)',
+        type: 'Grand-Design Face-On Spiral Galaxy (1 Trillion Stars)',
+        atmo: 'Giant Ionized Hydrogen H II Emission Clouds',
+        res: 'Active Supernova Candidates & Pristine Gas Fields',
+        sec: 'HIGH-DENSITY STARBURST SECTOR'
+      };
+      galaxyPivot.add(m101Group);
+      mapInteractiveObjects.push(m101Group);
+
+      // =======================================================================
+      // 10. BLACK EYE GALAXY (M64) - LUMINOUS NUCLEUS WITH ABSORBING DUST ARC
+      // =======================================================================
+      const m64Group = new THREE.Group();
+      m64Group.position.set(-720, -520, -850);
+
+      const m64Core = new THREE.Mesh(
+        new THREE.SphereGeometry(18, 20, 20),
+        new THREE.MeshBasicMaterial({ color: 0xffedd5, blending: THREE.AdditiveBlending })
+      );
+      m64Group.add(m64Core);
+
+      const darkDustGeo = new THREE.RingGeometry(18, 38, 48, 1, 0, Math.PI * 1.35);
+      const darkDustMat = new THREE.MeshBasicMaterial({
+        color: 0x1e293b,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.92
+      });
+      const darkDustMesh = new THREE.Mesh(darkDustGeo, darkDustMat);
+      darkDustMesh.rotation.x = Math.PI / 2.15;
+      m64Group.add(darkDustMesh);
+
+      const m64Count = 800;
+      const m64Geo = new THREE.BufferGeometry();
+      const m64Pos = new Float32Array(m64Count * 3);
+      for (let p = 0; p < m64Count; p++) {
+        const r = 25 + Math.pow(Math.random(), 1.2) * 85;
+        const theta = Math.random() * Math.PI * 2;
+        m64Pos[p * 3] = Math.cos(theta) * r + (Math.random() - 0.5) * 6;
+        m64Pos[p * 3 + 1] = (Math.random() - 0.5) * 5;
+        m64Pos[p * 3 + 2] = Math.sin(theta) * r + (Math.random() - 0.5) * 6;
+      }
+      m64Geo.setAttribute('position', new THREE.BufferAttribute(m64Pos, 3));
+      blackEyeDiskMesh = new THREE.Points(
+        m64Geo,
+        new THREE.PointsMaterial({ color: 0xfde68a, size: 1.5, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending })
+      );
+      m64Group.add(blackEyeDiskMesh);
+
+      m64Group.userData = {
+        name: 'BLACK EYE GALAXY (M64 / EVIL EYE)',
+        type: 'Spiral Galaxy with Counter-Rotating Gas & Dust Band',
+        atmo: 'Dense Hydrocarbon Dust Arc & Counter-Shear Gas Disks',
+        res: 'Ancient Galactic Merger Remnants (17M Light-Years)',
+        sec: 'GRAVITATIONAL ANOMALY FRONTIER'
+      };
+      galaxyPivot.add(m64Group);
+      mapInteractiveObjects.push(m64Group);
+
+      // =======================================================================
+      // 11. LARGE MAGELLANIC CLOUD (LMC) - SATELLITE DWARF WITH TARANTULA NEBULA
+      // =======================================================================
+      const lmcGroup = new THREE.Group();
+      lmcGroup.position.set(380, -680, 520);
+
+      const lmcCore = new THREE.Mesh(
+        new THREE.SphereGeometry(12, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xfed7aa, blending: THREE.AdditiveBlending })
+      );
+      lmcGroup.add(lmcCore);
+
+      const lmcCount = 850;
+      const lmcGeo = new THREE.BufferGeometry();
+      const lmcPos = new Float32Array(lmcCount * 3);
+      const lmcCol = new Float32Array(lmcCount * 3);
+      for (let p = 0; p < lmcCount; p++) {
+        lmcPos[p * 3] = (Math.random() - 0.5) * 140;
+        lmcPos[p * 3 + 1] = (Math.random() - 0.5) * 45;
+        lmcPos[p * 3 + 2] = (Math.random() - 0.5) * 90;
+
+        if (p < 200) {
+          lmcPos[p * 3] += 30;
+          lmcPos[p * 3 + 1] += 12;
+          lmcCol[p * 3] = 0.99; lmcCol[p * 3 + 1] = 0.42; lmcCol[p * 3 + 2] = 0.12;
+        } else {
+          lmcCol[p * 3] = 0.72; lmcCol[p * 3 + 1] = 0.88; lmcCol[p * 3 + 2] = 0.99;
+        }
+      }
+      lmcGeo.setAttribute('position', new THREE.BufferAttribute(lmcPos, 3));
+      lmcGeo.setAttribute('color', new THREE.BufferAttribute(lmcCol, 3));
+      lmcPointsMesh = new THREE.Points(
+        lmcGeo,
+        new THREE.PointsMaterial({ size: 1.7, vertexColors: true, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending })
+      );
+      lmcGroup.add(lmcPointsMesh);
+
+      lmcGroup.userData = {
+        name: 'LARGE MAGELLANIC CLOUD (LMC)',
+        type: 'Milky Way Satellite Dwarf Galaxy with 30 Doradus',
+        atmo: 'Intense Ultraviolet Radiation & Tarantula Nebula',
+        res: 'Extremely Massive Wolf-Rayet Stars (163K Light-Years)',
+        sec: 'SATELLITE ESCORT REGION'
+      };
+      galaxyPivot.add(lmcGroup);
+      mapInteractiveObjects.push(lmcGroup);
+
+      // =======================================================================
+      // 12. DEEP COSMIC WEB STARFIELD (3,500 INTERGALACTIC NODES)
       // =======================================================================
       const cosmicStarCount = 3500;
       const cosmicGeo = new THREE.BufferGeometry();
@@ -5886,8 +6674,17 @@
         if (mapBlackHoleDisk2) mapBlackHoleDisk2.rotation.z += 0.025;
         if (andromedaArmMesh) andromedaArmMesh.rotation.y += 0.0015;
         if (triangulumArmMesh) triangulumArmMesh.rotation.y += 0.0022;
+        if (whirlpoolArmMesh) whirlpoolArmMesh.rotation.y += 0.0018;
+        if (pinwheelArmMesh) pinwheelArmMesh.rotation.y += 0.0014;
+        if (blackEyeDiskMesh) blackEyeDiskMesh.rotation.y -= 0.002;
+        if (lmcPointsMesh) lmcPointsMesh.rotation.y += 0.0008;
 
         if (mapPlayerBeacon) mapPlayerBeacon.rotation.z += 0.04;
+        if (mapYouAreHereBeacon) {
+          const pulse = 1.0 + Math.sin(Date.now() * 0.005) * 0.15;
+          if (mapYouAreHereBeacon.children[0]) mapYouAreHereBeacon.children[0].scale.set(pulse, pulse, pulse);
+          if (mapYouAreHereBeacon.children[1]) mapYouAreHereBeacon.children[1].scale.set(pulse * 1.15, pulse * 1.15, pulse * 1.15);
+        }
         if (mapCometMesh) {
           mapCometMesh.position.x = Math.sin(Date.now() * 0.0006) * 125;
           mapCometMesh.position.z = Math.cos(Date.now() * 0.0006) * 95;
@@ -6023,9 +6820,24 @@
         document.getElementById('heat-val').innerText = `${Math.round(laserHeat)}%`;
       }
 
-      // Rotate Background Galaxy & Celestial Planet
+      // Rotate Background Galaxy & Celestial Planets & Cosmic Objects
       if (backgroundGalaxyPoints) backgroundGalaxyPoints.rotation.y += 0.0005;
       if (planetaryBody) planetaryBody.rotation.y += 0.0006;
+      if (saturnPlanetGroup) saturnPlanetGroup.rotation.y += 0.0008;
+      if (ringedGiantGroup) ringedGiantGroup.rotation.y += 0.0007;
+      if (cosmicPulsarGroup) {
+        cosmicPulsarGroup.rotation.y += 0.055;
+        cosmicPulsarGroup.rotation.z += 0.02;
+      }
+      if (giantSpacestationGroup) {
+        giantSpacestationGroup.rotation.y += 0.0015;
+      }
+      if (precursorStargateGroup) {
+        precursorStargateGroup.rotation.z += 0.008;
+      }
+      if (ionNebulaField) {
+        ionNebulaField.rotation.y += 0.0002;
+      }
       if (planetCloudMesh) planetCloudMesh.rotation.y += 0.0011;
       if (orbitingMoonMesh) orbitingMoonMesh.rotation.y += 0.002;
 
@@ -6287,9 +7099,73 @@
         }
       }
 
-      // 6. Active Autonomous Enemy Pursuit & Dogfighting
+      // 6. Active Autonomous Enemy Pursuit & Dogfighting (Staggered Engagement Token Director)
       if (enemies.length < 5 && Math.random() < 0.03 && !bossActive) {
         spawnSectorEnemy();
+      }
+
+      // -------------------------------------------------------------------
+      // TACTICAL ATTACK DIRECTOR: PREVENTS ALL ENEMIES FROM ATTACKING AT ONCE
+      // Only 1 enemy at a time is granted the active firing attack token!
+      // -------------------------------------------------------------------
+      if (globalAttackCooldownTimer > 0) {
+        globalAttackCooldownTimer--;
+      }
+
+      // Validate currently assigned attack token holder
+      if (globalAttackTokenEnemy) {
+        attackTokenTimeRemaining--;
+        if (attackTokenTimeRemaining <= 0 || !enemies.includes(globalAttackTokenEnemy) || globalAttackTokenEnemy.userData.crashing) {
+          globalAttackTokenEnemy = null;
+          // Grace delay between attacks (longer if player is low health or shields down)
+          const grace = (playerHull < 40 || playerShield <= 0) ? 120 : (65 + Math.floor(Math.random() * 30));
+          globalAttackCooldownTimer = grace;
+        }
+      }
+
+      // If no active attacker and cooldown ready, designate the single next attacker
+      if (!globalAttackTokenEnemy && globalAttackCooldownTimer <= 0 && enemies.length > 0 && !isRespawning && respawnInvincibleTimer <= 0) {
+        let bestCandidate = null;
+        let bestCandidateScore = -9999;
+        const playerForwardVec = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
+
+        for (let cIdx = 0; cIdx < enemies.length; cIdx++) {
+          const cand = enemies[cIdx];
+          if (cand.userData.crashing) continue;
+          if (cand.userData.regroupTimer > 0) continue;
+
+          const toCand = cand.position.clone().sub(player.position);
+          const cDist = toCand.length();
+          if (cDist > 70 && cDist < 420) {
+            const fDot = playerForwardVec.dot(toCand.clone().normalize());
+            if (fDot > 0.15) { // In front of player
+              const scoreVal = fDot * 80 - (cDist * 0.08);
+              if (scoreVal > bestCandidateScore) {
+                bestCandidateScore = scoreVal;
+                bestCandidate = cand;
+              }
+            }
+          }
+        }
+
+        if (bestCandidate) {
+          globalAttackTokenEnemy = bestCandidate;
+          attackTokenTimeRemaining = 95; // ~1.5s attack token window
+          bestCandidate.userData.shootCooldown = 18; // Brief targeting delay so player can react
+          playSound('comms_beep');
+
+          const toast = document.getElementById('cam-toast');
+          if (toast && (playerHull < 60 || Math.random() < 0.35)) {
+            toast.innerText = `[TACTICAL WARNING: ${bestCandidate.userData.name} ACQUIRING TARGET - BREAK LINE!]`;
+            toast.style.display = 'block';
+            setTimeout(() => { if (toast.innerText.includes('ACQUIRING TARGET')) toast.style.display = 'none'; }, 2000);
+          }
+        }
+      }
+
+      // Validate active rammer (only 1 enemy allowed to ram at a time)
+      if (activeRammerEnemy && (!enemies.includes(activeRammerEnemy) || activeRammerEnemy.userData.crashing)) {
+        activeRammerEnemy = null;
       }
 
       let closestEnemy = null;
@@ -6303,6 +7179,12 @@
           closestDist = dist;
           closestEnemy = e;
         }
+
+        if (e.userData.regroupTimer > 0) {
+          e.userData.regroupTimer--;
+        }
+
+        const isTokenAttacker = (e === globalAttackTokenEnemy);
 
         // Active 3D Pursuit: Orient toward Player
         const dirToPlayer = new THREE.Vector3().subVectors(player.position, e.position).normalize();
@@ -6350,11 +7232,18 @@
         }
 
         // 2. RAMMING BERSERKERS VS SURVIVALIST COLLISION AVOIDANCE
-        if (e.userData.behavior === 'rammer') {
-          // BERSERKER: Steers directly into player to ram and crash!
-          e.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dirToPlayer), 0.12);
+        // STAGGERED RAMMING: Only ONE enemy is allowed to attempt a ramming pass at a time!
+        const canRam = (e.userData.behavior === 'rammer') && 
+                       (activeRammerEnemy === null || activeRammerEnemy === e) && 
+                       (e.userData.regroupTimer <= 0) &&
+                       !isRespawning && respawnInvincibleTimer <= 0;
+
+        if (canRam) {
+          activeRammerEnemy = e;
+          // BERSERKER: Steers directly into player to ram
+          e.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dirToPlayer), 0.11);
           const enemyForward = new THREE.Vector3(0, 0, 1).applyQuaternion(e.quaternion);
-          e.position.add(enemyForward.multiplyScalar(e.userData.speed * 1.35));
+          e.position.add(enemyForward.multiplyScalar(e.userData.speed * 1.3));
 
           // Physical Ramming Impact!
           if (dist < 7.8) {
@@ -6374,6 +7263,7 @@
               setTimeout(() => { toast.style.display = 'none'; }, 2000);
             }
 
+            activeRammerEnemy = null;
             triggerCatastrophicPlaneBreakup(e.position, 0xff3b30);
             scene.remove(e);
             enemies.splice(i, 1);
@@ -6382,17 +7272,23 @@
             continue;
           }
         } else {
-          // SURVIVALIST EVADER: Collision avoidance rule to stay alive!
-          if (dist < 48) {
-            // Evasive breakout maneuver: roll laterally, dive or climb away
+          // If another enemy is already ramming, or regrouping, hold back from ramming
+          if (activeRammerEnemy === e && (dist > 450 || frontDot < 0)) {
+            activeRammerEnemy = null;
+            e.userData.regroupTimer = 160;
+          }
+
+          // SURVIVALIST / TACTICAL FORMATION AVOIDANCE: Avoid bumping into player
+          if (dist < 55) {
+            // Evasive breakout maneuver: dive, climb or bank away so it NEVER bumps the player
             const avoidDir = new THREE.Vector3().subVectors(e.position, player.position).normalize();
-            avoidDir.y += (e.position.y > player.position.y ? 0.9 : -0.9);
+            avoidDir.y += (e.position.y > player.position.y ? 0.95 : -0.95);
             avoidDir.x += (Math.sin(Date.now() * 0.005) * 1.2);
-            e.position.add(avoidDir.normalize().multiplyScalar(e.userData.speed * 1.45));
-            e.rotation.z += 0.08; // High-G evasive barrel roll
+            e.position.add(avoidDir.normalize().multiplyScalar(e.userData.speed * 1.5));
+            e.rotation.z += 0.08;
           } else {
-            // Normal tactical pursuit and dogfight circle
-            e.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dirToPlayer), 0.08);
+            // Normal tactical pursuit and formation circling
+            e.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dirToPlayer), 0.07);
 
             // Sinusoidal weaving for Alien Swarm
             if (e.userData.type === 'alien_swarm') {
@@ -6405,11 +7301,19 @@
           }
         }
 
-        // Attack & Firing Logic: ONLY FIRE WHEN IN FRONT OF PLAYER'S SCREEN
-        e.userData.shootCooldown--;
-        if (e.userData.shootCooldown <= 0 && dist < 420 && frontDot >= 0.25) {
-          fireEnemyWeapon(e);
-          e.userData.shootCooldown = 75 + Math.random() * 50;
+        // 3. STAGGERED ATTACK & FIRING LOGIC: ONLY THE TOKEN ATTACKER FIRES!
+        // Prevents simultaneous enemy volleys so player is never suddenly overwhelmed
+        if (isTokenAttacker) {
+          e.userData.shootCooldown--;
+          if (e.userData.shootCooldown <= 0 && dist < 420 && frontDot >= 0.20) {
+            fireEnemyWeapon(e);
+            // Relinquish token immediately after firing salvo
+            globalAttackTokenEnemy = null;
+            attackTokenTimeRemaining = 0;
+            // Grace delay before next hostile attack
+            globalAttackCooldownTimer = (playerHull < 40 || playerShield <= 0) ? 120 : (65 + Math.floor(Math.random() * 25));
+            e.userData.regroupTimer = 160; // Hostile enters tactical regroup phase
+          }
         }
       }
 
