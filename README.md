@@ -1,4 +1,4 @@
-# METAHORIZON ODYSSEY: NOVA GALAXY 3D (v7.0.0 AAA Realistic Edition)
+# METAHORIZON ODYSSEY: NOVA GALAXY 3D (v7.3.0 Full Universe & Arsenal Edition)
 ### AAA Realistic 3D Space Flight Simulation, 360 Free Exploration & Tactical Dogfighting Engine
 ### Autonomous Hardware-Accelerated 3D Simulation Engine & Multi-Stage Sci-Fi Action Experience
 **Built for the Meta Global AI Developer Hackathon ($1,000,000 Prize Pool | Oct 26 – Nov 4, 2026)**  
@@ -15,6 +15,25 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-white?style=for-the-badge)](LICENSE)
 
 ---
+
+### What's New in v7.3.0 (Full Universe, Weapon Arsenal & Realistic Combat Edition):
+- [Interactive Full Universe Galaxy Map]: A massive 3D multi-galaxy cosmos featuring Andromeda (M31), Triangulum (M33), Sombrero (M104), Centaurus A, and the Gargantua Supermassive Black Hole with relativistic accretion disks, gravitational lensing, and polar plasma jets. Deep zoom from intergalactic space (2,400 units) directly into the starting Solar System (35 units).
+- [Real-Time Aircraft & Fleet Tracking in Galaxy Map]: Real-time 3D aircraft marker at player's exact coordinates with green beacon, live red hostile interceptor blips, and click-to-waypoint navigation system linked to the 3D cockpit HUD.
+- [5-Slot Weapon Arsenal System (Keys 1–5)]:
+  - `[1] Rapid Rifle Bullets`: Dual rotary kinetic plasma stream, high rate of fire.
+  - `[2] Homing Rocket Missiles`: Guided ordnance with fin stabilizers, white smoke plume trails, locks onto nearest hostile.
+  - `[3] Cluster Grenade Launcher`: Heavy explosive plasma mortar with ballistic gravity arc and 36m AoE radius blast.
+  - `[4] Hyper Kinetic Railgun`: Instant sniper beam with magnetic rings, pierces through multiple enemies.
+  - `[5] Nano-Heal Matrix`: Instantly restores +40% Hull HP and +15% Shield with emerald nanite particle surge.
+- [Tactical Collision Rules & Survivalist Avoidance]:
+  - Kamikaze Rammers (28%): Charge head-on into player's aircraft cockpit; mid-air collision shatters the enemy craft and inflicts heavy shield/hull damage.
+  - Survivalist Evaders (72%): Detect proximity (< 48m) and execute high-G lateral rolls, dives, and climbs to avoid bumping into the player and survive.
+- [Realistic Plane Crash & Mid-Air Structural Breakup]: Fatal damage sends enemy planes into an aerodynamic death-spin with billowing black smoke and fiery flame trails, followed by mid-air catastrophic breakup into 4 major airframe chunks and 38 burning shrapnel shards.
+- [Chronos II Enemy Interceptor Model]: Forward-swept bio-mechanical interceptor with emerald bio-conduit carapace textures (`textures/Material.001_baseColor.png`).
+- [Ringed Gas Giant Planet Model]: 3D celestial body with authentic PBR atmosphere texture (`m_planet_baseColor.png`), translucent ice rings (`m_ring_baseColor.png`), 26.7° Saturnian axial tilt, and orbiting moon.
+- [Precision Mouse Delta Flight Yoke]: Relative delta steering (`e.movementX`/`e.movementY`) with automatic roll banking and exponential centering decay (eliminates runaway spin drift).
+- [Relocated 3D Tactical Radar]: Relocated to the Left Side Panel (`left: 18px; top: 168px`), clearing center screen line of sight.
+- [Strict Zero 'AI' Invariant & Emoticons]: 0 occurrences of exact word `\bAI\b` in game interface; clean aerospace typography.
 
 ### What's New in v7.0.0 (AAA Realistic Edition):
 - [360-Degree Free Space Exploration]: Navigate freely in any direction across massive planetary sectors with throttle control (80 to 750 km/s), strafing, and 6-DoF flight dynamics.
