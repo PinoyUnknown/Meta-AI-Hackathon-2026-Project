@@ -42,23 +42,24 @@ def launch_3d_game(port: int = 8088, use_window: bool = True):
     server_port = start_local_game_server(port)
     game_url = f"http://127.0.0.1:{server_port}/index.html"
     print("=" * 80)
-    print("  FOUNDATION: ORGANIC SETTLEMENT SIMULATOR (VIBRANT DAYTIME EDITION)")
+    print("  METAHORIZON ODYSSEY: NOVA GALAXY 3D (v7.0.0 AAA REALISTIC EDITION)")
+    print("  Autonomous 3D Space Flight & Multi-Stage Simulation Engine")
     print(f"  Game Engine Server Active: {game_url}")
-    print("  Controls: WASD (Pan View) | Right-Drag (Rotate) | Mouse Scroll (Zoom 8m-260m)")
-    print("            Click (Build / Inspect) | R (Rotate Structure) | ESC (Settings)")
+    print("  Controls: WASD (Flight) | Mouse Tilt (Yoke) | Space/Click (Blasters) | Shift (Warp)")
+    print("            ESC (Pause / Settings / Intel) | M (Audio Toggle) | 1-5 (Switch Sectors)")
     print("=" * 80)
 
     if use_window:
         try:
             import webview
-            print("[ENGINE] Launching Hardware-Accelerated Daytime 3D Window (WebView2)...")
+            print("[3D ENGINE] Launching Hardware-Accelerated 3D Desktop Window (WebView2)...")
             window = webview.create_window(
-                title="FOUNDATION: ORGANIC SETTLEMENT SIMULATOR",
+                title="METAHORIZON ODYSSEY: NOVA GALAXY 3D (v7.0.0)",
                 url=game_url,
                 width=1280,
                 height=760,
                 resizable=True,
-                background_color="#7ec0ee"
+                background_color="#01040a"
             )
             webview.start()
             return
