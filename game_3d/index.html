@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>METAHORIZON ODYSSEY: NOVA GALAXY 3D</title>
+  <title>MetaHorizon Odyssey 3D: Frontier Voyager</title>
   <style>
     * {
       box-sizing: border-box;
@@ -756,6 +756,337 @@
       box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
       z-index: 10;
     }
+  
+    /* =========================================================================
+       CYBERPUNK & VIRTUAL REALITY HUD FRAMES (MATCHING SPEC REFERENCE SHEETS)
+       ========================================================================= */
+    :root {
+      --hud-primary: #0284c7;
+      --hud-accent: #00f0ff;
+      --hud-glow: rgba(0, 240, 255, 0.4);
+      --hud-amber: #f59e0b;
+      --hud-red: #ef4444;
+      --hud-green: #10b981;
+      --hud-bg-glass: rgba(255, 255, 255, 0.92);
+      --hud-border-glass: rgba(14, 165, 233, 0.55);
+      --hud-text-main: #0f172a;
+      --hud-text-sub: #0284c7;
+    }
+
+    /* Angled Chamfered Sci-Fi Frame (Reference Image 1, 2, 3) */
+    .sci-frame {
+      position: relative;
+      background: var(--hud-bg-glass);
+      border: 1.5px solid var(--hud-border-glass);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12), inset 0 0 15px rgba(14, 165, 233, 0.08);
+      clip-path: polygon(
+        0 14px,
+        14px 0,
+        calc(100% - 18px) 0,
+        100% 18px,
+        100% calc(100% - 14px),
+        calc(100% - 14px) 100%,
+        18px 100%,
+        0 calc(100% - 18px)
+      );
+      transition: all 0.25s ease;
+    }
+    .sci-frame::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 28px;
+      width: 45px;
+      height: 3px;
+      background: var(--hud-accent);
+      box-shadow: 0 0 8px var(--hud-accent);
+    }
+    .sci-frame::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 24px;
+      width: 35px;
+      height: 3px;
+      background: var(--hud-amber);
+    }
+
+    /* Top Highlight Glow Tab (Reference Image 2) */
+    .frame-tab {
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 5px;
+      background: var(--hud-accent);
+      clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 6px 100%);
+      box-shadow: 0 0 12px var(--hud-accent);
+    }
+
+    /* Hazard Ventilation Hash Stripes (Reference Image 1 & 2) */
+    .hazard-stripe {
+      width: 100%;
+      height: 4px;
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--hud-accent),
+        var(--hud-accent) 4px,
+        transparent 4px,
+        transparent 8px
+      );
+      opacity: 0.85;
+      margin-top: 6px;
+    }
+
+    /* Segmented Progress Meters (Reference Image 4) */
+    .seg-meter {
+      position: relative;
+      width: 100%;
+      height: 7px;
+      background: rgba(148, 163, 184, 0.25);
+      border-radius: 2px;
+      overflow: hidden;
+      border: 1px solid rgba(14, 165, 233, 0.25);
+    }
+    .seg-meter-fill {
+      height: 100%;
+      border-radius: 1px;
+      transition: width 0.15s ease-out;
+      background-size: 10px 10px;
+      background-image: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 7px,
+        rgba(255, 255, 255, 0.4) 7px,
+        rgba(255, 255, 255, 0.4) 10px
+      );
+    }
+    .fill-shield-seg { background-color: #0284c7; box-shadow: 0 0 10px rgba(2, 132, 199, 0.5); }
+    .fill-hull-seg { background-color: #059669; box-shadow: 0 0 10px rgba(5, 150, 105, 0.5); }
+    .fill-throttle-seg { background-color: #2563eb; box-shadow: 0 0 10px rgba(37, 99, 235, 0.5); }
+    .fill-heat-seg { background-color: #d97706; box-shadow: 0 0 10px rgba(217, 119, 6, 0.5); }
+
+    /* Concentric Cyberpunk Radar Compass (Reference Image 4 & 5) */
+    #radar-container.cyber-radar {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 136px;
+      height: 136px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.96) 0%, rgba(224, 242, 254, 0.92) 75%);
+      border: 2px solid var(--hud-border-glass);
+      border-radius: 50%;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 30px rgba(14, 165, 233, 0.3), inset 0 0 20px rgba(14, 165, 233, 0.12);
+      pointer-events: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .radar-outer-ring {
+      position: absolute;
+      width: 122px;
+      height: 122px;
+      border: 1px dashed rgba(14, 165, 233, 0.6);
+      border-radius: 50%;
+      animation: radarOuterSpin 20s linear infinite;
+    }
+    @keyframes radarOuterSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .radar-tick-ring {
+      position: absolute;
+      width: 96px;
+      height: 96px;
+      border: 1.5px solid rgba(14, 165, 233, 0.35);
+      border-radius: 50%;
+    }
+    .radar-sweep-cone {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(14, 165, 233, 0.28) 0deg, transparent 65deg);
+      animation: radarSweep 3.5s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes radarSweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .radar-cardinal-n { position: absolute; top: 2px; font-size: 8px; font-weight: 900; color: #0284c7; }
+    .radar-cardinal-s { position: absolute; bottom: 2px; font-size: 8px; font-weight: 900; color: #0284c7; }
+    .radar-cardinal-e { position: absolute; right: 4px; font-size: 8px; font-weight: 900; color: #0284c7; }
+    .radar-cardinal-w { position: absolute; left: 4px; font-size: 8px; font-weight: 900; color: #0284c7; }
+
+    /* Light Theme Global Styles */
+    body.light-theme {
+      background: #cce7ff;
+      color: #0f172a;
+    }
+    body.light-theme .cockpit-vignette {
+      box-shadow: inset 0 0 100px rgba(14, 165, 233, 0.16);
+    }
+    body.light-theme .brand-title { color: #0f172a; }
+    body.light-theme .brand-sub { color: #0284c7; }
+    body.light-theme .sector-badge {
+      background: rgba(14, 165, 233, 0.14);
+      color: #0369a1;
+      border: 1px solid rgba(14, 165, 233, 0.45);
+    }
+    body.light-theme .gauge-row { color: #0f172a; }
+    body.light-theme .comms-title { color: #0284c7; }
+    body.light-theme .comms-sender { color: #475569; }
+    body.light-theme .comms-text { color: #0f172a; font-weight: 600; }
+    body.light-theme .comms-objective { color: #b45309; border-top-color: rgba(148, 163, 184, 0.4); }
+    body.light-theme .dock-btn {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1.5px solid rgba(14, 165, 233, 0.45);
+      color: #0f172a;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+    }
+    body.light-theme .dock-btn:hover {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+    }
+    body.light-theme .key-hint {
+      background: rgba(14, 165, 233, 0.16);
+      color: #0284c7;
+      border-color: rgba(14, 165, 233, 0.35);
+    }
+    body.light-theme .telemetry-card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1.5px solid rgba(148, 163, 184, 0.4);
+      color: #475569;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+    body.light-theme .telemetry-item span { color: #0284c7; }
+
+    /* Dark Theme Fallback Overrides */
+    body.dark-theme {
+      background: #01040a;
+      color: #e2e8f0;
+      --hud-bg-glass: rgba(4, 9, 20, 0.92);
+      --hud-border-glass: rgba(0, 240, 255, 0.4);
+      --hud-text-main: #f8fafc;
+      --hud-text-sub: #38bdf8;
+    }
+    body.dark-theme #radar-container.cyber-radar {
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.12) 0%, rgba(4, 9, 20, 0.92) 75%);
+    }
+    body.dark-theme .dock-btn {
+      background: rgba(8, 14, 28, 0.92);
+      color: #f1f5f9;
+      border-color: rgba(0, 240, 255, 0.4);
+    }
+    body.dark-theme .telemetry-card {
+      background: rgba(4, 9, 20, 0.92);
+      border-color: rgba(0, 240, 255, 0.3);
+      color: #94a3b8;
+    }
+
+  
+    /* Cyberpunk Panels & Tabs with Corner Clamps & Micro Plus Grid (Reference: Panels and Tabs & HUD Elements) */
+    .cyber-panel-tab {
+      position: relative;
+      background: var(--hud-bg-glass);
+      border: 1.5px solid var(--hud-border-glass);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+      clip-path: polygon(
+        0 14px,
+        14px 0,
+        calc(100% - 22px) 0,
+        100% 22px,
+        100% calc(100% - 14px),
+        calc(100% - 14px) 100%,
+        22px 100%,
+        0 calc(100% - 22px)
+      );
+      background-image: 
+        radial-gradient(circle, rgba(14, 165, 233, 0.18) 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+
+    /* Orange Stepped Top Tab Accent (Reference: Panels and Tabs) */
+    .stepped-orange-tab {
+      position: absolute;
+      top: -2px;
+      left: 18px;
+      width: 70px;
+      height: 6px;
+      background: #f97316;
+      clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+      box-shadow: 0 0 10px rgba(249, 115, 22, 0.6);
+    }
+
+    /* Heavy Corner Bracket Clamps (Reference: Panels and Tabs) */
+    .corner-clamp-tl {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 14px;
+      height: 14px;
+      border-top: 3px solid #f97316;
+      border-left: 3px solid #f97316;
+      pointer-events: none;
+    }
+    .corner-clamp-br {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 14px;
+      height: 14px;
+      border-bottom: 3px solid #00f0ff;
+      border-right: 3px solid #00f0ff;
+      pointer-events: none;
+    }
+
+    /* Audio Equalizer Spectrum Wave Bars (Reference: HUD Elements) */
+    .audio-eq-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+      padding: 0 4px;
+    }
+    .eq-bar {
+      width: 3px;
+      background: #0284c7;
+      border-radius: 1px;
+      animation: eqBounce 1s infinite alternate ease-in-out;
+    }
+    .eq-bar:nth-child(1) { height: 40%; animation-delay: 0.1s; background: #00f0ff; }
+    .eq-bar:nth-child(2) { height: 85%; animation-delay: 0.3s; background: #f97316; }
+    .eq-bar:nth-child(3) { height: 60%; animation-delay: 0.15s; background: #0284c7; }
+    .eq-bar:nth-child(4) { height: 95%; animation-delay: 0.4s; background: #ec4899; }
+    .eq-bar:nth-child(5) { height: 50%; animation-delay: 0.25s; background: #10b981; }
+    .eq-bar:nth-child(6) { height: 75%; animation-delay: 0.35s; background: #00f0ff; }
+    @keyframes eqBounce {
+      0% { transform: scaleY(0.3); }
+      100% { transform: scaleY(1.2); }
+    }
+
+    /* Chevron Tactical Directional Indicators (Reference: HUD Elements) */
+    .chevron-divider {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      color: #0284c7;
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: -1px;
+    }
+
   </style>
 </head>
 <body>
@@ -781,59 +1112,80 @@
   <!-- In-Game Cockpit HUD -->
   <div id="hud">
     <div class="hud-top">
-      <div class="brand-card">
-        <div class="brand-title">METAHORIZON ODYSSEY</div>
-        <div class="brand-sub">NOVA FLEET TACTICAL SIMULATOR</div>
+      <div class="brand-card cyber-panel-tab">
+        <div class="stepped-orange-tab"></div>
+        <div class="corner-clamp-tl"></div>
+        <div class="corner-clamp-br"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="brand-title">METAHORIZON ODYSSEY 3D</div>
+          <div class="audio-eq-container">
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+          </div>
+        </div>
+        <div class="brand-sub">FRONTIER VOYAGER <span class="chevron-divider">&gt;&gt;&gt;</span> VR CYBERPUNK HUD</div>
         <div id="sector-badge" class="sector-badge">SECTOR 1: PROXIMA CENTAURI</div>
+        <div class="hazard-stripe"></div>
       </div>
 
-      <!-- 3D Tactical Radar Compass -->
-      <div id="radar-container">
+      <!-- Cyberpunk Concentric 3D Tactical Radar (Reference Sheet 4 & 5) -->
+      <div id="radar-container" class="cyber-radar">
+        <div class="radar-sweep-cone"></div>
+        <div class="radar-outer-ring"></div>
+        <div class="radar-tick-ring"></div>
         <div class="radar-grid"></div>
         <div class="radar-axis-h"></div>
         <div class="radar-axis-v"></div>
+        <div class="radar-cardinal-n">0° N</div>
+        <div class="radar-cardinal-s">180° S</div>
+        <div class="radar-cardinal-e">90° E</div>
+        <div class="radar-cardinal-w">270° W</div>
         <div class="radar-player-marker"></div>
         <div id="radar-blips"></div>
-        <div class="radar-label">360 SENSOR RADAR</div>
+        <div class="radar-label">360 TACTICAL SENSOR</div>
       </div>
 
       <div class="stat-cluster">
-        <div class="gauge-box">
+        <div class="gauge-box sci-frame" style="padding: 6px 14px;">
           <div class="gauge-row">
-            <span style="color: #00f0ff;">[DEFLECTOR SHIELDS]</span>
-            <span id="shield-val" style="color: #00f0ff;">100%</span>
+            <span style="color: #0284c7; font-weight: 800;">[DEFLECTOR SHIELDS]</span>
+            <span id="shield-val" style="color: #0284c7; font-weight: 900;">100%</span>
           </div>
-          <div class="gauge-track"><div id="shield-bar" class="gauge-fill fill-shield"></div></div>
+          <div class="seg-meter"><div id="shield-bar" class="seg-meter-fill fill-shield-seg" style="width: 100%;"></div></div>
         </div>
 
-        <div class="gauge-box">
+        <div class="gauge-box sci-frame" style="padding: 6px 14px;">
           <div class="gauge-row">
-            <span style="color: #10b981;">[HULL INTEGRITY]</span>
-            <span id="hull-val" style="color: #10b981;">100%</span>
+            <span style="color: #059669; font-weight: 800;">[HULL INTEGRITY]</span>
+            <span id="hull-val" style="color: #059669; font-weight: 900;">100%</span>
           </div>
-          <div class="gauge-track"><div id="hull-bar" class="gauge-fill fill-hull"></div></div>
+          <div class="seg-meter"><div id="hull-bar" class="seg-meter-fill fill-hull-seg" style="width: 100%;"></div></div>
         </div>
 
-        <div class="gauge-box">
+        <div class="gauge-box sci-frame" style="padding: 6px 14px;">
           <div class="gauge-row">
-            <span style="color: #3b82f6;">[ENGINE THROTTLE]</span>
-            <span id="throttle-val" style="color: #38bdf8;">100%</span>
+            <span style="color: #2563eb; font-weight: 800;">[ENGINE THROTTLE]</span>
+            <span id="throttle-val" style="color: #2563eb; font-weight: 900;">100%</span>
           </div>
-          <div class="gauge-track"><div id="throttle-bar" class="gauge-fill fill-throttle"></div></div>
+          <div class="seg-meter"><div id="throttle-bar" class="seg-meter-fill fill-throttle-seg" style="width: 100%;"></div></div>
         </div>
 
-        <div class="gauge-box">
+        <div class="gauge-box sci-frame" style="padding: 6px 14px;">
           <div class="gauge-row">
-            <span style="color: #f59e0b;">[WEAPON HEAT CORE]</span>
-            <span id="heat-val" style="color: #f59e0b;">0%</span>
+            <span style="color: #d97706; font-weight: 800;">[WEAPON HEAT CORE]</span>
+            <span id="heat-val" style="color: #d97706; font-weight: 900;">0%</span>
           </div>
-          <div class="gauge-track"><div id="heat-bar" class="gauge-fill fill-heat" style="width: 0%;"></div></div>
+          <div class="seg-meter"><div id="heat-bar" class="seg-meter-fill fill-heat-seg" style="width: 0%;"></div></div>
         </div>
       </div>
     </div>
 
     <!-- Real-time Story Transmission Comms Hologram -->
-    <div id="comms-box" class="comms-container">
+    <div id="comms-box" class="comms-container sci-frame">
       <div class="comms-header">
         <div class="comms-wave">
           <div class="comms-bar"></div>
@@ -859,6 +1211,9 @@
       <div class="dock-bar">
         <button id="btn-settings-hud" class="dock-btn" onclick="togglePauseSettings()">
           [SETTINGS] <span class="key-hint">ESC</span>
+        </button>
+        <button id="btn-theme-hud" class="dock-btn" onclick="toggleTheme()">
+          <span id="theme-btn-label">[THEME: LIGHT]</span> <span class="key-hint">T</span>
         </button>
         <button id="btn-map" class="dock-btn" onclick="openGalaxyMap()">
           [GALAXY MAP] <span class="key-hint">M</span>
@@ -946,6 +1301,17 @@
                   <option value="ultra" selected>AAA Quality (Full PBR Shaders, Shadows & Dust)</option>
                   <option value="balanced">Balanced 60 FPS (Optimized Shaders)</option>
                   <option value="performance">High Framerate (Max Performance)</option>
+                </select>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-label">
+                  <span>Visual Theme Mode</span>
+                  <span id="theme-val">Daylight Light Theme</span>
+                </div>
+                <select id="select-theme" class="setting-select" onchange="setThemeMode(this.value)">
+                  <option value="light" selected>Daylight Light Theme (High Visibility)</option>
+                  <option value="dark">Deep Space Dark Theme</option>
                 </select>
               </div>
 
@@ -1203,6 +1569,8 @@
     let enemies = [], asteroids = [], comets = [], satellites = [], spaceMines = [];
     let particles = [], debrisChunks = [];
     let backgroundGalaxyPoints, planetaryBody;
+    let ambientLight, sunKeyLight, rimLight, skyDomeMesh;
+    let currentTheme = 'light';
 
     // Flight Dynamics & Exploration State
     let isPaused = false;
@@ -1506,22 +1874,23 @@
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
-      // Cinematic Multi-Point Lighting
-      const ambient = new THREE.AmbientLight(0xffffff, 0.55);
-      scene.add(ambient);
+      // Cinematic High-Visibility Multi-Point Lighting
+      ambientLight = new THREE.AmbientLight(0xf8fafc, 1.7);
+      scene.add(ambientLight);
 
-      const sunKeyLight = new THREE.DirectionalLight(0x00f0ff, 2.2);
-      sunKeyLight.position.set(200, 350, 200);
+      sunKeyLight = new THREE.DirectionalLight(0xffffff, 2.9);
+      sunKeyLight.position.set(250, 450, 350);
       sunKeyLight.castShadow = true;
       scene.add(sunKeyLight);
 
-      const rimLight = new THREE.DirectionalLight(0x9333ea, 1.4);
+      rimLight = new THREE.DirectionalLight(0x38bdf8, 1.6);
       rimLight.position.set(-200, -100, -200);
       scene.add(rimLight);
 
-      // Celestial Backgrounds
+      // Celestial Backgrounds & Luminous Sky Dome
       buildDeepSpaceStarfield();
       buildRotatingSpiralGalaxy();
+      buildSkyDome();
       buildSectorCelestialPlanet(SECTORS[0]);
       buildComets();
       buildSatellites();
@@ -1532,6 +1901,14 @@
 
       // Setup Inputs (Mouse Tilt, Keyboard 6-DoF, Gyroscope)
       setupInputHandlers();
+
+      // Apply Default Daylight Light Theme for Maximum Visibility
+      window.applyTheme('light');
+
+      // Spawn starting hostiles directly in front of screen for immediate action
+      for (let s = 0; s < 3; s++) {
+        spawnSectorEnemy();
+      }
 
       // Start 60 FPS Engine Loop
       animate();
@@ -1603,41 +1980,118 @@
       scene.add(backgroundGalaxyPoints);
     }
 
-    // Sector Celestial Planet with PBR Atmosphere
+    // Procedural 3D Continental Planet Texture Generator
+    function generatePlanetContinentalTexture(baseColorHex, landColorHex) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      // Ocean Base
+      ctx.fillStyle = baseColorHex;
+      ctx.fillRect(0, 0, 1024, 512);
+
+      // Continents & Landmasses
+      ctx.fillStyle = landColorHex;
+      for (let c = 0; c < 38; c++) {
+        const cx = Math.random() * 1024;
+        const cy = 60 + Math.random() * 392;
+        const radius = 40 + Math.random() * 120;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fill();
+        // Coastal lobes
+        for (let l = 0; l < 4; l++) {
+          ctx.beginPath();
+          ctx.arc(cx + (Math.random()-0.5)*radius*1.4, cy + (Math.random()-0.5)*radius*1.2, radius*0.45, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+
+      // Polar Ice Caps
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, 1024, 45);
+      ctx.fillRect(0, 467, 1024, 45);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      return tex;
+    }
+
+    // Procedural Swirling 3D Cloud Texture
+    function generatePlanetCloudTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 1024, 512);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      for (let i = 0; i < 90; i++) {
+        const cx = Math.random() * 1024;
+        const cy = 40 + Math.random() * 432;
+        const rw = 60 + Math.random() * 160;
+        const rh = 15 + Math.random() * 35;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rw, rh, (Math.random() - 0.5) * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      return tex;
+    }
+
+    // Realistic Multi-Layer 3D Planet System (Surface, Atmosphere & Orbiting Moon)
+    let planetCloudMesh, orbitingMoonMesh;
+
     function buildSectorCelestialPlanet(sector) {
       if (planetaryBody) scene.remove(planetaryBody);
 
       planetaryBody = new THREE.Group();
+
+      // 1. Primary Planet Sphere with Procedural Land & Oceans
       const sphereGeo = new THREE.SphereGeometry(240, 64, 64);
+      const planetTex = generatePlanetContinentalTexture(
+        sector.id === 1 ? '#0284c7' : '#0f766e',
+        sector.id === 1 ? '#15803d' : '#ca8a04'
+      );
       const sphereMat = new THREE.MeshStandardMaterial({
         color: sector.planetColor,
-        roughness: 0.35,
-        metalness: 0.15,
+        map: planetTex,
+        roughness: 0.4,
+        metalness: 0.1,
         emissive: sector.planetColor,
-        emissiveIntensity: 0.12
+        emissiveIntensity: currentTheme === 'light' ? 0.35 : 0.15
       });
       const planetMesh = new THREE.Mesh(sphereGeo, sphereMat);
       planetaryBody.add(planetMesh);
 
-      // Atmospheric Glow Ring
-      const atmoGeo = new THREE.SphereGeometry(250, 48, 48);
-      const atmoMat = new THREE.MeshBasicMaterial({
-        color: sector.planetColor,
+      // 2. Separate Dynamic 3D Cloud Sphere (Swirling Atmospheric Layer)
+      const cloudGeo = new THREE.SphereGeometry(244, 48, 48);
+      const cloudTex = generatePlanetCloudTexture();
+      const cloudMat = new THREE.MeshStandardMaterial({
+        map: cloudTex,
         transparent: true,
-        opacity: 0.22,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending
+        opacity: 0.55,
+        blending: THREE.AdditiveBlending,
+        roughness: 0.9
       });
-      const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
-      planetaryBody.add(atmoMesh);
+      planetCloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+      planetaryBody.add(planetCloudMesh);
 
+      // 3. Multi-Tier Saturnian Ice-Dust Rings
       if (sector.planetRings) {
-        const ringGeo = new THREE.RingGeometry(280, 420, 64);
-        const ringMat = new THREE.MeshBasicMaterial({
-          color: 0x94a3b8,
+        const ringGeo = new THREE.RingGeometry(290, 480, 96);
+        const ringMat = new THREE.MeshStandardMaterial({
+          color: currentTheme === 'light' ? 0x67e8f9 : 0x94a3b8,
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.4
+          opacity: currentTheme === 'light' ? 0.8 : 0.5,
+          roughness: 0.5,
+          metalness: 0.3
         });
         const ringMesh = new THREE.Mesh(ringGeo, ringMat);
         ringMesh.rotation.x = Math.PI / 2.2;
@@ -1645,7 +2099,19 @@
         planetaryBody.add(ringMesh);
       }
 
-      planetaryBody.position.set(650, 250, -1400);
+      // 4. Orbiting Cratered 3D Moon
+      const moonGeo = new THREE.DodecahedronGeometry(38, 2);
+      const moonMat = new THREE.MeshStandardMaterial({
+        color: 0x94a3b8,
+        roughness: 0.85,
+        metalness: 0.15
+      });
+      orbitingMoonMesh = new THREE.Mesh(moonGeo, moonMat);
+      orbitingMoonMesh.position.set(-420, 120, 180);
+      planetaryBody.add(orbitingMoonMesh);
+
+      // Position in illuminated celestial background
+      planetaryBody.position.set(550, 220, -1250);
       scene.add(planetaryBody);
     }
 
@@ -1657,39 +2123,68 @@
     function spawnComet() {
       const cometGroup = new THREE.Group();
 
-      const nucleusGeo = new THREE.DodecahedronGeometry(3.5, 1);
+      // 1. Faceted Icy Crystalline Nucleus with Sublimation Fissures
+      const nucleusGeo = new THREE.IcosahedronGeometry(4.2, 1);
       const nucleusMat = new THREE.MeshStandardMaterial({
-        color: 0xdff9fb,
-        emissive: 0x00f0ff,
-        emissiveIntensity: 1.6,
-        roughness: 0.2
+        color: 0xe0f2fe,
+        emissive: 0x38bdf8,
+        emissiveIntensity: 1.4,
+        roughness: 0.15,
+        metalness: 0.4
       });
       const nucleus = new THREE.Mesh(nucleusGeo, nucleusMat);
       cometGroup.add(nucleus);
 
-      // Trailing dust particles
-      const tailCount = 200;
+      // Coma Luminous Halo Envelope
+      const comaGeo = new THREE.SphereGeometry(7.5, 16, 16);
+      const comaMat = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff,
+        transparent: true,
+        opacity: 0.35,
+        blending: THREE.AdditiveBlending
+      });
+      const coma = new THREE.Mesh(comaGeo, comaMat);
+      cometGroup.add(coma);
+
+      // 2. Dual Tails: Electric Ion Plasma Tail (Cyan) + Curved Dust Tail (Golden White)
+      const tailCount = 450;
       const tailGeo = new THREE.BufferGeometry();
       const tailPos = new Float32Array(tailCount * 3);
       const tailCols = new Float32Array(tailCount * 3);
 
       for (let t = 0; t < tailCount; t++) {
-        tailPos[t*3] = (Math.random() - 0.5) * 2;
-        tailPos[t*3+1] = (Math.random() - 0.5) * 2;
-        tailPos[t*3+2] = t * 1.2 + Math.random() * 3;
+        const isIon = t % 2 === 0;
+        const distZ = t * 0.9 + Math.random() * 4;
+        const spread = (t / tailCount) * 12;
 
-        tailCols[t*3] = 0.0;
-        tailCols[t*3+1] = 0.94;
-        tailCols[t*3+2] = 1.0;
+        if (isIon) {
+          // Straight excited plasma ion tail
+          tailPos[t*3] = (Math.random() - 0.5) * spread * 0.5;
+          tailPos[t*3+1] = (Math.random() - 0.5) * spread * 0.5;
+          tailPos[t*3+2] = distZ;
+
+          tailCols[t*3] = 0.0;
+          tailCols[t*3+1] = 0.94;
+          tailCols[t*3+2] = 1.0; // Electric Cyan
+        } else {
+          // Curved solar dust tail
+          tailPos[t*3] = Math.pow(t / tailCount, 1.8) * 22 + (Math.random() - 0.5) * spread;
+          tailPos[t*3+1] = (Math.random() - 0.5) * spread;
+          tailPos[t*3+2] = distZ;
+
+          tailCols[t*3] = 1.0;
+          tailCols[t*3+1] = 0.92;
+          tailCols[t*3+2] = 0.7; // Warm Golden White
+        }
       }
       tailGeo.setAttribute('position', new THREE.BufferAttribute(tailPos, 3));
       tailGeo.setAttribute('color', new THREE.BufferAttribute(tailCols, 3));
 
       const tailMat = new THREE.PointsMaterial({
-        size: 3.0,
+        size: 3.4,
         vertexColors: true,
         transparent: true,
-        opacity: 0.75,
+        opacity: 0.85,
         blending: THREE.AdditiveBlending
       });
       const tail = new THREE.Points(tailGeo, tailMat);
@@ -1723,48 +2218,133 @@
     function spawnSatellite(index) {
       const sat = new THREE.Group();
 
-      const busGeo = new THREE.BoxGeometry(3.5, 4.5, 3.5);
+      // 1. Faceted Gold-Foil Insulated Main Bus Chassis
+      const busGeo = new THREE.BoxGeometry(4.2, 5.5, 4.2);
       const busMat = new THREE.MeshStandardMaterial({
-        color: 0xf59e0b,
-        metalness: 0.85,
-        roughness: 0.25,
+        color: 0xfbbf24,
         emissive: 0xd97706,
-        emissiveIntensity: 0.2
+        emissiveIntensity: 0.3,
+        metalness: 0.92,
+        roughness: 0.18
       });
       const bus = new THREE.Mesh(busGeo, busMat);
       sat.add(bus);
 
-      // Solar Panels
-      const panelGeo = new THREE.BoxGeometry(12, 2.8, 0.25);
+      // Gold-foil thermal shield facets
+      const shieldFacetGeo = new THREE.OctahedronGeometry(2.4, 0);
+      const shieldFacetMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.1 });
+      const facet = new THREE.Mesh(shieldFacetGeo, shieldFacetMat);
+      facet.position.set(0, 0, -2.2);
+      sat.add(facet);
+
+      // 2. High-Efficiency Articulating Solar Array Wings with Truss Booms
+      const trussGeo = new THREE.CylinderGeometry(0.18, 0.18, 5.0, 6);
+      const trussMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85 });
+      const leftTruss = new THREE.Mesh(trussGeo, trussMat);
+      leftTruss.rotation.z = Math.PI / 2;
+      leftTruss.position.set(-4.5, 0, 0);
+      sat.add(leftTruss);
+
+      const rightTruss = leftTruss.clone();
+      rightTruss.position.set(4.5, 0, 0);
+      sat.add(rightTruss);
+
+      const panelGeo = new THREE.BoxGeometry(14, 3.8, 0.22);
       const panelMat = new THREE.MeshStandardMaterial({
-        color: 0x1d4ed8,
-        metalness: 0.5,
-        roughness: 0.3,
-        emissive: 0x1e40af,
-        emissiveIntensity: 0.3
+        color: 0x1e3a8a,
+        emissive: 0x1d4ed8,
+        emissiveIntensity: 0.4,
+        metalness: 0.65,
+        roughness: 0.25
       });
       const leftPanel = new THREE.Mesh(panelGeo, panelMat);
-      leftPanel.position.set(-8.5, 0, 0);
+      leftPanel.position.set(-14, 0, 0);
       sat.add(leftPanel);
 
       const rightPanel = new THREE.Mesh(panelGeo, panelMat);
-      rightPanel.position.set(8.5, 0, 0);
+      rightPanel.position.set(14, 0, 0);
       sat.add(rightPanel);
 
-      // Parabolic Dish
-      const dishGeo = new THREE.ConeGeometry(2.4, 1.2, 16, 1, true);
-      const dishMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.7, roughness: 0.3 });
+      // 3. Steerable High-Gain Parabolic Communications Dish with Waveguide
+      const dishGeo = new THREE.ConeGeometry(3.2, 1.4, 24, 1, true);
+      const dishMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, metalness: 0.85, roughness: 0.2 });
       const dish = new THREE.Mesh(dishGeo, dishMat);
       dish.rotation.x = Math.PI / 2;
-      dish.position.set(0, 0, 2.5);
+      dish.position.set(0, 0, 3.2);
       sat.add(dish);
 
-      // Beacon LED
-      const beaconGeo = new THREE.SphereGeometry(0.4, 8, 8);
-      const beaconMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-      const beacon = new THREE.Mesh(beaconGeo, beaconMat);
-      beacon.position.set(0, 2.8, 0);
+      const feedHornGeo = new THREE.CylinderGeometry(0.1, 0.2, 1.6, 8);
+      const feedHorn = new THREE.Mesh(feedHornGeo, trussMat);
+      feedHorn.rotation.x = Math.PI / 2;
+      feedHorn.position.set(0, 0, 4.4);
+      sat.add(feedHorn);
+
+      // 4. Magnetometer Boom & Optical Star Trackers
+      const boomGeo = new THREE.CylinderGeometry(0.08, 0.08, 6.5, 6);
+      const boom = new THREE.Mesh(boomGeo, trussMat);
+      boom.position.set(0, 5.8, 0);
+      sat.add(boom);
+
+      // 5. Dual Optical Navigation Strobe LEDs (Green & Red)
+      const strobeGeo = new THREE.SphereGeometry(0.35, 8, 8);
+      const beaconMat = new THREE.MeshBasicMaterial({ color: index % 2 === 0 ? 0x10b981 : 0xef4444 });
+      const beacon = new THREE.Mesh(strobeGeo, beaconMat);
+      beacon.position.set(0, 2.9, 0);
       sat.add(beacon);
+
+      // 6. Spacewalking Astronaut EVA Character (on first orbital relay)
+      if (index === 0) {
+        const evaAstronaut = new THREE.Group();
+
+        // White Pressure Suit
+        const astroTorsoGeo = new THREE.BoxGeometry(0.8, 1.1, 0.6);
+        const astroMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+        const astroTorso = new THREE.Mesh(astroTorsoGeo, astroMat);
+        evaAstronaut.add(astroTorso);
+
+        // Gold Helmet Visor
+        const astroHeadGeo = new THREE.SphereGeometry(0.35, 12, 12);
+        const astroHead = new THREE.Mesh(astroHeadGeo, astroMat);
+        astroHead.position.set(0, 0.75, 0);
+        evaAstronaut.add(astroHead);
+
+        const astroVisorGeo = new THREE.SphereGeometry(0.24, 12, 12);
+        astroVisorGeo.scale(1, 0.6, 0.8);
+        const astroVisorMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.05 });
+        const astroVisor = new THREE.Mesh(astroVisorGeo, astroVisorMat);
+        astroVisor.position.set(0, 0.78, 0.22);
+        evaAstronaut.add(astroVisor);
+
+        // Life Support Backpack (PLSS)
+        const packGeo = new THREE.BoxGeometry(0.7, 0.9, 0.45);
+        const packMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0 });
+        const pack = new THREE.Mesh(packGeo, packMat);
+        pack.position.set(0, 0.1, -0.45);
+        evaAstronaut.add(pack);
+
+        // Limbs & Tool
+        const limbGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.8, 6);
+        const armL = new THREE.Mesh(limbGeo, astroMat);
+        armL.rotation.z = Math.PI / 4;
+        armL.position.set(-0.6, 0.3, 0.2);
+        evaAstronaut.add(armL);
+
+        const armR = new THREE.Mesh(limbGeo, astroMat);
+        armR.rotation.z = -Math.PI / 4;
+        armR.position.set(0.6, 0.3, 0.2);
+        evaAstronaut.add(armR);
+
+        // Umbilical Tether Line
+        const tetherGeo = new THREE.CylinderGeometry(0.04, 0.04, 4.5, 6);
+        const tetherMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+        const tether = new THREE.Mesh(tetherGeo, tetherMat);
+        tether.rotation.z = Math.PI / 3;
+        tether.position.set(2.2, 1.2, 0);
+        evaAstronaut.add(tether);
+
+        evaAstronaut.position.set(-6.5, 3.2, 1.8);
+        sat.add(evaAstronaut);
+      }
 
       sat.position.set(
         (index % 2 === 0 ? 1 : -1) * (140 + index * 50),
@@ -1835,19 +2415,73 @@
       body.rotation.x = Math.PI / 2;
       player.add(body);
 
-      // Glass Canopy
-      const cockpitGeo = new THREE.SphereGeometry(0.9, 16, 16);
-      cockpitGeo.scale(1, 0.6, 2.4);
-      const cockpitMat = new THREE.MeshStandardMaterial({
-        color: 0x00f0ff,
-        emissive: 0x00f0ff,
-        emissiveIntensity: 0.6,
-        roughness: 0.1,
+      // 3D PILOT CHARACTER & INTERIOR COCKPIT
+      const cockpitGroup = new THREE.Group();
+
+      // Pilot Ejection Seat
+      const seatGeo = new THREE.BoxGeometry(0.7, 1.1, 0.6);
+      const seatMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
+      const seat = new THREE.Mesh(seatGeo, seatMat);
+      seat.position.set(0, 0.25, 0.2);
+      cockpitGroup.add(seat);
+
+      const headrestGeo = new THREE.BoxGeometry(0.4, 0.35, 0.25);
+      const headrest = new THREE.Mesh(headrestGeo, seatMat);
+      headrest.position.set(0, 0.85, 0.4);
+      cockpitGroup.add(headrest);
+
+      // Pilot Body (Flight Suit)
+      const pilotTorsoGeo = new THREE.BoxGeometry(0.5, 0.65, 0.4);
+      const pilotSuitMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4, metalness: 0.3 });
+      const pilotTorso = new THREE.Mesh(pilotTorsoGeo, pilotSuitMat);
+      pilotTorso.position.set(0, 0.4, 0.15);
+      cockpitGroup.add(pilotTorso);
+
+      // Pilot Helmet with Reflective Gold Visor
+      const helmetGeo = new THREE.SphereGeometry(0.24, 16, 16);
+      const helmetMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2, metalness: 0.5 });
+      const helmet = new THREE.Mesh(helmetGeo, helmetMat);
+      helmet.position.set(0, 0.8, 0.15);
+      cockpitGroup.add(helmet);
+
+      const visorGeo = new THREE.SphereGeometry(0.18, 16, 16);
+      visorGeo.scale(1, 0.6, 0.8);
+      const visorMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.4,
+        roughness: 0.05,
         metalness: 0.95
+      });
+      const visor = new THREE.Mesh(visorGeo, visorMat);
+      visor.position.set(0, 0.82, -0.05);
+      cockpitGroup.add(visor);
+
+      // Flight Control Stick (Yoke)
+      const stickGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.35, 8);
+      const stickMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8 });
+      const stick = new THREE.Mesh(stickGeo, stickMat);
+      stick.rotation.x = -Math.PI / 6;
+      stick.position.set(0, 0.35, -0.2);
+      cockpitGroup.add(stick);
+
+      // Transparent Canopy Glass (Crystal Clear High Visibility)
+      const cockpitGeo = new THREE.SphereGeometry(0.92, 16, 16);
+      cockpitGeo.scale(1, 0.65, 2.4);
+      const cockpitMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x00f0ff,
+        emissiveIntensity: 0.15,
+        roughness: 0.05,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.38
       });
       const cockpit = new THREE.Mesh(cockpitGeo, cockpitMat);
       cockpit.position.set(0, 0.55, 0.3);
-      player.add(cockpit);
+      cockpitGroup.add(cockpit);
+
+      player.add(cockpitGroup);
 
       // Swept Delta Wings
       const wingShape = new THREE.Shape();
@@ -1904,6 +2538,115 @@
     let mouseTiltX = 0, mouseTiltY = 0;
     let targetPitch = 0, targetYaw = 0, targetRoll = 0;
 
+
+    // Procedural Luminous Sky Dome for Light Theme (Solving Darkness Issue)
+    function buildSkyDome() {
+      const skyGeo = new THREE.SphereGeometry(4500, 32, 24);
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 0, 512);
+      grad.addColorStop(0.0, '#38bdf8'); // Zenith: vibrant celestial cyan
+      grad.addColorStop(0.35, '#bae6fd'); // Upper sky: luminous dawn
+      grad.addColorStop(0.50, '#f0f9ff'); // Horizon: brilliant pearlescent solar atmosphere
+      grad.addColorStop(0.70, '#7dd3fc'); // Lower sky: bright azure
+      grad.addColorStop(1.0, '#0284c7'); // Nadir: deep clear celestial blue
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 512);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+
+      const skyMat = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.BackSide,
+        depthWrite: false
+      });
+      skyDomeMesh = new THREE.Mesh(skyGeo, skyMat);
+      scene.add(skyDomeMesh);
+    }
+
+    // Dynamic Theme Manager (Daylight Light Theme vs Deep Space Dark Theme)
+    window.applyTheme = function(theme) {
+      currentTheme = theme;
+      const isLight = (theme === 'light');
+
+      if (isLight) {
+        document.body.classList.add('light-theme');
+        document.body.classList.remove('dark-theme');
+      } else {
+        document.body.classList.remove('light-theme');
+        document.body.classList.add('dark-theme');
+      }
+
+      const themeBtn = document.getElementById('theme-btn-label');
+      if (themeBtn) themeBtn.innerText = isLight ? '[THEME: LIGHT]' : '[THEME: DARK]';
+      const themeSelect = document.getElementById('select-theme');
+      if (themeSelect) themeSelect.value = isLight ? 'light' : 'dark';
+      const themeVal = document.getElementById('theme-val');
+      if (themeVal) themeVal.innerText = isLight ? 'Daylight Light Theme' : 'Deep Space Dark Theme';
+
+      if (scene) {
+        if (isLight) {
+          if (skyDomeMesh) skyDomeMesh.visible = true;
+          scene.background = new THREE.Color(0xbfe0f7);
+          if (scene.fog) {
+            scene.fog.color.setHex(0xbfe0f7);
+            scene.fog.density = 0.00035;
+          }
+          if (ambientLight) {
+            ambientLight.color.setHex(0xf8fafc);
+            ambientLight.intensity = 1.7;
+          }
+          if (sunKeyLight) {
+            sunKeyLight.color.setHex(0xffffff);
+            sunKeyLight.intensity = 2.9;
+          }
+          if (rimLight) {
+            rimLight.color.setHex(0x38bdf8);
+            rimLight.intensity = 1.6;
+          }
+          if (renderer) renderer.toneMappingExposure = 1.45;
+        } else {
+          if (skyDomeMesh) skyDomeMesh.visible = false;
+          scene.background = new THREE.Color(0x01040a);
+          const sec = SECTORS[currentSectorId - 1];
+          if (scene.fog) {
+            scene.fog.color.setHex(sec ? sec.fogColor : 0x050c1e);
+            scene.fog.density = 0.0025;
+          }
+          if (ambientLight) {
+            ambientLight.color.setHex(0xffffff);
+            ambientLight.intensity = 0.55;
+          }
+          if (sunKeyLight) {
+            sunKeyLight.color.setHex(0x00f0ff);
+            sunKeyLight.intensity = 2.2;
+          }
+          if (rimLight) {
+            rimLight.color.setHex(0x9333ea);
+            rimLight.intensity = 1.4;
+          }
+          if (renderer) renderer.toneMappingExposure = 1.35;
+        }
+
+        if (planetaryBody && planetaryBody.children[0] && planetaryBody.children[0].material) {
+          planetaryBody.children[0].material.emissiveIntensity = isLight ? 0.35 : 0.12;
+        }
+      }
+    };
+
+    window.toggleTheme = function() {
+      const nextTheme = (currentTheme === 'light') ? 'dark' : 'light';
+      window.applyTheme(nextTheme);
+    };
+
+    window.setThemeMode = function(val) {
+      window.applyTheme(val);
+    };
+
     function setupInputHandlers() {
       window.addEventListener('keydown', (e) => {
         initAudio();
@@ -1911,6 +2654,8 @@
 
         if (e.code === 'Escape') {
           togglePauseSettings();
+        } else if (e.code === 'KeyT') {
+          toggleTheme();
         } else if (e.code === 'KeyM') {
           if (!isPaused) toggleGalaxyMap();
         } else if (e.code === 'Space') {
@@ -2105,14 +2850,26 @@
         };
       }
 
-      // Spawn in open 3D space around player
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 350 + Math.random() * 200;
-      enemyGroup.position.set(
-        player.position.x + Math.cos(angle) * dist,
-        player.position.y + (Math.random() - 0.5) * 120,
-        player.position.z + Math.sin(angle) * dist
-      );
+      // Spawn strictly in front of the screen facing towards the player
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(player.quaternion);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(player.quaternion);
+
+      // Distance ahead between 280m and 450m directly in front of the camera
+      const dist = 280 + Math.random() * 170;
+      const spreadX = (Math.random() - 0.5) * 160;
+      const spreadY = (Math.random() - 0.5) * 80;
+
+      const spawnPos = player.position.clone()
+        .add(forward.clone().multiplyScalar(dist))
+        .add(right.clone().multiplyScalar(spreadX))
+        .add(up.clone().multiplyScalar(spreadY));
+
+      enemyGroup.position.copy(spawnPos);
+
+      // Face directly towards the player
+      const dirToPlayer = new THREE.Vector3().subVectors(player.position, spawnPos).normalize();
+      enemyGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dirToPlayer);
 
       scene.add(enemyGroup);
       enemies.push(enemyGroup);
@@ -2526,7 +3283,11 @@
       const sec = SECTORS[currentSectorId - 1];
       document.getElementById('sector-badge').innerText = sec.badge;
 
-      scene.fog.color.setHex(sec.fogColor);
+      if (currentTheme === 'light') {
+        scene.fog.color.setHex(0xbfe0f7);
+      } else {
+        scene.fog.color.setHex(sec.fogColor);
+      }
       buildSectorCelestialPlanet(sec);
 
       enemies.forEach(e => scene.remove(e));
@@ -2560,7 +3321,7 @@
       let pitchInput = 0, yawInput = 0, rollInput = 0;
 
       // Mouse Tilt Flight Yoke
-      pitchInput -= mouseTiltY * 0.035;
+      pitchInput += mouseTiltY * 0.035;
       yawInput -= mouseTiltX * 0.035;
       rollInput -= mouseTiltX * 0.045; // Automatic banking on turn
 
@@ -2616,7 +3377,9 @@
 
       // Rotate Background Galaxy & Celestial Planet
       if (backgroundGalaxyPoints) backgroundGalaxyPoints.rotation.y += 0.0005;
-      if (planetaryBody) planetaryBody.rotation.y += 0.0008;
+      if (planetaryBody) planetaryBody.rotation.y += 0.0006;
+      if (planetCloudMesh) planetCloudMesh.rotation.y += 0.0011;
+      if (orbitingMoonMesh) orbitingMoonMesh.rotation.y += 0.002;
 
       // 2. Animate Comets
       comets.forEach(c => {
@@ -2841,11 +3604,32 @@
         }
 
         // Active 3D Pursuit: Orient toward Player
-        const lookQuat = new THREE.Quaternion();
         const dirToPlayer = new THREE.Vector3().subVectors(player.position, e.position).normalize();
         
+        // Check if enemy is in front of the player's viewcone
+        const playerForward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
+        const playerRight = new THREE.Vector3(1, 0, 0).applyQuaternion(player.quaternion);
+        const playerUp = new THREE.Vector3(0, 1, 0).applyQuaternion(player.quaternion);
+        const toEnemyNorm = new THREE.Vector3().subVectors(e.position, player.position).normalize();
+        const frontDot = playerForward.dot(toEnemyNorm);
+
+        // Repositioning Safeguard: Never attack from behind!
+        // If an enemy slips behind the player (frontDot < 0.15), loop it ahead to re-engage from front
+        if (frontDot < 0.15) {
+          // Reposition 320m directly in front of the player's screen
+          const repositionDist = 300 + Math.random() * 140;
+          const repX = (Math.random() - 0.5) * 140;
+          const repY = (Math.random() - 0.5) * 70;
+          e.position.copy(
+            player.position.clone()
+              .add(playerForward.clone().multiplyScalar(repositionDist))
+              .add(playerRight.clone().multiplyScalar(repX))
+              .add(playerUp.clone().multiplyScalar(repY))
+          );
+        }
+
         // Smooth rotation toward player
-        e.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dirToPlayer), 0.05);
+        e.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dirToPlayer), 0.08);
 
         // Sinusoidal weaving for Alien Swarm
         if (e.userData.type === 'alien_swarm') {
@@ -2853,13 +3637,13 @@
           e.position.add(sideVector.multiplyScalar(Math.sin(Date.now() * 0.005 + e.userData.oscOffset) * 0.6));
         }
 
-        // Forward Pursuit Velocity
+        // Head-on velocity towards player
         const enemyForward = new THREE.Vector3(0, 0, 1).applyQuaternion(e.quaternion);
         e.position.add(enemyForward.multiplyScalar(e.userData.speed));
 
-        // Attack & Firing Logic
+        // Attack & Firing Logic: ONLY FIRE WHEN IN FRONT OF PLAYER'S SCREEN
         e.userData.shootCooldown--;
-        if (e.userData.shootCooldown <= 0 && dist < 420) {
+        if (e.userData.shootCooldown <= 0 && dist < 420 && frontDot >= 0.25) {
           fireEnemyWeapon(e);
           e.userData.shootCooldown = 75 + Math.random() * 50;
         }
