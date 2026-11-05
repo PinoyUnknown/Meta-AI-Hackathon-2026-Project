@@ -2,65 +2,16 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
+*.env
+.venv/
 env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-!game_3d/lib/
-!game_3d/lib/**
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environments
-.venv
 venv/
-ENV/
-env.bak/
-venv.bak/
 
-# Environment Variables & Secrets (CRITICAL FOR ZERO-LEAK SECURITY)
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-*.cert
-*.pfx
-*.p12
+# Scratch & Debug
+scratch/
+test_tmp/
+dist_tmp/
 
-# Node.js
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# IDE & Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
+# OS
 Thumbs.db
-
-# Logs & Archives
-*.log
-*.zip
-Meta-AI-Hackathon-2026-Project/
-
-# Legacy workshops
-legal-agent-workshop/
+.DS_Store
