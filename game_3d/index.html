@@ -1398,6 +1398,103 @@
     .waypoint-title { color: #f8fafc; font-weight: 700; margin-right: 6px; }
     .waypoint-dist { color: #38bdf8; font-weight: 800; }
 
+    /* Off-Screen Solar System Call-Out Indicator (West, South, North, East) */
+    #solar-system-callout {
+      position: absolute;
+      pointer-events: none;
+      z-index: 60;
+      transform: translate(-50%, -50%);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Rajdhani', monospace, sans-serif;
+      transition: opacity 0.15s ease;
+    }
+    .callout-edge-arrow {
+      width: 32px;
+      height: 32px;
+      background: rgba(16, 185, 129, 0.28);
+      border: 2px solid #10b981;
+      border-radius: 50%;
+      color: #6ee7b7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.8);
+      animation: callout-pulse 0.9s infinite alternate;
+    }
+    .callout-card {
+      background: rgba(4, 18, 14, 0.94);
+      border: 1.5px solid #10b981;
+      padding: 6px 14px;
+      border-radius: 5px;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+      backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+    .callout-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #34d399;
+      letter-spacing: 1.2px;
+      text-shadow: 0 0 10px rgba(52, 211, 153, 0.85);
+      margin-bottom: 3px;
+    }
+    .callout-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: callout-pulse 0.8s infinite alternate;
+    }
+    .callout-body {
+      font-size: 11px;
+      font-weight: 700;
+      color: #e2e8f0;
+      letter-spacing: 0.5px;
+    }
+    @keyframes callout-pulse {
+      0% { transform: scale(0.92); opacity: 0.75; }
+      100% { transform: scale(1.12); opacity: 1.0; }
+    }
+
+    /* Galaxy Map Off-Screen Call-Out */
+    #map-solar-callout {
+      position: absolute;
+      z-index: 40;
+      pointer-events: auto;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      display: none;
+      transition: transform 0.1s ease-out;
+    }
+    .map-callout-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(5, 150, 105, 0.92);
+      border: 1.5px solid #34d399;
+      padding: 8px 16px;
+      border-radius: 5px;
+      color: #f8fafc;
+      font-family: 'Rajdhani', monospace, sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.7);
+    }
+    .map-callout-badge:hover {
+      background: rgba(16, 185, 129, 0.98);
+      border-color: #6ee7b7;
+      box-shadow: 0 0 26px rgba(52, 211, 153, 0.95);
+    }
+
   </style>
 </head>
 <body>
@@ -1420,6 +1517,22 @@
     <div class="lock-bracket"></div>
     <div id="target-lock-info" class="lock-info-text">[TARGET LOCKED] 420M</div>
     <div class="lock-hp-track"><div id="target-lock-hp" class="lock-hp-fill"></div></div>
+  </div>
+
+  <!-- Off-Screen Solar System Call-Out Indicator (West, South, North, East) -->
+  <div id="solar-system-callout">
+    <div class="callout-edge-arrow" id="callout-arrow">&laquo;</div>
+    <div class="callout-card" id="callout-content">
+      <div class="callout-header">
+        <span class="callout-pulse-dot"></span>
+        <span id="callout-dir-title">[CALL OUT: SOLAR SYSTEM IS WEST]</span>
+      </div>
+      <div class="callout-body">
+        <span id="callout-bearing">BEARING: 270&deg; [WEST]</span> &bull; 
+        <span id="callout-dist">DIST: 1,420M</span> &bull; 
+        <span id="callout-instruction" style="color:#f59e0b; font-weight:800;">TURN LEFT</span>
+      </div>
+    </div>
   </div>
 
   <!-- Tactical Holographic Waypoint Spatial Trackers -->
@@ -1934,6 +2047,14 @@
   <div id="galaxy-map-modal">
     <div id="galaxy-canvas-container"></div>
     
+    <!-- Galaxy Map Off-Screen Solar System Call-Out -->
+    <div id="map-solar-callout" onclick="focusMapTarget('solarsystem')">
+      <div class="map-callout-badge">
+        <span id="map-callout-arrow" style="font-size:14px; font-weight:900;">&laquo;</span>
+        <span id="map-callout-text">[CALL OUT: SOLAR SYSTEM IS WEST // CLICK TO RE-CENTER]</span>
+      </div>
+    </div>
+    
     <!-- Top Cosmic Atlas Navigation Header -->
     <div class="galaxy-map-overlay">
       <div class="brand-card">
@@ -2347,6 +2468,7 @@
 
       camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 8000);
       camera.position.set(0, 4.5, 14);
+      window.camera = camera;
 
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -4122,6 +4244,7 @@
     };
 
     // Holographic 3D Waypoint Tracker Projection
+    window.updateTacticalWaypoints = function() { updateTacticalWaypoints(); };
     function updateTacticalWaypoints() {
       if (!player || !camera) return;
 
@@ -4144,22 +4267,145 @@
         }
       }
 
-      // 2. Celestial Planet Nova-Prime
+      // 2. Celestial Planet Nova-Prime & Solar System Off-Screen Cardinal Call-Out
       const planetEl = document.getElementById('waypoint-planet');
       const planetDistEl = document.getElementById('waypoint-planet-dist');
-      if (planetEl && planetaryBody) {
+      const calloutEl = document.getElementById('solar-system-callout');
+      const calloutArrow = document.getElementById('callout-arrow');
+      const calloutTitle = document.getElementById('callout-dir-title');
+      const calloutBearing = document.getElementById('callout-bearing');
+      const calloutDist = document.getElementById('callout-dist');
+      const calloutInst = document.getElementById('callout-instruction');
+
+      if (planetaryBody) {
         const pPos = planetaryBody.position;
         const d = player.position.distanceTo(pPos);
         const screenPos = pPos.clone().project(camera);
-        if (screenPos.z > -1 && screenPos.z < 1 && d < 6000) {
-          const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-          const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
-          planetEl.style.display = 'flex';
-          planetEl.style.left = `${x}px`;
-          planetEl.style.top = `${y}px`;
-          if (planetDistEl) planetDistEl.innerText = `${Math.round(d)}M`;
+
+        const isVisibleOnScreen = (screenPos.z > -1 && screenPos.z < 1 &&
+                                   screenPos.x >= -0.82 && screenPos.x <= 0.82 &&
+                                   screenPos.y >= -0.82 && screenPos.y <= 0.82 &&
+                                   d < 6500);
+
+        if (isVisibleOnScreen) {
+          // Solar System is directly on-screen: show locked waypoint
+          if (planetEl) {
+            const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+            planetEl.style.display = 'flex';
+            planetEl.style.left = `${x}px`;
+            planetEl.style.top = `${y}px`;
+            if (planetDistEl) planetDistEl.innerText = `${Math.round(d)}M`;
+          }
+          if (calloutEl) calloutEl.style.display = 'none';
         } else {
-          planetEl.style.display = 'none';
+          // Solar System is OFF-SCREEN or user is out of nowhere: activate Cardinal Call-Out
+          if (planetEl) planetEl.style.display = 'none';
+
+          if (calloutEl && camera) {
+            calloutEl.style.display = 'flex';
+
+            // Transform relative direction into camera local space
+            const relVec = pPos.clone().sub(player.position).normalize();
+            const camLocal = relVec.clone().applyQuaternion(camera.quaternion.clone().invert());
+
+            const absX = Math.abs(camLocal.x);
+            const absY = Math.abs(camLocal.y);
+
+            let cardinal = 'NORTH';
+            let arrowSym = '^';
+            let instruction = 'PITCH UP';
+
+            // Determine Cardinal Direction: WEST, SOUTH, NORTH, EAST
+            if (camLocal.z > 0 && absX < 0.28 && absY < 0.28) {
+              cardinal = 'SOUTH (BEHIND)';
+              arrowSym = 'vv';
+              instruction = 'REVERSE PITCH / TURN 180 DEG';
+            } else if (absX >= absY * 1.25) {
+              if (camLocal.x < 0) {
+                cardinal = 'WEST';
+                arrowSym = '<<';
+                instruction = 'TURN LEFT';
+              } else {
+                cardinal = 'EAST';
+                arrowSym = '>>';
+                instruction = 'TURN RIGHT';
+              }
+            } else if (absY >= absX * 1.25) {
+              if (camLocal.y < 0) {
+                cardinal = 'SOUTH';
+                arrowSym = 'vv';
+                instruction = 'PITCH DOWN';
+              } else {
+                cardinal = 'NORTH';
+                arrowSym = '^^';
+                instruction = 'PITCH UP';
+              }
+            } else {
+              // Diagonal compound bearings
+              if (camLocal.x < 0 && camLocal.y > 0) {
+                cardinal = 'NORTH-WEST';
+                arrowSym = '<< ^';
+                instruction = 'BANK LEFT & PITCH UP';
+              } else if (camLocal.x > 0 && camLocal.y > 0) {
+                cardinal = 'NORTH-EAST';
+                arrowSym = '^ >>';
+                instruction = 'BANK RIGHT & PITCH UP';
+              } else if (camLocal.x < 0 && camLocal.y < 0) {
+                cardinal = 'SOUTH-WEST';
+                arrowSym = '<< v';
+                instruction = 'BANK LEFT & PITCH DOWN';
+              } else {
+                cardinal = 'SOUTH-EAST';
+                arrowSym = 'v >>';
+                instruction = 'BANK RIGHT & PITCH DOWN';
+              }
+            }
+
+            // Compute exact relative bearing degrees (0° - 359°)
+            const angleRad = Math.atan2(camLocal.x, -camLocal.z);
+            const bearingDeg = Math.round((angleRad * 180 / Math.PI + 360) % 360);
+
+            // Clamp Call-Out position along the screen border towards the Solar System
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+            const marginX = 160;
+            const marginY = 100;
+            const halfW = screenW / 2;
+            const halfH = screenH / 2;
+            const boundX = halfW - marginX;
+            const boundY = halfH - marginY;
+
+            let screenAngle = Math.atan2(-camLocal.y, camLocal.x);
+            if (camLocal.z > 0) {
+              screenAngle = Math.atan2(camLocal.y, -camLocal.x) + Math.PI;
+            }
+
+            const cosA = Math.cos(screenAngle);
+            const sinA = Math.sin(screenAngle);
+
+            let edgeX = halfW;
+            let edgeY = halfH;
+
+            if (Math.abs(cosA) * boundY > Math.abs(sinA) * boundX) {
+              edgeX = halfW + (cosA > 0 ? boundX : -boundX);
+              edgeY = halfH + (cosA > 0 ? boundX : -boundX) * Math.tan(screenAngle);
+            } else {
+              edgeY = halfH + (sinA > 0 ? boundY : -boundY);
+              edgeX = halfW + (sinA > 0 ? boundY : -boundY) / (Math.tan(screenAngle) || 0.001);
+            }
+
+            edgeX = Math.max(marginX, Math.min(screenW - marginX, edgeX));
+            edgeY = Math.max(marginY, Math.min(screenH - marginY, edgeY));
+
+            calloutEl.style.left = `${edgeX}px`;
+            calloutEl.style.top = `${edgeY}px`;
+            if (calloutArrow) calloutArrow.innerText = arrowSym;
+            if (calloutTitle) calloutTitle.innerText = `[CALL OUT: SOLAR SYSTEM IS ${cardinal}]`;
+            if (calloutBearing) calloutBearing.innerText = `BEARING: ${bearingDeg} DEG [${cardinal}]`;
+            if (calloutDist) calloutDist.innerText = `DIST: ${Math.round(d)}M`;
+            if (calloutInst) calloutInst.innerText = instruction;
+          }
         }
       }
 
@@ -5745,6 +5991,7 @@
       galaxyScene.background = alienNebulaTex;
       galaxyCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 8000);
       galaxyCamera.position.set(0, 140, galaxyZoomDist);
+      window.galaxyCamera = galaxyCamera;
       galaxyCamera.lookAt(0, 0, 0);
 
       galaxyRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -6684,6 +6931,41 @@
           const pulse = 1.0 + Math.sin(Date.now() * 0.005) * 0.15;
           if (mapYouAreHereBeacon.children[0]) mapYouAreHereBeacon.children[0].scale.set(pulse, pulse, pulse);
           if (mapYouAreHereBeacon.children[1]) mapYouAreHereBeacon.children[1].scale.set(pulse * 1.15, pulse * 1.15, pulse * 1.15);
+        }
+
+        // Galaxy Map Off-Screen Solar System Cardinal Call-Out
+        const mapCallout = document.getElementById('map-solar-callout');
+        const mapCalloutArrow = document.getElementById('map-callout-arrow');
+        const mapCalloutText = document.getElementById('map-callout-text');
+        if (mapCallout && galaxyCamera) {
+          const solarScreen = new THREE.Vector3(0, 0, 0).project(galaxyCamera);
+          const isMapOffscreen = (solarScreen.z >= 1 || solarScreen.x < -0.80 || solarScreen.x > 0.80 || solarScreen.y < -0.80 || solarScreen.y > 0.80);
+          if (isMapOffscreen) {
+            mapCallout.style.display = 'block';
+            let mapCard = 'WEST';
+            let mapArr = '<<';
+            if (solarScreen.x < -0.80) {
+              mapCard = 'WEST'; mapArr = '<<';
+              mapCallout.style.left = '160px';
+              mapCallout.style.top = '50%';
+            } else if (solarScreen.x > 0.80) {
+              mapCard = 'EAST'; mapArr = '>>';
+              mapCallout.style.left = `${window.innerWidth - 180}px`;
+              mapCallout.style.top = '50%';
+            } else if (solarScreen.y > 0.80) {
+              mapCard = 'NORTH'; mapArr = '^^';
+              mapCallout.style.left = '50%';
+              mapCallout.style.top = '140px';
+            } else {
+              mapCard = 'SOUTH'; mapArr = 'vv';
+              mapCallout.style.left = '50%';
+              mapCallout.style.top = `${window.innerHeight - 110}px`;
+            }
+            if (mapCalloutArrow) mapCalloutArrow.innerText = mapArr;
+            if (mapCalloutText) mapCalloutText.innerText = `[CALL OUT: SOLAR SYSTEM IS ${mapCard} // CLICK TO RE-CENTER]`;
+          } else {
+            mapCallout.style.display = 'none';
+          }
         }
         if (mapCometMesh) {
           mapCometMesh.position.x = Math.sin(Date.now() * 0.0006) * 125;

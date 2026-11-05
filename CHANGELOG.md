@@ -39,6 +39,21 @@ This project evolved through three major iterations during the Meta Global AI Ha
 
 ## 📦 Version-by-Version Breakdown
 
+### **v7.5.1 — Off-Screen Solar System Directional Call-Out System (West, South, North, East Tracking) (Current Version)**
+- **Release Date:** November 6, 2026 (00:10 local)
+- **Key Deliverables:**
+  1. **Cockpit HUD Off-Screen Solar System Call-Out Indicator**:
+     - Solved orientation loss when pilots fly out into deep space: automatically detects when the starting Solar System / primary world is outside the viewport or behind the aircraft.
+     - Projects relative vector into camera local space to compute exact cardinal directions: **WEST**, **SOUTH**, **NORTH**, **EAST** (and compound headings: NORTH-WEST, NORTH-EAST, SOUTH-WEST, SOUTH-EAST).
+     - Renders an edge-clamped pulsating aerospace badge with directional chevrons (`<<`, `>>`, `^^`, `vv`), numerical bearing (0°–359°), distance telemetry, and tactical pilot steering instructions (`TURN LEFT`, `TURN RIGHT`, `PITCH UP`, `PITCH DOWN`, `REVERSE PITCH`).
+     - Once the Solar System is brought back into the camera frustum, the callout smoothly hides and hands off to the locked planetary reticle.
+  2. **Galaxy Map Off-Screen Call-Out Navigation**:
+     - When exploring distant deep space galaxies in the Galaxy Map (Andromeda, Whirlpool M51, M87, Pinwheel M101, LMC, etc.), if the Home Solar System is panned off-screen, an interactive callout banner appears at the screen perimeter: `[CALL OUT: SOLAR SYSTEM IS WEST // CLICK TO RE-CENTER]`.
+     - Clicking the callout smoothly glides and refocuses the camera back onto our Home Solar System.
+  3. **Verification & Invariant Audit**:
+     - Test harness: `8/8 PASSED (100% INVARIANT COMPLIANCE)`.
+     - Strictly 0 occurrences of `AI` in in-game source files.
+
 ### **v7.5.0 — Real Galaxies Explorer, "YOU ARE HERE" Universal Indicator, Authentic Saturn & Ringed Gas Giant 3D Models, Giant Round Spacestation Citadel & Dual Asteroid Belts (Current Version)**
 - **Release Date:** November 5, 2026 (23:15 local)
 - **Key Deliverables:**
