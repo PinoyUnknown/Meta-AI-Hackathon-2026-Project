@@ -1087,6 +1087,146 @@
       letter-spacing: -1px;
     }
 
+  
+    /* =========================================================================
+       MINIMAL & COLLAPSIBLE HUD PANELS (SPACE-SAVING AUTO-DOCK)
+       ========================================================================= */
+    .hud-panel-collapsible {
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+      transform-origin: top left;
+    }
+    .hud-panel-collapsible.collapsed-left {
+      transform: translateX(calc(-100% + 28px));
+      opacity: 0.85;
+    }
+    .hud-panel-collapsible.collapsed-right {
+      transform: translateX(calc(100% - 28px));
+      opacity: 0.85;
+    }
+    .hud-panel-collapsible.collapsed-bottom {
+      transform: translateY(calc(100% - 28px));
+      opacity: 0.85;
+    }
+
+    .panel-toggle-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(14, 165, 233, 0.2);
+      border: 1px solid rgba(14, 165, 233, 0.5);
+      color: #0284c7;
+      border-radius: 3px;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 900;
+      cursor: pointer;
+      z-index: 20;
+      transition: all 0.2s;
+    }
+    .panel-toggle-btn:hover {
+      background: #0284c7;
+      color: #ffffff;
+    }
+
+    /* Minimal Compact HUD Scaling */
+    .brand-card {
+      padding: 8px 14px;
+      max-width: 290px;
+    }
+    .brand-title {
+      font-size: 13px;
+      letter-spacing: 1.5px;
+    }
+    .brand-sub {
+      font-size: 9px;
+      letter-spacing: 1px;
+    }
+    .stat-cluster {
+      min-width: 210px;
+      gap: 5px;
+    }
+    .gauge-box {
+      padding: 4px 10px !important;
+    }
+    .gauge-row {
+      font-size: 9px;
+    }
+    .seg-meter {
+      height: 5px;
+    }
+    .comms-container {
+      max-width: 380px;
+      padding: 8px 14px;
+      bottom: 60px;
+    }
+    .comms-text {
+      font-size: 11px;
+    }
+
+    /* Real-Time Solar Internet Clock Banner */
+    #solar-sync-clock {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Galaxy Map Pop-Up Inspection Window & HUD Enhancements */
+    #galaxy-map-modal {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 120;
+      background: radial-gradient(circle at center, rgba(14, 25, 48, 0.96) 0%, rgba(2, 6, 18, 0.99) 100%);
+    }
+
+    #map-inspect-popup {
+      position: absolute;
+      display: none;
+      z-index: 150;
+      width: 260px;
+      pointer-events: none;
+      transform: translate(15px, 15px);
+      transition: opacity 0.15s ease;
+    }
+    .popup-badge {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(14, 165, 233, 0.2);
+      color: #00f0ff;
+      border: 1px solid rgba(14, 165, 233, 0.4);
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+    .popup-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #f8fafc;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .popup-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    .popup-row span:last-child {
+      color: #38bdf8;
+      font-weight: 800;
+    }
+
   </style>
 </head>
 <body>
@@ -1112,7 +1252,8 @@
   <!-- In-Game Cockpit HUD -->
   <div id="hud">
     <div class="hud-top">
-      <div class="brand-card cyber-panel-tab">
+      <div id="panel-brand" class="brand-card cyber-panel-tab hud-panel-collapsible">
+        <div class="panel-toggle-btn" onclick="toggleHudPanel('panel-brand', 'collapsed-left')">◀</div>
         <div class="stepped-orange-tab"></div>
         <div class="corner-clamp-tl"></div>
         <div class="corner-clamp-br"></div>
@@ -1127,8 +1268,9 @@
             <div class="eq-bar"></div>
           </div>
         </div>
-        <div class="brand-sub">FRONTIER VOYAGER <span class="chevron-divider">&gt;&gt;&gt;</span> VR CYBERPUNK HUD</div>
+        <div class="brand-sub">FRONTIER VOYAGER <span class="chevron-divider">&gt;&gt;&gt;</span> SPACE SIMULATOR</div>
         <div id="sector-badge" class="sector-badge">SECTOR 1: PROXIMA CENTAURI</div>
+        <div id="solar-sync-clock">[SOLAR SYNC: REAL-TIME]</div>
         <div class="hazard-stripe"></div>
       </div>
 
@@ -1149,7 +1291,8 @@
         <div class="radar-label">360 TACTICAL SENSOR</div>
       </div>
 
-      <div class="stat-cluster">
+      <div id="panel-stats" class="stat-cluster hud-panel-collapsible" style="position: relative;">
+        <div class="panel-toggle-btn" style="right: -4px; top: -14px;" onclick="toggleHudPanel('panel-stats', 'collapsed-right')">▶</div>
         <div class="gauge-box sci-frame" style="padding: 6px 14px;">
           <div class="gauge-row">
             <span style="color: #0284c7; font-weight: 800;">[DEFLECTOR SHIELDS]</span>
@@ -1185,7 +1328,8 @@
     </div>
 
     <!-- Real-time Story Transmission Comms Hologram -->
-    <div id="comms-box" class="comms-container sci-frame">
+    <div id="comms-box" class="comms-container sci-frame hud-panel-collapsible">
+      <div class="panel-toggle-btn" onclick="toggleHudPanel('comms-box', 'collapsed-bottom')">▼</div>
       <div class="comms-header">
         <div class="comms-wave">
           <div class="comms-bar"></div>
@@ -1212,9 +1356,7 @@
         <button id="btn-settings-hud" class="dock-btn" onclick="togglePauseSettings()">
           [SETTINGS] <span class="key-hint">ESC</span>
         </button>
-        <button id="btn-theme-hud" class="dock-btn" onclick="toggleTheme()">
-          <span id="theme-btn-label">[THEME: LIGHT]</span> <span class="key-hint">T</span>
-        </button>
+
         <button id="btn-map" class="dock-btn" onclick="openGalaxyMap()">
           [GALAXY MAP] <span class="key-hint">M</span>
         </button>
@@ -1902,8 +2044,9 @@
       // Setup Inputs (Mouse Tilt, Keyboard 6-DoF, Gyroscope)
       setupInputHandlers();
 
-      // Apply Default Daylight Light Theme for Maximum Visibility
-      window.applyTheme('light');
+      // Synchronize Visual Theme with Real-Time Solar Internet Clock
+      checkRealTimeThemeSync();
+      setInterval(checkRealTimeThemeSync, 30000);
 
       // Spawn starting hostiles directly in front of screen for immediate action
       for (let s = 0; s < 3; s++) {
@@ -2647,6 +2790,50 @@
       window.applyTheme(val);
     };
 
+
+    // Real-Time Internet / Clock Daylight-Night Cycle Manager
+    function checkRealTimeThemeSync() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+      // Real-Time Daylight vs Night Phase
+      // 06:00 to 18:00 = Daylight Light Theme (High Visibility)
+      // 18:00 to 19:30 = Golden Twilight Sunset
+      // 19:30 to 06:00 = Deep Space Night Theme
+      let phase = 'DAY';
+      if (hours >= 6 && hours < 18) {
+        phase = 'DAY';
+        window.applyTheme('light');
+      } else if (hours >= 18 && hours < 20) {
+        phase = 'TWILIGHT';
+        window.applyTheme('light'); // Keep high visibility in twilight
+      } else {
+        phase = 'NIGHT';
+        window.applyTheme('dark');
+      }
+
+      const clockEl = document.getElementById('solar-sync-clock');
+      if (clockEl) {
+        clockEl.innerText = `[SOLAR CLOCK: ${timeStr} | ${phase} PHASE]`;
+      }
+    }
+
+    // Toggle Collapsible HUD Panels
+    window.toggleHudPanel = function(panelId, collapseClass) {
+      const panel = document.getElementById(panelId);
+      if (!panel) return;
+      panel.classList.toggle(collapseClass);
+      const btn = panel.querySelector('.panel-toggle-btn');
+      if (btn) {
+        const isCollapsed = panel.classList.contains(collapseClass);
+        if (collapseClass === 'collapsed-left') btn.innerText = isCollapsed ? '▶' : '◀';
+        else if (collapseClass === 'collapsed-right') btn.innerText = isCollapsed ? '◀' : '▶';
+        else if (collapseClass === 'collapsed-bottom') btn.innerText = isCollapsed ? '▲' : '▼';
+      }
+    };
+
     function setupInputHandlers() {
       window.addEventListener('keydown', (e) => {
         initAudio();
@@ -3190,11 +3377,26 @@
       else openGalaxyMap();
     }
 
+    let galaxyZoomDist = 260;
+    let mapRaycaster = new THREE.Raycaster();
+    let mapMouse = new THREE.Vector2();
+    let mapInteractiveObjects = [];
+    let mapCometMesh, mapPlayerBeacon;
+
+    window.zoomGalaxyMap = function(delta) {
+      galaxyZoomDist = Math.max(65, Math.min(520, galaxyZoomDist + delta));
+      if (galaxyCamera) {
+        galaxyCamera.position.z = galaxyZoomDist;
+        galaxyCamera.position.y = galaxyZoomDist * 0.54;
+        galaxyCamera.lookAt(0, 0, 0);
+      }
+    };
+
     function initGalaxyMap3D() {
       const container = document.getElementById('galaxy-canvas-container');
       galaxyScene = new THREE.Scene();
       galaxyCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
-      galaxyCamera.position.set(0, 140, 260);
+      galaxyCamera.position.set(0, 140, galaxyZoomDist);
       galaxyCamera.lookAt(0, 0, 0);
 
       galaxyRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -3204,42 +3406,146 @@
 
       galaxyPivot = new THREE.Group();
       galaxyScene.add(galaxyPivot);
+      mapInteractiveObjects = [];
 
+      // 1. Central Solar Star (Sun of the Nova System)
       const sunGeo = new THREE.SphereGeometry(18, 32, 32);
-      const sunMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      const sunMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        emissive: 0xfbbf24,
+        emissiveIntensity: 1.8,
+        roughness: 0.2
+      });
       const sun = new THREE.Mesh(sunGeo, sunMat);
+      sun.userData = {
+        name: 'SOLAR CORE HELIOS-PRIME',
+        type: 'Class-G Yellow Supergiant Star',
+        atmo: 'Hydrogen-Helium Plasma (5,800 K)',
+        res: 'Infinite Solar Energy',
+        sec: 'ALLIED TERRITORY'
+      };
       galaxyPivot.add(sun);
+      mapInteractiveObjects.push(sun);
 
+      // Solar Corona Glow Ring
+      const coronaGeo = new THREE.RingGeometry(19, 28, 32);
+      const coronaMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
+      const corona = new THREE.Mesh(coronaGeo, coronaMat);
+      corona.rotation.x = Math.PI / 2;
+      galaxyPivot.add(corona);
+
+      // 2. Planets & Orbital Paths across 5 Sectors
       const angles = [0, 1.25, 2.5, 3.8, 5.0];
       const radii = [45, 75, 105, 135, 165];
+      const classifications = [
+        'Terrestrial Biosphere (Human Colony)',
+        'Volcanic Mineral World (Mining Outpost)',
+        'Ringed Gas Giant (Helium Harvester)',
+        'Ion Nebula Gas Shroud (Biohazard Zone)',
+        'Singularity Gate (Alien Flagship Citadel)'
+      ];
+      const atmospheres = [
+        'N2-O2 (1.02 atm, Breathable)',
+        'Dense Sulfur-Carbon Dioxide (4.2 atm)',
+        'Hydrogen-Methane Gas Shell',
+        'Ionized Nebular Dust (High Radiation)',
+        'Dark Energy Singularity Vortex'
+      ];
+      const resources = [
+        'Titanium + Bio-Cultures',
+        'Heavy Iron Ore + Magma Crystals',
+        'Helium-3 + Deuterium Fuel',
+        'Rare Gas + Dark Matter Shards',
+        'Ancient Alien Singularity Supercore'
+      ];
 
       SECTORS.forEach((sec, idx) => {
         const ang = angles[idx];
         const rad = radii[idx];
 
-        const orbitGeo = new THREE.RingGeometry(rad - 0.4, rad + 0.4, 64);
-        const orbitMat = new THREE.MeshBasicMaterial({ color: 0x334155, side: THREE.DoubleSide });
+        // Orbital Ring
+        const orbitGeo = new THREE.RingGeometry(rad - 0.4, rad + 0.4, 96);
+        const orbitMat = new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
         const orbit = new THREE.Mesh(orbitGeo, orbitMat);
         orbit.rotation.x = Math.PI / 2;
         galaxyPivot.add(orbit);
 
-        const pGeo = new THREE.SphereGeometry(6, 24, 24);
+        // 3D Celestial Planet
+        const pGeo = new THREE.SphereGeometry(6.5, 24, 24);
         const pMat = new THREE.MeshStandardMaterial({
           color: sec.planetColor,
           emissive: sec.planetColor,
-          emissiveIntensity: 0.4
+          emissiveIntensity: 0.6,
+          metalness: 0.3,
+          roughness: 0.3
         });
         const pMesh = new THREE.Mesh(pGeo, pMat);
         pMesh.position.set(Math.cos(ang) * rad, 0, Math.sin(ang) * rad);
-        pMesh.userData = { sectorId: sec.id };
+        pMesh.userData = {
+          sectorId: sec.id,
+          name: sec.name,
+          type: classifications[idx],
+          atmo: atmospheres[idx],
+          res: resources[idx],
+          sec: sec.id <= unlockedSectors ? 'RECONNAISSANCE PERMIT GRANTED' : 'LOCKED HOSTILE TERRITORY'
+        };
         galaxyPivot.add(pMesh);
+        mapInteractiveObjects.push(pMesh);
+
+        // Saturnian Rings on Sector 3 Gas Giant
+        if (sec.planetRings) {
+          const ringGeo = new THREE.RingGeometry(8, 14, 32);
+          const ringMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.rotation.x = Math.PI / 2.2;
+          pMesh.add(ring);
+        }
+
+        // Current Player Location Beacon
+        if (sec.id === currentSectorId) {
+          const beaconGeo = new THREE.RingGeometry(9, 11, 32);
+          const beaconMat = new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+          mapPlayerBeacon = new THREE.Mesh(beaconGeo, beaconMat);
+          mapPlayerBeacon.rotation.x = Math.PI / 2;
+          pMesh.add(mapPlayerBeacon);
+        }
       });
 
-      const light = new THREE.PointLight(0x00f0ff, 2, 400);
+      // 3. Destructible Asteroid Belt Ring between Orbit 2 & 3
+      const asteroidRingCount = 180;
+      const astGeo = new THREE.DodecahedronGeometry(0.9, 0);
+      const astMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9 });
+      for (let a = 0; a < asteroidRingCount; a++) {
+        const aDist = 88 + (Math.random() - 0.5) * 16;
+        const aAngle = Math.random() * Math.PI * 2;
+        const aMesh = new THREE.Mesh(astGeo, astMat);
+        aMesh.position.set(Math.cos(aAngle) * aDist, (Math.random() - 0.5) * 5, Math.sin(aAngle) * aDist);
+        galaxyPivot.add(aMesh);
+      }
+
+      // 4. Moving Hyperbolic Comet with Animated Dust Tail
+      const cometGroup = new THREE.Group();
+      const cNucleus = new THREE.Mesh(new THREE.DodecahedronGeometry(1.8, 0), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
+      cometGroup.add(cNucleus);
+      cometGroup.position.set(110, 15, -90);
+      cometGroup.userData = {
+        name: 'HYPERBOLIC COMET C/2026-META',
+        type: 'Deep Space Oort Cloud Traveler',
+        atmo: 'Frozen Water, Methane & Cyanogen Ice',
+        res: 'Pristine Volatiles (+1,000 Shards)',
+        sec: 'UNMAPPED ANOMALY'
+      };
+      galaxyPivot.add(cometGroup);
+      mapInteractiveObjects.push(cometGroup);
+      mapCometMesh = cometGroup;
+
+      // Lighting in Galaxy Map
+      const light = new THREE.PointLight(0xfff7ed, 3.2, 500);
       galaxyScene.add(light);
-      const amb = new THREE.AmbientLight(0xffffff, 0.4);
+      const amb = new THREE.AmbientLight(0xf8fafc, 0.85);
       galaxyScene.add(amb);
 
+      // Mouse Drag Controls
       container.addEventListener('mousedown', (e) => {
         isDraggingMap = true;
         prevMouseMapX = e.clientX;
@@ -3248,14 +3554,57 @@
 
       window.addEventListener('mouseup', () => { isDraggingMap = false; });
 
+      // Mouse Wheel Zoom
+      container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        window.zoomGalaxyMap(e.deltaY * 0.25);
+      }, { passive: false });
+
+      // Hover / Raycasting for Pop-Up Inspection Window
+      const popEl = document.getElementById('map-inspect-popup');
       container.addEventListener('mousemove', (e) => {
-        if (!isDraggingMap) return;
-        const dx = e.clientX - prevMouseMapX;
-        const dy = e.clientY - prevMouseMapY;
-        galaxyPivot.rotation.y += dx * 0.008;
-        galaxyPivot.rotation.x = Math.max(-0.6, Math.min(0.6, galaxyPivot.rotation.x + dy * 0.008));
-        prevMouseMapX = e.clientX;
-        prevMouseMapY = e.clientY;
+        if (isDraggingMap) {
+          const dx = e.clientX - prevMouseMapX;
+          const dy = e.clientY - prevMouseMapY;
+          galaxyPivot.rotation.y += dx * 0.008;
+          galaxyPivot.rotation.x = Math.max(-0.7, Math.min(0.7, galaxyPivot.rotation.x + dy * 0.008));
+          prevMouseMapX = e.clientX;
+          prevMouseMapY = e.clientY;
+        }
+
+        // Raycasting for interactive celestial objects
+        const rect = container.getBoundingClientRect();
+        mapMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mapMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        mapRaycaster.setFromCamera(mapMouse, galaxyCamera);
+        const hits = mapRaycaster.intersectObjects(mapInteractiveObjects, true);
+
+        if (hits.length > 0 && popEl) {
+          // Find root object in user data
+          let target = hits[0].object;
+          while (target.parent && !target.userData.name) {
+            target = target.parent;
+          }
+
+          if (target.userData.name) {
+            popEl.style.display = 'block';
+            popEl.style.left = `${e.clientX + 14}px`;
+            popEl.style.top = `${e.clientY - 40}px`;
+
+            document.getElementById('pop-title').innerText = target.userData.name;
+            document.getElementById('pop-type').innerText = target.userData.type || 'Celestial Body';
+            document.getElementById('pop-atmo').innerText = target.userData.atmo || 'Vacuum';
+            document.getElementById('pop-res').innerText = target.userData.res || 'Standard Mineral';
+            document.getElementById('pop-sec').innerText = target.userData.sec || 'MONITORED';
+
+            if (target.userData.sectorId) {
+              renderGalaxyMapInfo(target.userData.sectorId);
+            }
+          }
+        } else if (popEl) {
+          popEl.style.display = 'none';
+        }
       });
     }
 
@@ -3310,7 +3659,12 @@
       requestAnimationFrame(animate);
 
       if (inGalaxyMap && galaxyRenderer && galaxyScene) {
-        galaxyPivot.rotation.y += 0.003;
+        galaxyPivot.rotation.y += 0.0018;
+        if (mapPlayerBeacon) mapPlayerBeacon.rotation.z += 0.04;
+        if (mapCometMesh) {
+          mapCometMesh.position.x = Math.sin(Date.now() * 0.0006) * 125;
+          mapCometMesh.position.z = Math.cos(Date.now() * 0.0006) * 95;
+        }
         galaxyRenderer.render(galaxyScene, galaxyCamera);
         return;
       }
